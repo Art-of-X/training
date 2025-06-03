@@ -1,0 +1,260 @@
+{
+  "id": "hfbk-ai-artist-study-001",
+  "title": {
+    "en": "Training AI to Think Like Artists: A Scientific Study",
+    "de": "KI trainieren, wie Künstler zu denken: Eine wissenschaftliche Studie"
+  },
+  "subtitle": {
+    "en": "Understanding Artistic Thinking Patterns for AI Development",
+    "de": "Künstlerische Denkstrukturen für KI-Entwicklung verstehen"
+  },
+  "description": {
+    "en": "This comprehensive research investigates how artists approach creative problems, make decisions, and express ideas across different domains. Your responses will contribute to developing AI systems that can better understand and replicate artistic thinking processes.",
+    "de": "Diese umfassende Forschung untersucht, wie Künstler:innen kreative Probleme angehen, Entscheidungen treffen und Ideen in verschiedenen Bereichen ausdrücken. Ihre Antworten tragen zur Entwicklung von KI-Systemen bei, die künstlerische Denkprozesse besser verstehen und replizieren können."
+  },
+  "institution": "HFBK Hamburg (Hamburg University of Fine Arts)",
+  "principal_investigator": "Prof. Dr. Friedrich von Borries",
+  "researcher": "Alexander Doudkin (Doctoral Student)",
+  "version": "1.0",
+  "created": "2024-12-15",
+  "ethics_approval": "HFBK-2024-AI-ART-001",
+  "estimated_duration": {
+    "en": "60 minutes",
+    "de": "60 Minuten"
+  },
+  "sections": [
+    {
+      "id": "logical_reasoning",
+      "title": {
+        "en": "Logical Reasoning",
+        "de": "Logisches Denken"
+      },
+      "description": {
+        "en": "Questions exploring logical thinking patterns and problem-solving approaches",
+        "de": "Fragen zur Erforschung logischer Denkstrukturen und Problemlösungsansätze"
+      }
+    },
+    {
+      "id": "societal_opinions",
+      "title": {
+        "en": "Societal Questions & Opinions",
+        "de": "Gesellschaftliche Fragen & Meinungen"
+      },
+      "description": {
+        "en": "Questions about social perspectives and viewpoints on various topics",
+        "de": "Fragen zu sozialen Perspektiven und Standpunkten zu verschiedenen Themen"
+      }
+    },
+    {
+      "id": "everyday_questions",
+      "title": {
+        "en": "Everyday Questions",
+        "de": "Alltägliche Fragen"
+      },
+      "description": {
+        "en": "Questions about daily life, preferences, and routine decision-making",
+        "de": "Fragen über das tägliche Leben, Vorlieben und routinemäßige Entscheidungsfindung"
+      }
+    },
+    {
+      "id": "artistic_practice",
+      "title": {
+        "en": "Artistic Practice",
+        "de": "Künstlerische Praxis"
+      },
+      "description": {
+        "en": "Questions specifically about artistic thinking, creative processes, and professional practice",
+        "de": "Fragen speziell über künstlerisches Denken, kreative Prozesse und professionelle Praxis"
+      }
+    }
+  ],
+  "consent": {
+    "purpose": {
+      "en": "This study aims to understand how artists think, create, and solve problems across different domains to improve AI systems' ability to engage with creative processes.",
+      "de": "Diese Studie zielt darauf ab zu verstehen, wie Künstler:innen denken, schaffen und Probleme in verschiedenen Bereichen lösen, um die Fähigkeit von KI-Systemen zu verbessern, sich mit kreativen Prozessen zu beschäftigen."
+    },
+    "procedures": {
+      "en": "You will answer questions across four sections: Logical Reasoning, Societal Questions & Opinions, Everyday Questions, and Artistic Practice. Some questions require audio responses describing your thinking processes.",
+      "de": "Sie beantworten Fragen in vier Bereichen: Logisches Denken, Gesellschaftliche Fragen & Meinungen, Alltägliche Fragen und Künstlerische Praxis. Einige Fragen erfordern Audio-Antworten, die Ihre Denkprozesse beschreiben."
+    },
+    "data_use": {
+      "en": "Your responses will be analyzed to identify patterns in artistic thinking that can inform AI training methodologies. Data may be used in academic publications and conference presentations.",
+      "de": "Ihre Antworten werden analysiert, um Muster im künstlerischen Denken zu identifizieren, die KI-Trainingsmethoden informieren können. Daten können in wissenschaftlichen Publikationen und Konferenzpräsentationen verwendet werden."
+    },
+    "confidentiality": {
+      "en": "All data will be anonymized. Audio recordings will be transcribed and original recordings deleted after analysis unless you consent to their retention.",
+      "de": "Alle Daten werden anonymisiert. Audio-Aufnahmen werden transkribiert und Originalaufnahmen nach der Analyse gelöscht, es sei denn, Sie stimmen ihrer Aufbewahrung zu."
+    },
+    "voluntary": {
+      "en": "Participation is entirely voluntary. You may withdraw at any time without consequence.",
+      "de": "Die Teilnahme ist völlig freiwillig. Sie können jederzeit ohne Konsequenzen zurücktreten."
+    },
+    "contact": {
+      "en": "For questions about this research, contact Alexander Doudkin (alexander.doudkin@hfbk-hamburg.de) or Prof. Dr. Friedrich von Borries (friedrich.vonborries@hfbk-hamburg.de)",
+      "de": "Bei Fragen zu dieser Forschung wenden Sie sich an Alexander Doudkin (alexander.doudkin@hfbk-hamburg.de) oder Prof. Dr. Friedrich von Borries (friedrich.vonborries@hfbk-hamburg.de)"
+    },
+    "rights": {
+      "en": "You have the right to access, modify, or delete your data at any time during the study period.",
+      "de": "Sie haben das Recht, während der Studienzeit jederzeit auf Ihre Daten zuzugreifen, sie zu ändern oder zu löschen."
+    }
+  },
+  "instructions": {
+    "en": "This questionnaire consists of four sections examining different aspects of thinking and decision-making. Please answer all questions honestly and thoughtfully. For audio questions, speak clearly and take your time to fully express your thoughts. Your unique perspective as an artist is invaluable to this research.",
+    "de": "Dieser Fragebogen besteht aus vier Abschnitten, die verschiedene Aspekte des Denkens und der Entscheidungsfindung untersuchen. Bitte beantworten Sie alle Fragen ehrlich und durchdacht. Bei Audio-Fragen sprechen Sie deutlich und nehmen Sie sich Zeit, um Ihre Gedanken vollständig auszudrücken. Ihre einzigartige Perspektive als Künstler:in ist für diese Forschung von unschätzbarem Wert."
+  },
+  "language_selector": {
+    "en": "Language / Sprache",
+    "de": "Sprache / Language"
+  },
+  "questions": [
+    {
+      "id": "consent",
+      "section": "consent",
+      "type": "multiple_choice_single",
+      "question": {
+        "en": "INFORMED CONSENT: I have read and understood the study information above. I understand that my participation is voluntary and that I can withdraw at any time. I consent to participate in this research study.",
+        "de": "INFORMIERTE EINVERSTÄNDNISERKLÄRUNG: Ich habe die obigen Studieninformationen gelesen und verstanden. Ich verstehe, dass meine Teilnahme freiwillig ist und dass ich jederzeit zurücktreten kann. Ich stimme der Teilnahme an dieser Forschungsstudie zu."
+      },
+      "required": true,
+      "options": [
+        { 
+          "id": "consent_yes", 
+          "text": {
+            "en": "Yes, I consent to participate in this study",
+            "de": "Ja, ich stimme der Teilnahme an dieser Studie zu"
+          }
+        },
+        { 
+          "id": "consent_no", 
+          "text": {
+            "en": "No, I do not wish to participate",
+            "de": "Nein, ich möchte nicht teilnehmen"
+          }
+        }
+      ]
+    },
+    {
+      "id": "logic_bat_ball",
+      "section": "logical_reasoning",
+      "type": "multiple_choice_single",
+      "question": "A bat and a ball cost £1.10 in total. The bat costs £1.00 more than the ball. How much does the ball cost?",
+      "required": true,
+      "options": [
+        { "id": "logic_bb_5p", "text": "5 pence" },
+        { "id": "logic_bb_10p", "text": "10 pence" },
+        { "id": "logic_bb_9p", "text": "9 pence" },
+        { "id": "logic_bb_1p", "text": "1 pence" }
+      ]
+    },
+    {
+      "id": "logic_machines",
+      "section": "logical_reasoning", 
+      "type": "multiple_choice_single",
+      "question": "If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets?",
+      "required": true,
+      "options": [
+        { "id": "logic_mach_5min", "text": "5 minutes" },
+        { "id": "logic_mach_100min", "text": "100 minutes" },
+        { "id": "logic_mach_20min", "text": "20 minutes" },
+        { "id": "logic_mach_500min", "text": "500 minutes" }
+      ]
+    },
+    {
+      "id": "logic_lily_pads",
+      "section": "logical_reasoning",
+      "type": "multiple_choice_single", 
+      "question": "In a lake, there is a patch of lily pads. Every day, the patch doubles in size. If it takes 48 days for the patch to cover the entire lake, how long would it take for the patch to cover half of the lake?",
+      "required": true,
+      "options": [
+        { "id": "logic_lily_47d", "text": "47 days" },
+        { "id": "logic_lily_24d", "text": "24 days" },
+        { "id": "logic_lily_12d", "text": "12 days" },
+        { "id": "logic_lily_36d", "text": "36 days" }
+      ]
+    },
+    {
+      "id": "logic_water_barrel",
+      "section": "logical_reasoning",
+      "type": "multiple_choice_single",
+      "question": "If John can drink one barrel of water in 6 days, and Mary can drink one barrel of water in 12 days, how long would it take them to drink one barrel of water together?",
+      "required": true,
+      "options": [
+        { "id": "logic_water_4d", "text": "4 days" },
+        { "id": "logic_water_9d", "text": "9 days" },
+        { "id": "logic_water_12d", "text": "12 days" },
+        { "id": "logic_water_3d", "text": "3 days" }
+      ]
+    },
+    {
+      "id": "logic_class_size",
+      "section": "logical_reasoning",
+      "type": "multiple_choice_single",
+      "question": "Jerry received both the 15th highest and the 15th lowest mark in the class. How many students are in the class?",
+      "required": true,
+      "options": [
+        { "id": "logic_class_29", "text": "29 students" },
+        { "id": "logic_class_30", "text": "30 students" },
+        { "id": "logic_class_1", "text": "1 student" },
+        { "id": "logic_class_15", "text": "15 students" }
+      ]
+    },
+    {
+      "id": "logic_pig_trading",
+      "section": "logical_reasoning",
+      "type": "multiple_choice_single",
+      "question": "A man buys a pig for £60, sells it for £70, buys it back for £80, and sells it finally for £90. How much has he made?",
+      "required": true,
+      "options": [
+        { "id": "logic_pig_20", "text": "20 pounds" },
+        { "id": "logic_pig_10", "text": "10 pounds" },
+        { "id": "logic_pig_0", "text": "0 pounds" },
+        { "id": "logic_pig_30", "text": "30 pounds" }
+      ]
+    },
+    {
+      "id": "logic_stock_investment",
+      "section": "logical_reasoning",
+      "type": "multiple_choice_single",
+      "question": "Simon decided to invest £8,000 in the stock market one day early in 2008. Six months after he invested, on July 17, the stocks he had purchased were down 50%. Fortunately for Simon, from July 17 to October 17, the stocks he had purchased went up 75%. At this point, Simon:",
+      "required": true,
+      "options": [
+        { "id": "logic_stock_lost", "text": "has lost money." },
+        { "id": "logic_stock_ahead", "text": "is ahead of where he began." },
+        { "id": "logic_stock_even", "text": "has broken even in the stock market." },
+        { "id": "logic_stock_unknown", "text": "it cannot be determined." }
+      ]
+    },
+    {
+      "id": "exp_sustainability_definition",
+      "section": "everyday_questions",
+      "type": "audio",
+      "question": "What is your definition of sustainability?",
+      "required": true,
+      "maxDuration": 180
+    },
+    {
+      "id": "exp_diversity_perspective", 
+      "section": "everyday_questions",
+      "type": "audio",
+      "question": "How do you see diversity?",
+      "required": true,
+      "maxDuration": 180
+    },
+    {
+      "id": "exp_defense_industry_opinion",
+      "section": "everyday_questions", 
+      "type": "audio",
+      "question": "What do you think about the defense industry?",
+      "required": true,
+      "maxDuration": 180
+    },
+    {
+      "id": "artistic_soul_definition",
+      "section": "artistic_practice",
+      "type": "audio",
+      "question": "Als was würdest du \"Seele\" definieren?",
+      "required": true,
+      "maxDuration": 180
+    }
+  ]
+} 
