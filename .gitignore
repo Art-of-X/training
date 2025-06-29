@@ -1,53 +1,45 @@
-# Dependencies
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# Nuxt dev/build outputs
+.output
+.nuxt
+.nitro
+.cache
+dist
 
-# Build outputs
-dist/
-build/
-*.local
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# IDE and Editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+# Node dependencies
+node_modules
 
 # Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+*.log*
+loglevel.json
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Temporary folders
+tmp/
+temp/
 
 # Coverage directory used by tools like istanbul
 coverage/
@@ -56,22 +48,15 @@ coverage/
 # nyc test coverage
 .nyc_output
 
-# Grunt intermediate storage
-.grunt
+# ESLint cache
+.eslintcache
 
-# Bower dependency directory
-bower_components
+# Prisma
+# Keep prisma directory but ignore generated files
+prisma/generated/
+# Don't ignore schema.prisma as it's version controlled
 
-# node-waf configuration
-.lock-wscript
-
-# Compiled binary addons
-build/Release
-
-# Dependency directories
-jspm_packages/
-
-# TypeScript cache
+# TypeScript
 *.tsbuildinfo
 
 # Optional npm cache directory
@@ -79,12 +64,6 @@ jspm_packages/
 
 # Optional eslint cache
 .eslintcache
-
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
 
 # Optional REPL history
 .node_repl_history
@@ -97,8 +76,9 @@ jspm_packages/
 
 # dotenv environment variables file
 .env.test
+.env.production
 
-# parcel-bundler cache
+# parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
 
@@ -109,58 +89,60 @@ jspm_packages/
 .nuxt
 dist
 
-# Gatsby files
-.cache/
-public
-
 # Storybook build outputs
 .out
 .storybook-out
+storybook-static
 
 # Temporary folders
 tmp/
 temp/
 
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+
+# Local Netlify folder
+.netlify
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
 # Vim swap files
 *.swp
 *.swo
 
-# Emacs backup files
-*~
+# MacOS
+.DS_Store
 
-# Mac specific
-.AppleDouble
-.LSOverride
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Windows specific
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-
-# Linux specific
-*~
-
-# Scientific data files (if you want to exclude exported questionnaire data)
-# Uncomment the following lines if you don't want to track exported data files:
-# *.json
-# exports/
-# data/responses/
-# audio_recordings/
-
-# Backup files
-*.bak
-*.backup
-*.old
-
-# Editor directories and files
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-*.code-workspace
-
-# Local History for Visual Studio Code
-.history/ 
+# Linux
+*~ 

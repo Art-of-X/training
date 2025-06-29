@@ -1,68 +1,112 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
+  darkMode: 'class',
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,vue,ts}",
+    "./layouts/**/*.vue",
+    "./pages/**/*.vue",
+    "./plugins/**/*.{js,ts}",
+    "./nuxt.config.{js,ts}",
+    "./app.vue"
   ],
   theme: {
     extend: {
+      // Custom color palette for the AI training platform
+      colors: {
+        primary: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
+          950: '#082f49'
+        },
+        secondary: {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a'
+        },
+        success: {
+          50: '#f0fdf4',
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d'
+        },
+        warning: {
+          50: '#fffbeb',
+          500: '#f59e0b',
+          600: '#d97706',
+          700: '#b45309'
+        },
+        error: {
+          50: '#fef2f2',
+          500: '#ef4444',
+          600: '#dc2626',
+          700: '#b91c1c'
+        }
+      },
+      
+      // Sharp corners - NO rounded corners
       borderRadius: {
         'none': '0',
         DEFAULT: '0',
+        'sm': '0',
+        'md': '0',
+        'lg': '0',
+        'xl': '0',
+        '2xl': '0',
+        '3xl': '0',
+        'full': '0'
       },
-      colors: {
-        hfbk: {
-          // Primary HFBK red
-          primary: '#f50000',
-          // Background colors
-          'bg-dark': '#320300',
-          'bg-extra': '#180100',
-          // Foreground colors
-          'fg-primary': '#FDECE9',
-          'fg-secondary': '#F17E71',
-          'fg-tertiary': '#F17E71',
-          // Text colors
-          title: '#F0D9D8',
-          subtitle: '#7E7675',
-          // Interactive colors
-          hover: '#BC4D45',
-          focus: '#B63D33',
-          // Contrast colors
-          'min-contrast': '#A82111',
-          'max-contrast': '#FDECE9',
-          cutout: '#A82111',
-        },
-        // Keep some grays for compatibility
-        gray: {
-          50: '#FDECE9',
-          100: '#F0D9D8',
-          200: '#E5C4C2',
-          300: '#D9AFAC',
-          400: '#CE9A96',
-          500: '#7E7675',
-          600: '#6B5E5D',
-          700: '#584645',
-          800: '#452E2D',
-          900: '#320300',
-        },
-        // Update red palette to match HFBK
-        red: {
-          50: '#FDECE9',
-          100: '#F0D9D8',
-          200: '#F17E71',
-          300: '#F17E71',
-          400: '#F17E71',
-          500: '#f50000',
-          600: '#B63D33',
-          700: '#A82111',
-          800: '#320300',
-          900: '#180100',
-        }
+      
+      // Custom spacing for the minimalist design
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+        '128': '32rem'
       },
+      
+      // Typography enhancements
       fontFamily: {
-        'hfbk': ['TimesNewArial', 'sans-serif'],
+        'sans': ['Px Grotesk', 'system-ui', 'sans-serif'],
+        'mono': ['JetBrains Mono', 'Menlo', 'Monaco', 'Courier New', 'monospace']
+      },
+      
+      // Animation for smooth interactions
+      animation: {
+        'fade-in': 'fadeIn 0.2s ease-in-out',
+        'slide-up': 'slideUp 0.3s ease-out',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+      },
+      
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' }
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' }
+        }
       }
     },
   },
-  plugins: [],
+  plugins: [
+    // Add form plugin for better form styling
+    require('@tailwindcss/forms')({
+      strategy: 'class' // Use class-based strategy for better control
+    }),
+  ],
 } 

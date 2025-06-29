@@ -1,230 +1,261 @@
-# Artificial Artistic Thinking - Research Platform
+# Artificial Artistic Thinking Training Platform
 
-A scientific research platform investigating artistic thinking patterns for AI development, built with React and Tailwind CSS for HFBK Hamburg.
+A state-of-the-art Nuxt 3 application for capturing artists' creative DNA through secure, multi-modal training modules. This platform facilitates AI model training through portfolio sharing, monologue recording, peer training sessions, and observational learning.
 
-## Features
+## 🚀 Features
 
-### 🎯 **Core Functionality**
-- **Multiple Question Types**: Text input, audio recording, single choice, multiple choice
-- **Audio Recording**: Built-in microphone recording with playback controls
-- **Progress Tracking**: Real-time progress bar and question navigation
-- **Data Persistence**: Automatic saving with unique session and response IDs
-- **Export Functionality**: Download questionnaire data as JSON
+### Core Training Modules
 
-### 🎨 **Design Philosophy**
-- **No Border Radius**: Clean, sharp-edged design aesthetic
-- **High Contrast**: Black and white color scheme for maximum readability
-- **Minimalist UI**: Focus on content and functionality
-- **Scientific Approach**: Professional, research-oriented interface
+- **Portfolio Training**: Upload PDFs and share portfolio links
+- **Monologue Training**: Record audio responses to creative prompts
+- **Peer Training**: Collaborative video sessions (coming soon)
+- **Observation Training**: Environmental learning patterns (coming soon)
 
-### 🔧 **Technical Features**
-- **Session Management**: Unique session IDs for each questionnaire attempt
-- **Response Validation**: Required field validation and completion tracking
-- **Audio Processing**: Browser-based audio recording with MediaRecorder API
-- **Data Structure**: Comprehensive data storage with metadata
-- **Scientific Rigor**: Timestamping, completion rates, and detailed analytics
+### Technical Stack
 
-## Research Context
+- **Frontend**: Nuxt 3, Vue 3, TypeScript
+- **Authentication**: Supabase Auth
+- **Database**: PostgreSQL with Prisma ORM
+- **Storage**: Supabase Storage for file uploads
+- **Styling**: Tailwind CSS with custom minimalist design
+- **State Management**: Pinia
+- **Deployment**: Vercel/Netlify compatible
 
-This platform supports research at HFBK Hamburg (Hamburg University of Fine Arts) under Prof. Dr. Friedrich von Borries and doctoral student Alexander Doudkin, investigating how artists think and create to improve AI systems' understanding of creative processes.
+### Security & Performance
 
-## Installation
+- Row Level Security (RLS) policies
+- Server-side file validation
+- Type-safe API routes
+- Optimized build with code splitting
+- SSR for better performance and SEO
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd artificial-artistic-thinking
-   ```
+## 📋 Prerequisites
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+- Node.js 18+ 
+- npm or yarn
+- Supabase account
+- Git
 
-3. **Start development server**
-   ```bash
-   npm run dev
-   ```
+## 🛠️ Installation
 
-4. **Open in browser**
-   ```
-   http://localhost:3000
-   ```
+### 1. Clone the repository
 
-## Usage
-
-### Starting a Study Session
-1. Launch the application
-2. Review the study information and consent details
-3. Click "I HAVE READ AND UNDERSTOOD - START STUDY" to begin
-4. Navigate through questions using NEXT/PREVIOUS buttons
-
-### Question Types
-
-#### **Text Questions**
-- Type responses in the text area
-- Character count displayed for questions with limits
-- Auto-save as you type
-
-#### **Audio Questions**
-- Click "START RECORDING" to begin audio capture
-- Speak clearly into your microphone
-- Click "STOP RECORDING" when finished
-- Review and re-record if needed
-
-#### **Multiple Choice (Single)**
-- Select one option from the available choices
-- Radio button interface for clear selection
-
-#### **Multiple Choice (Multiple)**
-- Select multiple options by checking boxes
-- Clear indication of selected items
-
-### Data Export
-- After completion, use "EXPORT YOUR DATA" to download responses
-- JSON format includes all questionnaire data and metadata
-
-## Project Structure
-
-```
-src/
-├── components/
-│   ├── AudioRecorder.jsx     # Audio recording component
-│   └── Question.jsx          # Question rendering component
-├── data/
-│   └── questionnaire.json    # Research questionnaire data
-├── hooks/
-│   └── useAudioRecorder.js   # Audio recording hook
-├── utils/
-│   └── dataStorage.js        # Data persistence utilities
-├── App.jsx                   # Main application component
-├── main.jsx                  # React entry point
-└── index.css                 # Global styles
-```
-
-## Questionnaire JSON Format
-
-```json
-{
-  "id": "hfbk-ai-artist-study-001",
-  "title": "Training AI to Think Like Artists: A Scientific Study",
-  "subtitle": "Understanding Artistic Thinking Patterns for AI Development",
-  "institution": "HFBK Hamburg (Hamburg University of Fine Arts)",
-  "principal_investigator": "Prof. Dr. Friedrich von Borries",
-  "researcher": "Alexander Doudkin (Doctoral Student)",
-  "consent": {
-    "purpose": "Study purpose description",
-    "procedures": "What participants will do",
-    "data_use": "How data will be used",
-    "confidentiality": "Privacy protections",
-    "voluntary": "Voluntary participation info",
-    "contact": "Contact information",
-    "rights": "Participant rights"
-  },
-  "questions": [
-    {
-      "id": "consent",
-      "type": "multiple_choice_single",
-      "question": "Consent question",
-      "required": true,
-      "options": [...]
-    }
-  ]
-}
-```
-
-## Data Storage
-
-### Response Structure
-```json
-{
-  "responseId": "response_uuid",
-  "questionnaireId": "hfbk-ai-artist-study-001",
-  "timestamp": "ISO-8601-timestamp",
-  "sessionData": {
-    "sessionId": "session_timestamp_uuid",
-    "startTime": "ISO-8601-timestamp",
-    "endTime": "ISO-8601-timestamp",
-    "totalTimeSpent": 300,
-    "userAgent": "browser-info",
-    "platform": "platform-info"
-  },
-  "responses": {
-    "questionId": {
-      "questionId": "consent",
-      "type": "single_choice",
-      "timestamp": "ISO-8601-timestamp",
-      "data": {
-        "selectedOptions": ["consent_yes"],
-        "selectionCount": 1
-      }
-    }
-  },
-  "metadata": {
-    "totalQuestions": 12,
-    "audioQuestions": 4,
-    "completionRate": 100.0
-  }
-}
-```
-
-## Development
-
-### Building for Production
 ```bash
-npm run build
+git clone <repository-url>
+cd nuxt3-ai-training-platform
 ```
 
-### Linting
+### 2. Install dependencies
+
 ```bash
-npm run lint
+npm install
 ```
 
-### Preview Production Build
+### 3. Set up environment variables
+
 ```bash
-npm run preview
+cp env.example .env
 ```
 
-## Browser Requirements
+Fill in your environment variables:
 
-- **Modern Browser**: Chrome, Firefox, Safari, Edge (latest versions)
-- **Microphone Access**: Required for audio questions
-- **JavaScript Enabled**: Required for all functionality
-- **Local Storage**: Used for data persistence
+```env
+# Supabase Configuration
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-## Privacy & Security
+# Database Configuration (Supabase PostgreSQL)
+DATABASE_URL="postgresql://postgres:[password]@[host]:5432/[database]?schema=public&pgbouncer=true"
+DIRECT_URL="postgresql://postgres:[password]@[host]:5432/[database]?schema=public"
+```
 
-- **Local Storage**: All data stored locally in browser
-- **No Server**: No data transmitted to external servers
-- **Microphone Permissions**: Requested only when needed
-- **Data Export**: User-controlled data export functionality
-- **Informed Consent**: Comprehensive consent process for research participation
+### 4. Set up Supabase
 
-## Research Ethics
+#### Create Storage Buckets
 
-This platform implements proper research ethics standards including:
-- **Informed Consent**: Detailed consent process before participation
-- **Voluntary Participation**: Clear withdrawal options
-- **Data Protection**: Anonymization and participant rights
-- **Contact Information**: Clear researcher contact details
-- **Institutional Approval**: Ethics approval tracking
+In your Supabase dashboard, create these storage buckets:
 
-## Scientific Use
+- `portfolio-assets`
+- `monologue-recordings`
+- `peer-training-recordings`
 
-This application is designed for academic research with:
-- **Unique Identifiers**: Every session and response has unique IDs
-- **Timestamping**: All interactions are timestamped
-- **Data Integrity**: Comprehensive validation and error handling
-- **Reproducible Results**: Consistent data structure and export format
-- **Analytics**: Built-in completion rates and response metrics
+#### Configure RLS Policies
 
-## Contact
+Apply the RLS policies as defined in the technical brief:
 
-For questions about this research platform or the study:
-- **Alexander Doudkin**: alexander.doudkin@hfbk-hamburg.de
-- **Prof. Dr. Friedrich von Borries**: friedrich.vonborries@hfbk-hamburg.de
-- **Institution**: HFBK Hamburg (Hamburg University of Fine Arts)
+```sql
+-- Enable RLS on user_profiles
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 
-## License
+-- User can only access their own profile
+CREATE POLICY "Users can view own profile" ON user_profiles
+  FOR SELECT USING (id = auth.uid());
 
-MIT License - for research and educational purposes. 
+CREATE POLICY "Users can update own profile" ON user_profiles
+  FOR UPDATE USING (id = auth.uid());
+
+-- Similar policies for portfolio_shares, monologue_recordings, etc.
+```
+
+### 5. Set up database with Prisma
+
+```bash
+# Generate Prisma client
+npx prisma generate
+
+# Push database schema to Supabase
+npx prisma db push
+
+# Optional: Open Prisma Studio
+npx prisma studio
+```
+
+### 6. Run development server
+
+```bash
+npm run dev
+```
+
+The application will be available at `http://localhost:3000`
+
+## 🏗️ Project Structure
+
+```
+├── assets/
+│   └── css/
+│       └── main.css              # Tailwind CSS and custom styles
+├── components/                   # Reusable Vue components
+├── composables/
+│   ├── useAuth.ts               # Authentication logic
+│   ├── useFileUpload.ts         # File upload utilities
+│   └── useMediaRecorder.ts      # Audio/video recording
+├── layouts/
+│   └── default.vue              # Main layout with navigation
+├── middleware/
+│   └── auth.global.ts           # Global authentication middleware
+├── pages/
+│   ├── index.vue                # Landing page
+│   ├── login.vue                # Authentication pages
+│   ├── register.vue
+│   └── training/
+│       ├── portfolio.vue        # Training modules
+│       ├── monologue.vue
+│       ├── peer-training.vue
+│       └── observation.vue
+├── prisma/
+│   └── schema.prisma            # Database schema
+├── server/
+│   ├── api/                     # API routes
+│   │   ├── auth/
+│   │   ├── portfolio/
+│   │   └── monologue/
+│   └── utils/
+│       └── prisma.ts            # Prisma client singleton
+├── stores/                      # Pinia stores
+├── nuxt.config.ts              # Nuxt configuration
+├── tailwind.config.js          # Tailwind CSS configuration
+└── package.json
+```
+
+## 🚀 Deployment
+
+### Vercel Deployment
+
+1. Connect your repository to Vercel
+2. Set environment variables in Vercel dashboard
+3. Deploy automatically on push
+
+### Environment Variables for Production
+
+Ensure these are set in your deployment environment:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `DATABASE_URL`
+- `DIRECT_URL`
+
+## 🔧 Development
+
+### Available Scripts
+
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+npm run lint:fix     # Fix ESLint errors
+npm run type-check   # TypeScript type checking
+npm run db:migrate   # Run database migrations
+npm run db:studio    # Open Prisma Studio
+```
+
+### Code Quality
+
+The project includes:
+
+- ESLint for code linting
+- TypeScript for type safety
+- Prettier for code formatting
+- Pre-commit hooks (recommended)
+
+## 🏛️ Architecture Decisions
+
+### Lean SOTA Approach
+
+This platform follows a "Lean State-of-the-Art" philosophy:
+
+- **Minimalist UI**: Sharp corners, clean typography, no unnecessary elements
+- **Type Safety**: Full TypeScript implementation with strict mode
+- **Performance**: SSR, code splitting, optimized assets
+- **Security**: RLS policies, server-side validation, secure file uploads
+- **Scalability**: Prisma ORM, Supabase backend, modular architecture
+
+### Database Design
+
+- **User Profiles**: Linked to Supabase Auth users
+- **Portfolio Shares**: Links and PDF paths with user association
+- **Monologue Recordings**: Audio files with metadata
+- **Peer Training**: Video sessions with participant tracking
+- **RLS Security**: Row-level security for all user data
+
+## 🛡️ Security Considerations
+
+- All file uploads processed server-side
+- RLS policies prevent unauthorized data access
+- Input validation with Zod schemas
+- Secure authentication with Supabase
+- Environment variables for sensitive data
+
+## 🔮 Future Enhancements
+
+- **WebRTC Integration**: Real-time peer training sessions
+- **Advanced Analytics**: Training progress tracking
+- **Mobile App**: React Native companion app
+- **AI Integration**: Direct model training capabilities
+- **Advanced Observation Module**: Environmental pattern recognition
+
+## 📝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Follow the existing code style
+4. Add tests for new functionality
+5. Submit a pull request
+
+## 📄 License
+
+This project is proprietary. All rights reserved.
+
+## 🆘 Support
+
+For technical support or questions about the platform:
+
+1. Check the documentation
+2. Review existing issues
+3. Create a new issue with detailed information
+
+---
+
+**Built with ❤️ for artists and AI researchers** 

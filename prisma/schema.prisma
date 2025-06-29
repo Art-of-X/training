@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// User Profile (linked to Supabase Auth)
+model UserProfile {
+  id        String   @id @default(uuid()) @db.Uuid @map("id") // Links to auth.users.id
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  portfolioItems           PortfolioItem[]
+  monologueRecordings      MonologueRecording[]
+  peerTrainingParticipants PeerTrainingParticipant[] @relation("Participants")
+
+  @@map("user_profiles") // Map to the public.user_profiles table
+}
+
+// Portfolio Module
+model PortfolioItem {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  description String
+  link        String?
+  filePath    String?  @map("file_path")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user        UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("portfolio_items")
+}
+
+// Monologue Module
+model MonologueQuestion {
+  id        Int      @id @default(autoincrement())
+  text      String
+  category  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relation
+  recordings MonologueRecording[]
+
+  @@map("monologue_questions")
+}
+
+model MonologueRecording {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  questionText    String   @map("question_text")
+  audioPath       String   @map("audio_path")
+  durationSeconds Int?     @map("duration_seconds")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user            UserProfile       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question        MonologueQuestion @relation(fields: [questionId], references: [id])
+  questionId      Int               @map("question_id")
+
+  @@map("monologue_recordings")
+}
+
+// Peer Training Module
+model PeerTrainingRecording {
+  id                String   @id @default(uuid()) @db.Uuid
+  videoPath         String   @map("video_path") // Path to recorded video in Supabase Storage
+  specificQuestions String[] @map("specific_questions") // TEXT[]
+  durationSeconds   Int?     @map("duration_seconds")
+
+  participants PeerTrainingParticipant[] @relation("TrainingRecord")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("peer_training_recordings")
+}
+
+// Join table for Peer Training Participants (Many-to-Many)
+model PeerTrainingParticipant {
+  trainingId String @map("training_id") @db.Uuid
+  userId     String @map("user_id") @db.Uuid
+
+  training PeerTrainingRecording @relation("TrainingRecord", fields: [trainingId], references: [id], onDelete: Cascade)
+  user     UserProfile           @relation("Participants", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([trainingId, userId]) // Composite primary key
+  @@map("peer_training_participants")
+} 

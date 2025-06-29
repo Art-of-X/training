@@ -1,35 +1,51 @@
 {
-  "name": "artificial-artistic-thinking",
-  "version": "1.0.0",
-  "type": "module",
-  "description": "Scientific research platform investigating artistic thinking patterns for AI development",
-  "homepage": "https://Art-of-X.github.io/training",
-  "main": "index.js",
+  "name": "nuxt3-ai-training-platform",
+  "private": true,
+  "version": "0.1.0",
+  "description": "SOTA Nuxt 3 AI Training Platform for capturing artists' creative DNA",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
-  },
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "uuid": "^9.0.1"
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:push": "prisma db push",
+    "lint": "eslint --ext .vue,.ts,.js --ignore-path .gitignore .",
+    "lint:fix": "eslint --ext .vue,.ts,.js --ignore-path .gitignore . --fix",
+    "type-check": "nuxt typecheck"
   },
   "devDependencies": {
-    "@types/react": "^18.2.43",
-    "@types/react-dom": "^18.2.17",
-    "@vitejs/plugin-react": "^4.2.1",
-    "autoprefixer": "^10.4.16",
-    "eslint": "^8.55.0",
-    "eslint-plugin-react": "^7.33.2",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.5",
-    "gh-pages": "^6.3.0",
-    "postcss": "^8.4.32",
-    "tailwindcss": "^3.4.0",
-    "vite": "^5.0.8"
+    "@nuxt/devtools": "latest",
+    "@nuxt/eslint-config": "^0.2.0",
+    "@nuxtjs/tailwindcss": "^6.8.4",
+    "@tailwindcss/forms": "^0.5.7",
+    "@types/node": "^20.8.0",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "eslint": "^8.53.0",
+    "eslint-plugin-vue": "^9.18.1",
+    "nuxt": "^3.8.0",
+    "prettier": "^3.1.0",
+    "prisma": "^5.7.0",
+    "typescript": "^5.8.3",
+    "vite-bundle-visualizer": "^0.10.0",
+    "vue-tsc": "^2.2.10"
+  },
+  "dependencies": {
+    "@nuxtjs/color-mode": "^3.5.2",
+    "@nuxtjs/supabase": "^1.1.6",
+    "@pinia/nuxt": "^0.5.1",
+    "@prisma/client": "^5.7.0",
+    "@supabase/supabase-js": "^2.38.5",
+    "@vueuse/core": "^10.5.0",
+    "@vueuse/nuxt": "^10.5.0",
+    "h3": "^1.8.2",
+    "pinia": "^2.1.7",
+    "zod": "^3.22.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
