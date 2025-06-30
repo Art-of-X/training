@@ -1,12 +1,12 @@
 <template>
-  <div class="min-h-screen bg-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen bg-white dark:bg-secondary-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
       <!-- Header -->
       <div class="text-center">
-        <h2 class="text-3xl font-bold text-secondary-900">
+        <h2 class="text-3xl font-bold text-secondary-900 dark:text-white">
           Create your account
         </h2>
-        <p class="mt-2 text-sm text-secondary-600">
+        <p class="mt-2 text-sm text-secondary-600 dark:text-secondary-300">
           Start your creative DNA training journey
         </p>
       </div>
@@ -96,12 +96,12 @@
         </div>
 
         <!-- Error display -->
-        <div v-if="authError" class="bg-error-50 border border-error-200 text-error-700 px-4 py-3">
+        <div v-if="authError" class="bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-500/30 text-error-700 dark:text-error-300 px-4 py-3">
           {{ authError }}
         </div>
 
         <!-- Terms notice -->
-        <div class="text-xs text-secondary-500">
+        <div class="text-xs text-secondary-500 dark:text-secondary-400">
           By creating an account, you agree to our secure data handling practices for AI training purposes.
         </div>
 
@@ -119,9 +119,9 @@
 
         <!-- Link to sign in -->
         <div class="text-center">
-          <p class="text-sm text-secondary-600">
+          <p class="text-sm text-secondary-600 dark:text-secondary-300">
             Already have an account?
-            <NuxtLink to="/login" class="font-medium text-primary-600 hover:text-primary-500">
+            <NuxtLink to="/login" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300">
               Sign in
             </NuxtLink>
           </p>

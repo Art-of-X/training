@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen bg-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen bg-white dark:bg-secondary-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 text-center">
-      <h2 class="text-3xl font-bold text-secondary-900">
+      <h2 class="text-3xl font-bold text-secondary-900 dark:text-white">
         Check your email
       </h2>
-      <p class="mt-2 text-sm text-secondary-600">
+      <p class="mt-2 text-sm text-secondary-600 dark:text-secondary-300">
         {{ message }}
       </p>
       <div class="mt-6">

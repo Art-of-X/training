@@ -99,8 +99,11 @@ export const useAuth = () => {
     error.value = null
     
     try {
+      // Get the current origin, fallback to localhost for development
+      const origin = process.client ? window.location.origin : 'http://localhost:3000'
+      
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/password-reset`
+        redirectTo: `${origin}/password-reset`
       })
       
       if (resetError) {
