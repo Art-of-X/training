@@ -7,7 +7,7 @@
           <!-- Logo -->
           <NuxtLink to="/training/dashboard" class="flex items-center space-x-3">
             
-            <span class="font-bold text-xl text-secondary-900 dark:text-white hidden sm:inline">✶ Artificial Artistic Thinking</span>
+            <span class="font-bold text-xl text-secondary-900 dark:text-white hidden sm:inline">Artificial Artistic Thinking</span>
           </NuxtLink>
 
           <!-- Right Aligned Items -->
