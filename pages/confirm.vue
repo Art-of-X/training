@@ -22,6 +22,26 @@ definePageMeta({
   layout: false,
 });
 
+const router = useRouter()
+const supabase = useSupabaseClient()
+
+// If a session already exists (page rendered after PKCE exchange) redirect immediately
+const {
+  data: { session }
+} = await supabase.auth.getSession()
+if (session) {
+  await supabase.auth.signOut()
+  router.replace({ path: '/login', query: { message: 'Your email has been confirmed. You can now sign in.' } })
+}
+
+// Listen for the auth state change that happens when Supabase finishes exchanging the code
+supabase.auth.onAuthStateChange((event, _session) => {
+  if (event === 'SIGNED_IN') {
+    supabase.auth.signOut()
+    router.replace({ path: '/login', query: { message: 'Your email has been confirmed. You can now sign in.' } })
+  }
+})
+
 const route = useRoute();
 const message = computed(() => {
   const queryMessage = route.query.message;

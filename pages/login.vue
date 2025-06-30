@@ -11,6 +11,11 @@
         </p>
       </div>
 
+      <!-- Success message from redirect (e.g., email confirmed) -->
+      <div v-if="successMessage" class="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-500/30 text-success-700 dark:text-success-300 px-4 py-3">
+        {{ successMessage }}
+      </div>
+
       <!-- Sign in form -->
       <form class="mt-8 space-y-6" @submit.prevent="handleSignIn">
         <div class="space-y-4">
@@ -108,6 +113,13 @@ const form = reactive({
 const errors = reactive({
   email: '',
   password: ''
+})
+
+// Success message from redirect (e.g., email confirmed)
+const route = useRoute()
+const successMessage = computed(() => {
+  const q = route.query.message
+  return typeof q === 'string' && q ? q : ''
 })
 
 // Use auth composable
