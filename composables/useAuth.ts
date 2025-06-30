@@ -16,7 +16,8 @@ export const useAuth = () => {
     
     try {
       const config = useRuntimeConfig()
-      const redirectUrl = `${config.public.siteUrl}/confirm`
+      const origin = process.client ? window.location.origin : config.public.siteUrl
+      const redirectUrl = `${origin}/confirm`
 
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
