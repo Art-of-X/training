@@ -24,25 +24,17 @@ definePageMeta({
 
 const router = useRouter()
 const supabase = useSupabaseClient()
+const user = useSupabaseUser()
 
-// If a session already exists (page rendered after PKCE exchange) redirect immediately
-const {
-  data: { session }
-} = await supabase.auth.getSession()
-if (session) {
-  await supabase.auth.signOut()
-  router.replace({ path: '/login', query: { message: 'Your email has been confirmed. You can now sign in.' } })
-}
-
-// Listen for the auth state change that happens when Supabase finishes exchanging the code
-const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-  if (event === 'SIGNED_IN') {
-    // One-time sign-out so user needs to log in manually, then clean up listener
+// This watcher waits for the user to be signed in by the confirmation link (PKCE flow),
+// then immediately signs them out and sends them to the login page.
+// This is a cleaner approach than using onAuthStateChange.
+watch(user, async (currentUser) => {
+  if (currentUser) {
     await supabase.auth.signOut()
-    subscription?.unsubscribe()
     router.replace({ path: '/login', query: { message: 'Your email has been confirmed. You can now sign in.' } })
   }
-})
+}, { immediate: true })
 
 const route = useRoute();
 const message = computed(() => {
