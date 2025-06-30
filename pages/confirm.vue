@@ -35,9 +35,11 @@ if (session) {
 }
 
 // Listen for the auth state change that happens when Supabase finishes exchanging the code
-supabase.auth.onAuthStateChange((event, _session) => {
+const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
   if (event === 'SIGNED_IN') {
-    supabase.auth.signOut()
+    // One-time sign-out so user needs to log in manually, then clean up listener
+    await supabase.auth.signOut()
+    subscription?.unsubscribe()
     router.replace({ path: '/login', query: { message: 'Your email has been confirmed. You can now sign in.' } })
   }
 })
