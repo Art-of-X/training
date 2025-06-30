@@ -65,11 +65,9 @@ export default defineNuxtConfig({
     typeCheck: true
   },
   
-
-  
   // Build configuration
   build: {
-    transpile: ['@supabase/supabase-js', '@prisma/client'], // Ensure proper transpilation
+    transpile: ['@prisma/client'],
   },
   
   // Additional configuration for Prisma compatibility
@@ -78,6 +76,9 @@ export default defineNuxtConfig({
     minify: true,
     experimental: {
       wasm: true
+    },
+    externals: {
+      inline: ['@prisma/client']
     }
   },
   
@@ -103,7 +104,7 @@ export default defineNuxtConfig({
   },
   
   alias: {
-    '.prisma': resolve(__dirname, 'node_modules/.prisma')
+    '.prisma/client/default': resolve(__dirname, 'node_modules/.prisma/client/default.js')
   },
   
   // Runtime configuration
