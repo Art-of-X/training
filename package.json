@@ -1,10 +1,11 @@
 {
   "name": "nuxt3-ai-training-platform",
   "private": true,
+  "type": "module",
   "version": "0.1.0",
   "description": "SOTA Nuxt 3 AI Training Platform for capturing artists' creative DNA",
   "scripts": {
-    "build": "nuxt build",
+    "build": "prisma generate && nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",

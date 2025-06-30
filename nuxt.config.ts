@@ -1,3 +1,5 @@
+import { resolve } from 'path'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-06-28',
   devtools: { enabled: true },
@@ -101,7 +103,7 @@ export default defineNuxtConfig({
   },
   
   alias: {
-    '.prisma/client/default': './node_modules/.prisma/client/default.js'
+    '.prisma/client/default': resolve(__dirname, './node_modules/.prisma/client/default.js')
   },
   
   // Runtime configuration
