@@ -26,18 +26,6 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Check if name is already taken
-    const existingUser = await prisma.userProfile.findUnique({
-      where: { name }
-    })
-
-    if (existingUser) {
-      throw createError({
-        statusCode: 409,
-        statusMessage: 'Name is already taken'
-      })
-    }
-
     // Create user profile
     const userProfile = await prisma.userProfile.create({
       data: {

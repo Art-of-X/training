@@ -14,7 +14,7 @@ datasource db {
 // User Profile (linked to Supabase Auth)
 model UserProfile {
   id        String   @id @default(uuid()) @db.Uuid @map("id") // Links to auth.users.id
-  name      String   @unique
+  name      String
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
