@@ -103,7 +103,7 @@ export default defineNuxtConfig({
   },
   
   alias: {
-    '.prisma/client/default': resolve(__dirname, './node_modules/.prisma/client/default.js')
+    '.prisma': resolve(__dirname, 'node_modules/.prisma')
   },
   
   // Runtime configuration
