@@ -67,7 +67,7 @@ export default defineNuxtConfig({
   
   // Build configuration
   build: {
-    transpile: ['@prisma/client'],
+    transpile: [],
   },
   
   // Additional configuration for Prisma compatibility
@@ -78,12 +78,7 @@ export default defineNuxtConfig({
       wasm: true
     },
     externals: {
-      inline: ['@prisma/client']
-    },
-    alias: {
-      '.prisma/client/index-browser': './node_modules/.prisma/client/index-browser.js',
-      '.prisma/client/default': './node_modules/.prisma/client/default.js',
-      '.prisma/client': './node_modules/.prisma/client/index.js',
+      external: ['@prisma/client', '.prisma/client']
     }
   },
   
@@ -97,7 +92,8 @@ export default defineNuxtConfig({
             vendor: ['vue', 'vue-router'],
             supabase: ['@supabase/supabase-js']
           }
-        }
+        },
+        external: ['@prisma/client']
       }
     },
     define: {
@@ -106,13 +102,9 @@ export default defineNuxtConfig({
     optimizeDeps: {
       exclude: ['@prisma/client']
     },
-    resolve: {
-      alias: {
-        '.prisma/client/index-browser': './node_modules/.prisma/client/index-browser.js',
-        '.prisma/client/default': './node_modules/.prisma/client/default.js',
-        '.prisma/client': './node_modules/.prisma/client/index.js',
-      },
-    },
+    ssr: {
+      external: ['@prisma/client']
+    }
   },
   
   // Runtime configuration
