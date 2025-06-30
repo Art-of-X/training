@@ -15,9 +15,14 @@ export const useAuth = () => {
     error.value = null
     
     try {
+      const origin = process.client ? window.location.origin : 'http://localhost:3000'
+
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${origin}/confirm`
+        }
       })
       
       if (signUpError) {

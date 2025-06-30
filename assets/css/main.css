@@ -1,3 +1,6 @@
+/* Import Inter font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 /* Px Grotesk font */
 @font-face {
   font-family: 'Px Grotesk';
@@ -75,9 +78,6 @@
   font-weight: normal;
   font-style: normal;
 }
-
-/* Import Inter font from Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
