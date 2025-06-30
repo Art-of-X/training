@@ -22,6 +22,9 @@ model UserProfile {
   portfolioItems           PortfolioItem[]
   monologueRecordings      MonologueRecording[]
   peerTrainingParticipants PeerTrainingParticipant[] @relation("Participants")
+  autAnswers               AUTAnswer[]
+  ratAnswers               RATAnswer[]
+  datSubmissions           DATSubmission[]
 
   @@map("user_profiles") // Map to the public.user_profiles table
 }
@@ -94,4 +97,69 @@ model PeerTrainingParticipant {
 
   @@id([trainingId, userId]) // Composite primary key
   @@map("peer_training_participants")
+}
+
+// Creativity Benchmarking Module
+
+// Alternate Uses Test (AUT)
+model AUTQuestion {
+  id      Int         @id @default(autoincrement())
+  object  String      @unique // The object for which to find uses (e.g., "brick")
+  answers AUTAnswer[]
+
+  @@map("aut_questions")
+}
+
+model AUTAnswer {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  questionId Int      @map("question_id")
+  uses       String[]
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user     UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question AUTQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("aut_answers")
+}
+
+// Remote Associates Test (RAT)
+model RATQuestion {
+  id    Int    @id @default(autoincrement())
+  word1 String
+  word2 String
+  word3 String
+
+  answers RATAnswer[]
+
+  @@unique([word1, word2, word3])
+  @@map("rat_questions")
+}
+
+model RATAnswer {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  questionId Int      @map("question_id")
+  answer     String
+  isCorrect  Boolean? // Some RATs have correct answers
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user     UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question RATQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("rat_answers")
+}
+
+// Divergent Association Task (DAT)
+// No questions, just user submissions.
+model DATSubmission {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  words     String[]
+  score     Float?   // Semantic distance score
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("dat_submissions")
 } 

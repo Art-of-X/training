@@ -124,6 +124,7 @@ const successMessage = computed(() => {
 
 // Use auth composable
 const { signIn, isLoading, error: authError, clearError } = useAuth()
+const user = useSupabaseUser()
 
 // Clear errors when form changes
 watch(() => form.email, () => {
@@ -168,12 +169,14 @@ const handleSignIn = async () => {
     return
   }
   
-  const result = await signIn(form.email, form.password)
-  
-  if (result.success) {
-    await navigateTo('/training/dashboard')
-  }
+  await signIn(form.email, form.password)
 }
+
+watch(user, (currentUser) => {
+  if (currentUser) {
+    navigateTo('/training/dashboard')
+  }
+}, { immediate: true })
 
 // Clear error when component mounts
 onMounted(() => {

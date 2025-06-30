@@ -1,25 +1,37 @@
 import { defineEventHandler, getRouterParam, createError } from 'h3'
 import { prisma } from '../../../utils/prisma'
+import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
+  const userId = getRouterParam(event, 'id')
+  if (!userId) {
+    throw createError({ statusCode: 400, statusMessage: 'User ID is required' })
+  }
+
   try {
-    const userId = getRouterParam(event, 'id')
-
-    if (!userId) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'User ID is required'
-      })
-    }
-
-    const userProfile = await prisma.userProfile.findUnique({
-      where: { id: userId }
+    let userProfile = await prisma.userProfile.findUnique({
+      where: { id: userId },
     })
 
+    // If profile doesn't exist, try to create it
     if (!userProfile) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'User profile not found'
+      // We need to verify that the request is coming from the user themselves
+      // or from a server process that has the master key.
+      const user = await serverSupabaseUser(event)
+
+      // Only allow a user to create their own profile.
+      if (!user || user.id !== userId) {
+        throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
+      }
+      
+      // Use email as a default name
+      const name = user.email?.split('@')[0] || 'New User'
+
+      userProfile = await prisma.userProfile.create({
+        data: {
+          id: user.id,
+          name: name,
+        },
       })
     }
 
@@ -31,10 +43,10 @@ export default defineEventHandler(async (event) => {
     }
 
     // Handle unexpected errors
-    console.error('Error fetching user profile:', error)
+    console.error(`Error fetching or creating user profile for ${userId}:`, error)
     throw createError({
       statusCode: 500,
-      statusMessage: 'Internal server error'
+      statusMessage: 'Internal server error',
     })
   }
 }) 

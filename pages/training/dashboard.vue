@@ -36,6 +36,18 @@
           </div>
         </NuxtLink>
 
+        <!-- Creativity Benchmarking Card -->
+        <NuxtLink to="/training/creativity-benchmarking" class="card-link-wrapper">
+          <div class="card h-full">
+            <div class="card-body">
+              <h3 class="text-xl font-semibold text-secondary-900 dark:text-white">Creativity Benchmarking</h3>
+              <p class="text-secondary-600 dark:text-secondary-300 mt-2">
+                Engage in standardized tests to measure and understand your creative potential.
+              </p>
+            </div>
+          </div>
+        </NuxtLink>
+
         <!-- Peer Training Card -->
         <div class="card-link-wrapper-disabled">
           <div class="card h-full relative">
