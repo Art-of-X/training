@@ -79,6 +79,11 @@ export default defineNuxtConfig({
     },
     externals: {
       inline: ['@prisma/client']
+    },
+    alias: {
+      '.prisma/client/index-browser': './node_modules/.prisma/client/index-browser.js',
+      '.prisma/client/default': './node_modules/.prisma/client/default.js',
+      '.prisma/client': './node_modules/.prisma/client/index.js',
     }
   },
   
@@ -100,11 +105,14 @@ export default defineNuxtConfig({
     },
     optimizeDeps: {
       exclude: ['@prisma/client']
-    }
-  },
-  
-  alias: {
-    '.prisma/client/default': resolve(__dirname, 'node_modules/.prisma/client/default.js')
+    },
+    resolve: {
+      alias: {
+        '.prisma/client/index-browser': './node_modules/.prisma/client/index-browser.js',
+        '.prisma/client/default': './node_modules/.prisma/client/default.js',
+        '.prisma/client': './node_modules/.prisma/client/index.js',
+      },
+    },
   },
   
   // Runtime configuration
