@@ -4,7 +4,7 @@
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-secondary-900 dark:text-white mb-2">Alternate Uses Test (AUT)</h1>
       <p class="text-lg text-secondary-600 dark:text-secondary-300">
-        Think of as many creative and unusual uses as you can for the object shown below.
+        Think of as many creative and unusual uses as you can for the object mentioned below.
       </p>
     </div>
 

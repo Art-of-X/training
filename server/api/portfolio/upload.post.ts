@@ -39,13 +39,6 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    if (!file.type?.includes('pdf')) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: `Invalid file type: ${file.filename}. Only PDF files are allowed.`,
-      })
-    }
-
     const maxSize = 10 * 1024 * 1024 // 10MB
     if (file.data.length > maxSize) {
       throw createError({
@@ -65,7 +58,7 @@ export default defineEventHandler(async (event) => {
     const { error: uploadError } = await supabase.storage
       .from('portfolio-assets')
       .upload(filePath, file.data, {
-        contentType: file.type || 'application/pdf',
+        contentType: file.type || 'application/octet-stream',
         upsert: false,
       })
 

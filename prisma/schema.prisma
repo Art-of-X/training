@@ -25,6 +25,7 @@ model UserProfile {
   autAnswers               AUTAnswer[]
   ratAnswers               RATAnswer[]
   datSubmissions           DATSubmission[]
+  demographicsAnswers      DemographicsAnswer[]
 
   @@map("user_profiles") // Map to the public.user_profiles table
 }
@@ -58,12 +59,15 @@ model MonologueQuestion {
 }
 
 model MonologueRecording {
-  id              String   @id @default(uuid()) @db.Uuid
-  userId          String   @map("user_id") @db.Uuid
-  questionText    String   @map("question_text")
-  audioPath       String   @map("audio_path")
-  durationSeconds Int?     @map("duration_seconds")
-  createdAt       DateTime @default(now()) @map("created_at")
+  id                     String   @id @default(uuid()) @db.Uuid
+  userId                 String   @map("user_id") @db.Uuid
+  questionText           String   @map("question_text")
+  audioPath              String   @map("audio_path")
+  durationSeconds        Int?     @map("duration_seconds")
+  supplementaryFilePath  String?  @map("supplementary_file_path")
+  supplementaryLink      String?  @map("supplementary_link")
+  supplementaryDescription String? @map("supplementary_description")
+  createdAt              DateTime @default(now()) @map("created_at")
 
   // Relations
   user            UserProfile       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -162,4 +166,19 @@ model DATSubmission {
   user UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("dat_submissions")
+}
+
+// Demographics Module - Questions stored in JSON, only answers in DB
+model DemographicsAnswer {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  questionKey String   @map("question_key") // References the "key" field in JSON
+  answer      String   // Stored as string regardless of original type
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionKey]) // One answer per user per question
+  @@map("demographics_answers")
 } 

@@ -7,7 +7,9 @@ import { z } from 'zod'
 const monologueDataSchema = z.object({
   question: z.string().min(1, 'Question is required'),
   duration: z.number().min(0).optional(),
-  questionId: z.number().int().min(1)
+  questionId: z.number().int().min(1),
+  supplementaryDescription: z.string().optional(),
+  supplementaryLink: z.string().url().optional().or(z.literal(''))
 })
 
 export default defineEventHandler(async (event) => {
@@ -33,12 +35,15 @@ export default defineEventHandler(async (event) => {
     const supabaseServiceRole = serverSupabaseServiceRole(event)
     const supabaseUser = await serverSupabaseClient(event)
     let audioFile = null
+    let supplementaryFile = null
     let additionalData = null
 
     // Process form data
     for (const item of formData) {
       if (item.name === 'audio' && item.data) {
         audioFile = item
+      } else if (item.name === 'supplementaryFile' && item.data) {
+        supplementaryFile = item
       } else if (item.name === 'data' && item.data) {
         try {
           additionalData = JSON.parse(item.data.toString())
@@ -59,7 +64,44 @@ export default defineEventHandler(async (event) => {
     }
 
     // Validate additional data
-    const { question, duration, questionId } = monologueDataSchema.parse(additionalData || {})
+    const { question, duration, questionId, supplementaryDescription, supplementaryLink } = monologueDataSchema.parse(additionalData || {})
+
+    // Validate supplementary content (file or link)
+    if (supplementaryFile && supplementaryLink) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Cannot provide both a file and a link. Please choose one.'
+      })
+    }
+
+    // Validate supplementary file if present
+    if (supplementaryFile) {
+      if (!supplementaryDescription || supplementaryDescription.trim().length === 0) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'Description is required when uploading a supplementary file'
+        })
+      }
+
+      // Validate file size (max 10MB for supplementary files)
+      const maxSupplementarySize = 10 * 1024 * 1024 // 10MB
+      if (supplementaryFile.data.length > maxSupplementarySize) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'Supplementary file too large. Maximum size is 10MB.'
+        })
+      }
+    }
+
+    // Validate supplementary link if present
+    if (supplementaryLink && supplementaryLink.trim().length > 0) {
+      if (!supplementaryDescription || supplementaryDescription.trim().length === 0) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: 'Description is required when providing a supplementary link'
+        })
+      }
+    }
 
     // Validate audio file type
     const allowedTypes = ['audio/webm', 'audio/mp4', 'audio/wav', 'audio/ogg']
@@ -79,40 +121,73 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Generate unique file path
+    // Generate unique file paths
     const timestamp = Date.now()
-    const fileExtension = audioFile.type?.includes('webm') ? 'webm' : 
-                         audioFile.type?.includes('mp4') ? 'mp4' :
-                         audioFile.type?.includes('wav') ? 'wav' : 'ogg'
-    const fileName = `${timestamp}_monologue.${fileExtension}`
-    const filePath = `${user.id}/${fileName}`
+    const audioFileExtension = audioFile.type?.includes('webm') ? 'webm' : 
+                              audioFile.type?.includes('mp4') ? 'mp4' :
+                              audioFile.type?.includes('wav') ? 'wav' : 'ogg'
+    const audioFileName = `${timestamp}_monologue.${audioFileExtension}`
+    const audioFilePath = `${user.id}/${audioFileName}`
 
     console.log('Upload debug info:', {
       userId: user.id,
-      filePath: filePath,
-      bucketName: 'monologue-recordings'
+      audioFilePath: audioFilePath,
+      bucketName: 'monologue-recordings',
+      hasSupplementaryFile: !!supplementaryFile
     })
 
-    // Upload to Supabase Storage (uses user context for RLS)
+    // Upload audio file to Supabase Storage
     const { data, error } = await supabaseUser.storage
       .from('monologue-recordings')
-      .upload(filePath, audioFile.data, {
+      .upload(audioFilePath, audioFile.data, {
         contentType: audioFile.type,
         upsert: false
       })
 
     if (error) {
-      console.error('Supabase upload error:', error)
+      console.error('Supabase audio upload error:', error)
       throw createError({
         statusCode: 500,
         statusMessage: `Failed to upload audio: ${error.message}`
       })
     }
 
-    // Get public URL (can use service role for this)
+    // Get public URL for audio file
     const { data: publicData } = supabaseServiceRole.storage
       .from('monologue-recordings')
-      .getPublicUrl(filePath)
+      .getPublicUrl(audioFilePath)
+
+    // Handle supplementary file upload if present
+    let supplementaryFileUrl = null
+    if (supplementaryFile) {
+      // Get file extension from filename or mime type
+      const originalFileName = supplementaryFile.filename || 'file'
+      const fileExtension = originalFileName.split('.').pop() || 'bin'
+      const supplementaryFileName = `${timestamp}_supplementary.${fileExtension}`
+      const supplementaryFilePath = `${user.id}/${supplementaryFileName}`
+
+      const { data: supplementaryData, error: supplementaryError } = await supabaseUser.storage
+        .from('monologue-recordings')
+        .upload(supplementaryFilePath, supplementaryFile.data, {
+          contentType: supplementaryFile.type || 'application/octet-stream',
+          upsert: false
+        })
+
+      if (supplementaryError) {
+        console.error('Supabase supplementary file upload error:', supplementaryError)
+        throw createError({
+          statusCode: 500,
+          statusMessage: `Failed to upload supplementary file: ${supplementaryError.message}`
+        })
+      }
+
+      // Get public URL for supplementary file
+      const { data: supplementaryPublicData } = supabaseServiceRole.storage
+        .from('monologue-recordings')
+        .getPublicUrl(supplementaryFilePath)
+      
+      supplementaryFileUrl = supplementaryPublicData.publicUrl
+    }
 
     // Save to database using Prisma (bypasses RLS but we control access via user.id)
     try {
@@ -122,7 +197,10 @@ export default defineEventHandler(async (event) => {
           questionText: question,
           audioPath: publicData.publicUrl,
           durationSeconds: duration ? Math.round(duration) : null,
-          questionId: questionId
+          questionId: questionId,
+          supplementaryFilePath: supplementaryFileUrl,
+          supplementaryLink: supplementaryLink?.trim() || null,
+          supplementaryDescription: supplementaryDescription?.trim() || null
         }
       })
 

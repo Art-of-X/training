@@ -7,7 +7,7 @@
           Sign in to your account
         </h2>
         <p class="mt-2 text-sm text-secondary-600 dark:text-secondary-300">
-          Continue your creative DNA training journey
+          Continue your training journey
         </p>
       </div>
 
@@ -100,7 +100,7 @@
 // Set page metadata
 definePageMeta({
   title: 'Sign In',
-  description: 'Sign in to your Artificial Artistic Thinking account',
+  description: 'Sign in to your Artistic AI account',
   layout: false
 })
 

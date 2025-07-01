@@ -7,8 +7,7 @@
           Create your account
         </h2>
         <p class="mt-2 text-sm text-secondary-600 dark:text-secondary-300">
-          Start your creative DNA training journey
-        </p>
+          Start your training journey        </p>
       </div>
 
       <!-- Sign up form -->
@@ -135,7 +134,7 @@
 // Set page metadata
 definePageMeta({
   title: 'Sign Up',
-  description: 'Create your Artificial Artistic Thinking account',
+  description: 'Create your Artistic AI account',
   layout: false
 })
 

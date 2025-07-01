@@ -7,7 +7,7 @@
           <!-- Logo -->
           <NuxtLink to="/training/dashboard" class="flex items-center space-x-3">
             
-            <span class="font-bold text-xl text-secondary-900 dark:text-white hidden sm:inline">Artificial Artistic Thinking</span>
+            <span class="font-bold text-xl text-secondary-900 dark:text-white hidden sm:inline">Artistic AI</span>
           </NuxtLink>
 
           <!-- Right Aligned Items -->
@@ -93,7 +93,7 @@
     <footer class="bg-white dark:bg-secondary-800 border-t border-secondary-200 dark:border-secondary-700">
       <div class="container-wide py-6">
         <div class="text-center text-sm text-secondary-500 dark:text-secondary-400">
-          © {{ new Date().getFullYear() }} Artificial Artistic Thinking. All Rights Reserved.
+          © {{ new Date().getFullYear() }} Artistic AI. All Rights Reserved.
         </div>
       </div>
     </footer>

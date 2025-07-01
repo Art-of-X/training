@@ -4,7 +4,7 @@
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-secondary-900 dark:text-white mb-2">Portfolio Training</h1>
       <p class="text-lg text-secondary-600 dark:text-secondary-300">
-        Share your creative work through links and PDF uploads to help train the AI on your artistic style and portfolio.
+        Share your creative work through links and file uploads to help train the AI on your artistic style and portfolio.
       </p>
     </div>
 
@@ -64,7 +64,7 @@
       <!-- PDF Upload section -->
       <div class="card dark:bg-secondary-800 dark:border-secondary-700">
         <div class="card-header dark:border-secondary-700">
-          <h2 class="text-xl font-semibold text-secondary-900 dark:text-white">Upload PDF</h2>
+          <h2 class="text-xl font-semibold text-secondary-900 dark:text-white">Upload File</h2>
         </div>
         <div class="card-body">
           <form @submit.prevent="uploadFile" class="space-y-4">
@@ -73,8 +73,8 @@
               <input v-model="newFile.description" id="file-description" type="text" required class="form-input w-full mt-1" placeholder="e.g., My latest design case study">
             </div>
             <div>
-              <label for="file-upload" class="form-label">PDF File (max 10MB)</label>
-              <input id="file-upload" type="file" accept=".pdf" @change="handleFileSelect" required class="form-input-file w-full mt-1">
+              <label for="file-upload" class="form-label">File (max 10MB)</label>
+              <input id="file-upload" type="file" @change="handleFileSelect" required class="form-input-file w-full mt-1">
             </div>
             <button type="submit" class="btn-primary w-full" :disabled="!newFile.file || !newFile.description || isUploadingFile">
               <span v-if="isUploadingFile" class="loading-spinner mr-2"></span>
@@ -150,10 +150,6 @@ const handleFileSelect = (event: Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
   if (file) {
-    if (file.type !== 'application/pdf') {
-      error.value = 'Only PDF files are allowed.'
-      return
-    }
     if (file.size > 10 * 1024 * 1024) { // 10MB
       error.value = 'File size cannot exceed 10MB.'
       return

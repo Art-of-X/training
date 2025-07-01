@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 /**
- * Verification script for Artificial Artistic Thinking Training Platform
+ * Verification script for Artistic AI Training Platform
  * Checks if environment variables are properly configured
  */
 
 require('dotenv').config();
 
-console.log('🔍 Verifying Artificial Artistic Thinking Platform Setup\n');
+console.log('🔍 Verifying Artistic AI Platform Setup\n');
 
 const checks = [
     {

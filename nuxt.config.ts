@@ -46,7 +46,7 @@ export default defineNuxtConfig({
   // App configuration
   app: {
     head: {
-      titleTemplate: 'Artificial Artistic Thinking',
+      titleTemplate: 'Artistic AI',
       title: 'AAT Platform',
       meta: [
         { charset: 'utf-8' },
@@ -117,7 +117,8 @@ export default defineNuxtConfig({
     public: {
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
-      siteUrl: 'http://localhost:3000'
+      siteUrl: 'http://localhost:3000',
+      version: process.env.VERSION || 'commercial'
     }
   },
   

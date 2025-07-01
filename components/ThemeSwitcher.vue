@@ -1,5 +1,5 @@
 <template>
-  <div class="relative" ref="switcher">
+  <div v-if="!isResearch" class="relative" ref="switcher">
     <button @click="isOpen = !isOpen" class="p-2 text-secondary-500 hover:text-primary-500 dark:hover:text-primary-400" aria-label="Open theme switcher">
       <svg v-if="$colorMode.value === 'light'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-15.66l-.707.707M4.34 19.66l-.707.707M21 12h-1M4 12H3m15.66 8.66l-.707-.707M5.05 5.05l-.707-.707"></path>
@@ -32,6 +32,7 @@
 import { ref } from 'vue'
 import { onClickOutside } from '@vueuse/core'
 
+const { isResearch } = useVersion()
 const colorMode = useColorMode()
 const isOpen = ref(false)
 const switcher = ref(null)
@@ -43,7 +44,7 @@ const themes = [
 ]
 
 const setTheme = (theme: string) => {
-  colorMode.preference = theme
+  colorMode.preference = theme as any
   isOpen.value = false
 }
 

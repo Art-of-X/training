@@ -45,7 +45,7 @@
                     </li>
                     <li class="flex items-center space-x-2">
                       <div class="w-2 h-2 bg-primary-600"></div>
-                      <span>Creative prompt sharing</span>
+                      <span>question sharing</span>
                     </li>
                     <li class="flex items-center space-x-2">
                       <div class="w-2 h-2 bg-primary-600"></div>

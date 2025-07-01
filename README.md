@@ -1,4 +1,4 @@
-# Artificial Artistic Thinking Training Platform
+# Artistic AI Training Platform
 
 A state-of-the-art Nuxt 3 application for capturing artists' creative DNA through secure, multi-modal training modules. This platform facilitates AI model training through portfolio sharing, monologue recording, peer training sessions, and observational learning.
 
@@ -7,7 +7,7 @@ A state-of-the-art Nuxt 3 application for capturing artists' creative DNA throug
 ### Core Training Modules
 
 - **Portfolio Training**: Upload PDFs and share portfolio links
-- **Monologue Training**: Record audio responses to creative prompts
+- **Monologue Training**: Record audio responses to questions
 - **Peer Training**: Collaborative video sessions (coming soon)
 - **Observation Training**: Environmental learning patterns (coming soon)
 
@@ -118,6 +118,67 @@ npm run dev
 ```
 
 The application will be available at `http://localhost:3000`
+
+## 🎨 Version Configuration
+
+The platform supports two distinct versions with different styling and policy content:
+
+### Commercial Version (Default)
+- **Font**: Px Grotesk (modern, clean typeface)
+- **Colors**: Full color palette with blue primary colors
+- **Policy**: Standard commercial privacy policy
+
+### Research Version
+- **Font**: Helvetica (clean, academic typeface)  
+- **Primary Color**: Red (rgb(245, 0, 0))
+- **Colors**: Minimal black, white, and red only
+- **Policy**: HFBK Hamburg research study information and consent
+
+### Setting the Version
+
+You can set the version using the environment variable:
+
+```env
+# In your .env file
+VERSION=research  # or 'commercial'
+```
+
+Or use the utility script:
+
+```bash
+# Switch to research version
+node scripts/set-version.js research
+
+# Switch to commercial version
+node scripts/set-version.js commercial
+```
+
+The script will automatically update your `.env` file and provide guidance on the changes.
+
+**Note**: After changing the version, restart your development server to see the changes.
+
+### Testing Version Configuration
+
+A development test page is available at `/version-test` to verify that the version configuration is working correctly. This page displays:
+
+- Current version setting
+- Font family and colors being used  
+- Version-specific flags
+- Live styling examples
+
+### Using Version in Code
+
+Use the `useVersion()` composable in your components:
+
+```vue
+<script setup>
+const { version, isCommercial, isResearch, versionConfig } = useVersion()
+
+// Access version-specific configuration
+console.log(versionConfig.fontFamily) // 'Helvetica, Arial, sans-serif' or 'Px Grotesk, sans-serif'
+console.log(versionConfig.primaryColor) // 'rgb(245, 0, 0)' or '#3b82f6'
+</script>
+```
 
 ## 🏗️ Project Structure
 

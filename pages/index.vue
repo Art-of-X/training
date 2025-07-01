@@ -10,7 +10,7 @@
       <!-- Hero section for non-authenticated users -->
       <div v-if="!user" class="text-center">
         <h1 class="text-4xl md:text-6xl font-bold text-secondary-900 dark:text-white mb-6">
-          Artificial Artistic Thinking
+          Artistic AI
         </h1>
         <p class="text-xl text-secondary-600 dark:text-secondary-300 mb-8 max-w-2xl mx-auto">
           A secure, state-of-the-art platform for capturing and training AI models on artists' creative essence through portfolio sharing, monologues, peer training, and observation.
@@ -45,7 +45,7 @@
 <script setup lang="ts">
 // Set page metadata
 definePageMeta({
-  title: 'Artificial Artistic Thinking Platform',
+  title: 'Artistic AI Platform',
   description: 'Secure platform for capturing artists\' creative DNA through AI training'
 })
 

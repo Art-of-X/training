@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * Setup script for Artificial Artistic Thinking Training Platform
+ * Setup script for Artistic AI Training Platform
  * This script helps you configure your environment variables
  */
 
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 Artificial Artistic Thinking Training Platform - Environment Setup\n');
+console.log('🚀 Artistic AI Training Platform - Environment Setup\n');
 
 const envTemplate = `# ===========================================
 # SUPABASE CONFIGURATION (REQUIRED)

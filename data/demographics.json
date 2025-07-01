@@ -1,0 +1,165 @@
+{
+  "demographics": [
+    {
+      "key": "gender",
+      "question": "What is your gender?",
+      "type": "multiple_choice",
+      "options": ["Female", "Male", "Non-binary", "Prefer not to say", "Other"],
+      "category": "basic",
+      "required": false,
+      "order": 1
+    },
+    {
+      "key": "age",
+      "question": "What is your age?",
+      "type": "number",
+      "category": "basic",
+      "required": false,
+      "order": 2
+    },
+    {
+      "key": "education",
+      "question": "What is your highest level of education completed?",
+      "type": "multiple_choice",
+      "options": [
+        "Less than high school",
+        "High school diploma or equivalent",
+        "Some college, no degree",
+        "Associate degree",
+        "Bachelor's degree",
+        "Master's degree",
+        "Professional degree",
+        "Doctoral degree"
+      ],
+      "category": "education",
+      "required": false,
+      "order": 3
+    },
+    {
+      "key": "employment",
+      "question": "What is your current employment status?",
+      "type": "multiple_choice",
+      "options": [
+        "Employed full-time",
+        "Employed part-time",
+        "Self-employed",
+        "Unemployed",
+        "Student",
+        "Retired",
+        "Unable to work"
+      ],
+      "category": "socioeconomic",
+      "required": false,
+      "order": 4
+    },
+    {
+      "key": "income",
+      "question": "What is your approximate annual household income (USD)?",
+      "type": "multiple_choice",
+      "options": [
+        "Less than $25,000",
+        "$25,000 - $49,999",
+        "$50,000 - $74,999",
+        "$75,000 - $99,999",
+        "$100,000 - $149,999",
+        "$150,000 - $199,999",
+        "$200,000 or more",
+        "Prefer not to say"
+      ],
+      "category": "socioeconomic",
+      "required": false,
+      "order": 5
+    },
+    {
+      "key": "ethnicity",
+      "question": "How would you describe your racial or ethnic background?",
+      "type": "multiple_choice",
+      "options": [
+        "White/Caucasian",
+        "Black/African American",
+        "Hispanic/Latino",
+        "Asian",
+        "Native American/Alaska Native",
+        "Pacific Islander",
+        "Mixed race",
+        "Other",
+        "Prefer not to say"
+      ],
+      "category": "basic",
+      "required": false,
+      "order": 6
+    },
+    {
+      "key": "country",
+      "question": "In which country do you currently reside?",
+      "type": "text",
+      "category": "basic",
+      "required": false,
+      "order": 7
+    },
+    {
+      "key": "creative_experience",
+      "question": "How many years of experience do you have in creative work?",
+      "type": "number",
+      "category": "professional",
+      "required": false,
+      "order": 8
+    },
+    {
+      "key": "creative_field",
+      "question": "What is your primary creative medium or field?",
+      "type": "multiple_choice",
+      "options": [
+        "Visual Arts (Painting, Drawing, Sculpture)",
+        "Digital Art/Design",
+        "Photography",
+        "Writing/Literature",
+        "Music",
+        "Film/Video",
+        "Theater/Performance",
+        "Dance",
+        "Crafts/Textiles",
+        "Architecture",
+        "Other"
+      ],
+      "category": "professional",
+      "required": false,
+      "order": 9
+    },
+    {
+      "key": "financial_stability",
+      "question": "On a scale of 1-10, how would you rate your current financial stability?",
+      "type": "range",
+      "category": "socioeconomic",
+      "required": false,
+      "order": 10,
+      "min": 1,
+      "max": 10
+    },
+    {
+      "key": "dependents",
+      "question": "Do you have dependents (children, elderly parents, etc.)?",
+      "type": "multiple_choice",
+      "options": ["Yes", "No", "Prefer not to say"],
+      "category": "socioeconomic",
+      "required": false,
+      "order": 11
+    },
+    {
+      "key": "relationship_status",
+      "question": "What is your relationship status?",
+      "type": "multiple_choice",
+      "options": [
+        "Single",
+        "In a relationship",
+        "Married",
+        "Divorced",
+        "Widowed",
+        "Prefer not to say"
+      ],
+      "category": "basic",
+      "required": false,
+      "order": 12
+    }
+  ]
+} 
