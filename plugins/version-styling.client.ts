@@ -1,3 +1,5 @@
+import { nextTick, watch, onMounted } from 'vue'
+
 export default defineNuxtPlugin(() => {
   const { version, versionConfig } = useVersion()
 
@@ -12,14 +14,38 @@ export default defineNuxtPlugin(() => {
         html.classList.add('version-research')
         body.classList.add('version-research')
         
-        // Force light mode in research version
+        // Force light mode in research version - more aggressive approach
         html.classList.remove('dark')
         body.classList.remove('dark')
+        html.setAttribute('data-theme', 'light')
         
-        // Override color mode to prevent dark mode
-        const colorMode = useColorMode()
-        if (colorMode) {
-          colorMode.preference = 'light'
+        // Use nextTick to ensure colorMode is available and override it
+        if (nextTick && watch) {
+          nextTick(() => {
+            const colorMode = useColorMode()
+            if (colorMode) {
+            // Override preference and current value
+            colorMode.preference = 'light'
+            colorMode.value = 'light'
+            
+            // Watch for changes and prevent dark mode
+            watch(() => colorMode.value, (newValue: string) => {
+              if (newValue !== 'light') {
+                colorMode.preference = 'light'
+                colorMode.value = 'light'
+                html.classList.remove('dark')
+                body.classList.remove('dark')
+              }
+            }, { immediate: true })
+            
+            // Watch for system changes and override them
+            watch(() => colorMode.preference, (newPreference: string) => {
+              if (newPreference !== 'light') {
+                colorMode.preference = 'light'
+              }
+            }, { immediate: true })
+            }
+          })
         }
 
         // Apply research-specific styles (LIGHT MODE ONLY)
