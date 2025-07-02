@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-secondary-50 dark:bg-secondary-900 flex flex-col">
+  <div class="h-screen bg-secondary-50 dark:bg-secondary-900 flex flex-col">
     <!-- Header -->
     <header class="bg-white dark:bg-secondary-800 border-b border-secondary-200 dark:border-secondary-700 sticky top-0 z-40">
       <div class="container-wide">
@@ -83,7 +83,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="flex-grow">
+    <main class="flex-grow overflow-y-auto">
       <div class="container-wide">
         <slot />
       </div>
