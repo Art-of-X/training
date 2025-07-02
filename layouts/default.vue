@@ -92,8 +92,20 @@
     <!-- Footer -->
     <footer class="bg-white dark:bg-secondary-800 border-t border-secondary-200 dark:border-secondary-700">
       <div class="container-wide py-6">
-        <div class="text-center text-sm text-secondary-500 dark:text-secondary-400">
-          © {{ new Date().getFullYear() }} Artistic AI. All Rights Reserved.
+        <div class="flex flex-col items-center space-y-4">
+          <div class="flex space-x-4">
+            <NuxtLink
+              v-for="link in versionConfig.footerLinks"
+              :key="link.to"
+              :to="link.to"
+              class="text-sm text-secondary-600 hover:text-primary-600 dark:text-secondary-400 dark:hover:text-primary-400 transition-colors"
+            >
+              {{ link.text }}
+            </NuxtLink>
+          </div>
+          <div class="text-center text-sm text-secondary-500 dark:text-secondary-400">
+            © {{ new Date().getFullYear() }} Artistic AI. All Rights Reserved.
+          </div>
         </div>
       </div>
     </footer>
@@ -103,8 +115,10 @@
 <script setup lang="ts">
 import ThemeSwitcher from '~/components/ThemeSwitcher.vue';
 import { useAuth } from '~/composables/useAuth';
+import { useVersion } from '~/composables/useVersion';
 
 const { user, signOut } = useAuth();
+const { versionConfig } = useVersion();
 
 // State
 const isUserMenuOpen = ref(false)

@@ -19,6 +19,10 @@ export const useVersion = () => {
         primaryColor: 'rgb(245, 0, 0)',
         policyType: 'research',
         theme: 'minimal',
+        footerLinks: [
+          { text: 'Imprint', to: '/imprint' },
+          { text: 'Data Policy', to: '/policy-research' }
+        ],
         colors: {
           // Primary colors - all red variations
           primary: {
@@ -90,6 +94,11 @@ export const useVersion = () => {
       primaryColor: '#3b82f6', // blue
       policyType: 'commercial',
       theme: 'standard',
+      footerLinks: [
+        { text: 'Imprint', to: '/imprint' },
+        { text: 'Data Policy', to: '/policy-commercial' },
+        { text: 'Terms of Service', to: '/terms' }
+      ],
       colors: {
         // Standard Tailwind color palette for commercial
         primary: {
