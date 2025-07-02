@@ -780,562 +780,36 @@ const {
 
 const { uploadBlob, isUploading, uploadProgress, error: uploadError } = useFileUpload();
 
-// State
-const questions = ref<Question[]>([
-  {
-    id: 9,
-    category: "Daily Life",
-    text: "Do you make a daily to-do list?",
-    status: "unanswered",
-  },
-  {
-    id: 10,
-    category: "Daily Life",
-    text: "How many hours of screen time do you have on average per day?",
-    status: "unanswered",
-  },
-  {
-    id: 13,
-    category: "Daily Life",
-    text: "How many hours of sleep do you typically get per day?",
-    status: "unanswered",
-  },
-  {
-    id: 14,
-    category: "Daily Life",
-    text: "What do you do before going to sleep?",
-    status: "unanswered",
-  },
-  {
-    id: 15,
-    category: "Daily Life",
-    text: "How often do you feel rushed or short on time?",
-    status: "unanswered",
-  },
-  {
-    id: 16,
-    category: "Daily Life",
-    text: "Do you take time for leisure activities each day?",
-    status: "unanswered",
-  },
-  {
-    id: 18,
-    category: "Daily Life",
-    text: "How satisfied are you with your living situation?",
-    status: "unanswered",
-  },
-  {
-    id: 20,
-    category: "Daily Life",
-    text: "Do you recycle regularly?",
-    status: "unanswered",
-  },
-  {
-    id: 23,
-    category: "Daily Life",
-    text: "What is your relationship with plants?",
-    status: "unanswered",
-  },
-  {
-    id: 24,
-    category: "Daily Life",
-    text: "How do you typically manage household repairs?",
-    status: "unanswered",
-  },
-  {
-    id: 25,
-    category: "Daily Life",
-    text: "What would you change in your neighbourhood that you feel safer?",
-    status: "unanswered",
-  },
+// State - questions loaded from API
+const questions = ref<Question[]>([]);
+const answeredQuestionIds = ref<Set<number>>(new Set());
 
-  {
-    id: 1,
-    category: "Daily Life",
-    text: "How do you define your gender and are you comfortable with it?",
-    status: "unanswered",
-  },
-  {
-    id: 28,
-    category: "Daily Life",
-    text: "Are you satisfied to be an artist? Why or why not?",
-    status: "unanswered",
-  },
-  {
-    id: 29,
-    category: "Daily Life",
-    text: "How do you manage your monthly budget?",
-    status: "unanswered",
-  },
-  {
-    id: 30,
-    category: "Daily Life",
-    text: "Do you save money regularly?",
-    status: "unanswered",
-  },
-  {
-    id: 33,
-    category: "Daily Life",
-    text: "How often do you check your bank account?",
-    status: "unanswered",
-  },
-  {
-    id: 37,
-    category: "Daily Life",
-    text: "If you socialize with friends and family, how and how often do you do it?",
-    status: "unanswered",
-  },
-  {
-    id: 38,
-    category: "Daily Life",
-    text: "Do you participate in any community activities?",
-    status: "unanswered",
-  },
-  {
-    id: 39,
-    category: "Daily Life",
-    text: "What do you think about social media and how do you use it?",
-    status: "unanswered",
-  },
-  {
-    id: 40,
-    category: "Daily Life",
-    text: "How do you connect to your community?",
-    status: "unanswered",
-  },
-  {
-    id: 41,
-    category: "Daily Life",
-    text: "Do you volunteer your time? If so, how and how often?",
-    status: "unanswered",
-  },
-  {
-    id: 42,
-    category: "Daily Life",
-    text: "Do you know your neighbors?",
-    status: "unanswered",
-  },
-  {
-    id: 43,
-    category: "Daily Life",
-    text: "How often do you have meaningful conversations? Tell us your most recent one.",
-    status: "unanswered",
-  },
-  {
-    id: 44,
-    category: "Daily Life",
-    text: "Do you feel supported by your social network? If so, how?",
-    status: "unanswered",
-  },
-  {
-    id: 45,
-    category: "Daily Life",
-    text: "What are the advantages and disadvantages of online versus in-person social interactions?",
-    status: "unanswered",
-  },
-  {
-    id: 46,
-    category: "Daily Life",
-    text: "How often do you meet new people? How do you do it?",
-    status: "unanswered",
-  },
-  {
-    id: 47,
-    category: "Daily Life",
-    text: "How would you rate your overall health?",
-    status: "unanswered",
-  },
-  {
-    id: 51,
-    category: "Daily Life",
-    text: "How do you manage stress?",
-    status: "unanswered",
-  },
-  {
-    id: 54,
-    category: "Daily Life",
-    text: "Do you take any drugs (alcohol, drugs, etc.)? Which ones? Why?",
-    status: "unanswered",
-  },
-  {
-    id: 55,
-    category: "Daily Life",
-    text: "How do you care about what you eat? Give us some examples?",
-    status: "unanswered",
-  },
-  {
-    id: 56,
-    category: "Daily Life",
-    text: "Do you feel mentally and emotionally well?",
-    status: "unanswered",
-  },
-  {
-    id: 57,
-    category: "Daily Life",
-    text: "How often do you use the internet?",
-    status: "unanswered",
-  },
-  {
-    id: 58,
-    category: "Daily Life",
-    text: "What devices do you use most frequently (smartphone, computer, etc.)?",
-    status: "unanswered",
-  },
-  {
-    id: 59,
-    category: "Daily Life",
-    text: "How do you stay informed about current events?",
-    status: "unanswered",
-  },
-  {
-    id: 60,
-    category: "Daily Life",
-    text: "Do you trust the information you find online?",
-    status: "unanswered",
-  },
-  {
-    id: 61,
-    category: "Daily Life",
-    text: "How often do you experience technical problems with devices?",
-    status: "unanswered",
-  },
-  {
-    id: 63,
-    category: "Daily Life",
-    text: "How comfortable are you with new technology?",
-    status: "unanswered",
-  },
-  {
-    id: 64,
-    category: "Daily Life",
-    text: "Do you worry about online privacy and security?",
-    status: "unanswered",
-  },
-  {
-    id: 65,
-    category: "Daily Life",
-    text: "How do you learn new tech skills?",
-    status: "unanswered",
-  },
-  {
-    id: 66,
-    category: "Daily Life",
-    text: "Do you rely on technology for daily tasks?",
-    status: "unanswered",
-  },
-  {
-    id: 67,
-    category: "Art",
-    text: "Which artists have fascinated you, and why?",
-    status: "unanswered",
-  },
-  {
-    id: 68,
-    category: "Art",
-    text: "What art do you find absolutely terrible, and why?",
-    status: "unanswered",
-  },
-  {
-    id: 69,
-    category: "Art",
-    text: "How would you experimentally determine the size of Europe?",
-    status: "unanswered",
-  },
-  {
-    id: 70,
-    category: "Art",
-    text: "What are your favorite ice cream flavors?",
-    status: "unanswered",
-  },
-  {
-    id: 71,
-    category: "Art",
-    text: "What would you advise Putin right now? What should his strategy be?",
-    status: "unanswered",
-  },
-  { id: 72, category: "Art", text: "What are you most afraid of?", status: "unanswered" },
-  { id: 73, category: "Art", text: "What was your first artwork?", status: "unanswered" },
-  { id: 74, category: "Art", text: "What color is the sky?", status: "unanswered" },
-  { id: 75, category: "Art", text: "How high is the sky?", status: "unanswered" },
-  { id: 76, category: "Art", text: "What do you daydream about?", status: "unanswered" },
-  {
-    id: 77,
-    category: "Art",
-    text: "What is your favorite animal and why?",
-    status: "unanswered",
-  },
-  {
-    id: 78,
-    category: "Art",
-    text: "Which color is important in your life?",
-    status: "unanswered",
-  },
-  {
-    id: 79,
-    category: "Art",
-    text: "What distinguishes your art from that of the artist you feel closest to?",
-    status: "unanswered",
-  },
-  {
-    id: 80,
-    category: "Art",
-    text: "What materials do you work with?",
-    status: "unanswered",
-  },
-  {
-    id: 81,
-    category: "Art",
-    text: "How much money does it take to be happy?",
-    status: "unanswered",
-  },
-  {
-    id: 82,
-    category: "Art",
-    text: "Who is the most important person in the world to you?",
-    status: "unanswered",
-  },
-  {
-    id: 83,
-    category: "Art",
-    text: "What do you enjoy arguing about?",
-    status: "unanswered",
-  },
-  {
-    id: 84,
-    category: "Art",
-    text: "Which of your artworks would you never sell?",
-    status: "unanswered",
-  },
-  { id: 85, category: "Art", text: "What are the skilss that you posess to create art?", status: "unanswered" },
-  {
-    id: 86,
-    category: "Art",
-    text: "How do you know that you've worked too much?",
-    status: "unanswered",
-  },
-  {
-    id: 87,
-    category: "Art",
-    text: "How do you know when an artwork is finished?",
-    status: "unanswered",
-  },
-  {
-    id: 88,
-    category: "Art",
-    text: "How do you recognize if an artwork (by you or others) is good?",
-    status: "unanswered",
-  },
-  {
-    id: 89,
-    category: "Art",
-    text: "How do you express love to another person?",
-    status: "unanswered",
-  },
-  { id: 90, category: "Art", text: "Can children create art?", status: "unanswered" },
-  {
-    id: 91,
-    category: "Art",
-    text: "How can one recognize the artist's age from an artwork?",
-    status: "unanswered",
-  },
-  {
-    id: 92,
-    category: "Art",
-    text: "What is your understanding of power?",
-    status: "unanswered",
-  },
-  {
-    id: 93,
-    category: "Art",
-    text: "What does being rich mean to you?",
-    status: "unanswered",
-  },
-  {
-    id: 94,
-    category: "Art",
-    text: "What does being poor mean to you?",
-    status: "unanswered",
-  },
-  { id: 95, category: "Art", text: "What is your goal in life?", status: "unanswered" },
-  {
-    id: 96,
-    category: "Art",
-    text: "To whom would you sell your soul, and if so, for how much?",
-    status: "unanswered",
-  },
-  { id: 97, category: "Art", text: 'How would you define "soul"?', status: "unanswered" },
-  {
-    id: 98,
-    category: "Art",
-    text: "How many identities do you have, and how would you describe them?",
-    status: "unanswered",
-  },
-  {
-    id: 99,
-    category: "Art",
-    text: "How long does it take for you to finish an artwork?",
-    status: "unanswered",
-  },
-  {
-    id: 100,
-    category: "Art",
-    text: "Which books have influenced your thinking and how?",
-    status: "unanswered",
-  },
-  {
-    id: 101,
-    category: "Art",
-    text: "What is in your will (or if you don't have one, what should be in it)?",
-    status: "unanswered",
-  },
-  { id: 102, category: "Art", text: "What is art for you?", status: "unanswered" },
-  {
-    id: 103,
-    category: "Art",
-    text: "What would you like to receive as a gift?",
-    status: "unanswered",
-  },
-  {
-    id: 104,
-    category: "Art",
-    text: "What do you think about when you brush your teeth?",
-    status: "unanswered",
-  },
-  {
-    id: 105,
-    category: "Art",
-    text: "What plants do you have or would you plant in your garden?",
-    status: "unanswered",
-  },
-  {
-    id: 106,
-    category: "Art",
-    text: "Is there a legitimate reason for you to kill another person?",
-    status: "unanswered",
-  },
-  {
-    id: 107,
-    category: "Art",
-    text: "What would be the harshest punishment that could be imposed on you?",
-    status: "unanswered",
-  },
-  { id: 108, category: "Art", text: "What are you afraid of?", status: "unanswered" },
-  {
-    id: 109,
-    category: "Art",
-    text: "Which law should be abolished immediately?",
-    status: "unanswered",
-  },
-  {
-    id: 110,
-    category: "Art",
-    text: "Which law should definitely be introduced?",
-    status: "unanswered",
-  },
-  {
-    id: 111,
-    category: "Art",
-    text: "What superpower do you wish to have?",
-    status: "unanswered",
-  },
-  {
-    id: 112,
-    category: "Art",
-    text: "Would you like to live forever, and what would that mean to you?",
-    status: "unanswered",
-  },
-  {
-    id: 113,
-    category: "Art",
-    text:
-      "What is something a person you are just getting to know should not find out about you?",
-    status: "unanswered",
-  },
-  { id: 114, category: "Art", text: "What is your favorite joke?", status: "unanswered" },
-  {
-    id: 115,
-    category: "Art",
-    text: "What do you take responsibility for?",
-    status: "unanswered",
-  },
-  {
-    id: 116,
-    category: "Art",
-    text: "What five things would you take with you to a deserted island?",
-    status: "unanswered",
-  },
-    {
-    id: 117,
-    category: "Art",
-    text: "Did you ever destroy a work of art?",
-    status: "unanswered",
-  },
-  {
-    id: 118,
-    category: "Art",
-    text: "What do you do to calm down?",
-    status: "unanswered",
-  },
-  {
-    id: 119,
-    category: "Art",
-    text: "What are your forbidden thoughts questions and why?",
-    status: "unanswered",
-  },
-  {
-    id: 120,
-    category: "Art",
-    text: "Have you been ashamed before? When?",
-    status: "unanswered",
-  },
-  {
-    id: 121,
-    category: "Art",
-    text: "What are you proud of and why?",
-    status: "unanswered",
-  },
-  {
-    id: 122,
-    category: "Art",
-    text: "What is your conceptof beauty?",
-    status: "unanswered",
-  },
-  {
-    id: 123,
-    category: "Art",
-    text: "Do you avoid conflicts or do you seek them? Why?",
-    status: "unanswered",
-  },
-  {
-    id: 124,
-    category: "Art",
-    text: "How do you deal with someone who is right-wing?",
-    status: "unanswered",
-  },
-  {
-    id: 125,
-    category: "Art",
-    text: "Do you believe art can change society? Why or why not?",
-    status: "unanswered",
-  },
-  {
-    id: 126,
-    category: "Art",
-    text: "Do you believe there is a god/goddess? How do you get in touch with them?",
-    status: "unanswered",
-  },
-]);
+// Fetch questions from API
+const { data: questionsData, pending: questionsLoading } = useFetch<{ success: boolean; data: Question[] }>('/api/monologue/questions');
 
-// Shuffle function using Fisher-Yates algorithm
-const shuffleArray = <T>(array: T[]): T[] => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+// Update questions when questions data is loaded
+watch(questionsData, (data) => {
+  if (data?.success && data.data) {
+    applyAnsweredStatusToQuestions(data.data);
   }
-  return shuffled;
+});
+
+// Update questions when answered status changes
+watch(answeredQuestionIds, () => {
+  if (questionsData.value?.success && questionsData.value.data) {
+    applyAnsweredStatusToQuestions(questionsData.value.data);
+  }
+}, { deep: true });
+
+// Helper function to apply answered status to questions
+const applyAnsweredStatusToQuestions = (questionData: any[]) => {
+  questions.value = questionData.map(q => ({ 
+    ...q, 
+    status: answeredQuestionIds.value.has(q.id) ? 'answered' as const : 'unanswered' as const 
+  }));
 };
 
+// State
 const unansweredQuestions = computed(() => {
   return shuffleArray(questions.value.filter(q => q.status === "unanswered"));
 });
@@ -1432,11 +906,8 @@ const deleteExistingSubmission = async () => {
     });
     
     if (response.success) {
-      // Update question status
-      const question = questions.value.find((q) => q.id === activeQuestion.value!.id);
-      if (question) {
-        question.status = "unanswered";
-      }
+      // Remove from answered question IDs set (this will trigger the watcher)
+      answeredQuestionIds.value.delete(activeQuestion.value.id);
       
       // Switch to record mode
       switchToRecordMode();
@@ -1563,10 +1034,8 @@ const handleSubmit = async () => {
       });
 
       if (response.success) {
-        const question = questions.value.find((q) => q.id === activeQuestion.value!.id);
-        if (question) {
-          question.status = "answered";
-        }
+        // Add to answered question IDs set (this will trigger the watcher)
+        answeredQuestionIds.value.add(activeQuestion.value.id);
         unselectQuestion();
       } else {
         error.value = "Failed to save recording";
@@ -1588,10 +1057,8 @@ const handleSubmit = async () => {
       );
 
       if (result.success) {
-        const question = questions.value.find((q) => q.id === activeQuestion.value!.id);
-        if (question) {
-          question.status = "answered";
-        }
+        // Add to answered question IDs set (this will trigger the watcher)
+        answeredQuestionIds.value.add(activeQuestion.value.id);
         unselectQuestion();
       } else {
         error.value = uploadError.value || "Failed to save recording";
@@ -1599,6 +1066,17 @@ const handleSubmit = async () => {
     }
   } catch (err: any) {
     error.value = err.message || "An error occurred while saving your recording";
+  }
+};
+
+// Load answered questions status
+const loadAnsweredStatus = async () => {
+  try {
+    const answeredIds = await $fetch<number[]>("/api/monologue/answered");
+    answeredQuestionIds.value = new Set(answeredIds);
+  } catch (error) {
+    console.error("Failed to load answered questions status:", error);
+    // We can let the user proceed without this, it's not critical
   }
 };
 
@@ -1613,17 +1091,8 @@ onMounted(async () => {
     permissionDenied.value = true;
   }
 
-  try {
-    const answeredIds = await $fetch<number[]>("/api/monologue/answered");
-    const answeredIdSet = new Set(answeredIds);
-    questions.value = questions.value.map((q) => ({
-      ...q,
-      status: answeredIdSet.has(q.id) ? "answered" : "unanswered",
-    }));
-  } catch (error) {
-    console.error("Failed to load answered questions status:", error);
-    // We can let the user proceed without this, it's not critical
-  }
+  // Load answered questions status
+  await loadAnsweredStatus();
 });
 
 // Cleanup on unmount
@@ -1633,12 +1102,20 @@ onUnmounted(() => {
   }
 });
 
-
-
 // Watch for errors from composables
 watch([recordingError, uploadError], ([recError, upError]) => {
   error.value = recError || upError;
 });
+
+// Shuffle function using Fisher-Yates algorithm
+const shuffleArray = <T>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
 </script>
 
 <style scoped>

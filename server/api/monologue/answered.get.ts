@@ -9,13 +9,11 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // @ts-ignore
     const recordings = await prisma.monologueRecording.findMany({
       where: { userId: user.id },
       select: { questionId: true }
     })
     
-    // @ts-ignore
     const answeredQuestionIds = recordings.map(r => r.questionId)
     return answeredQuestionIds
   } catch (error: any) {

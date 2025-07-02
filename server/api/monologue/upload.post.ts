@@ -2,6 +2,8 @@ import { defineEventHandler, readMultipartFormData, createError } from 'h3'
 import { serverSupabaseUser, serverSupabaseServiceRole, serverSupabaseClient } from '#supabase/server'
 import { prisma } from '../../utils/prisma'
 import { z } from 'zod'
+import fs from 'fs/promises'
+import path from 'path'
 
 // Validation schema for additional data
 const monologueDataSchema = z.object({
@@ -66,11 +68,12 @@ export default defineEventHandler(async (event) => {
     // Validate additional data
     const { question, duration, questionId, supplementaryDescription, supplementaryLink } = monologueDataSchema.parse(additionalData || {})
 
-    // Validate that the questionId exists in the database
-    const existingQuestion = await prisma.monologueQuestion.findUnique({
-      where: { id: questionId }
-    })
-
+    // Validate that the questionId exists in the JSON file
+    const questionsPath = path.join(process.cwd(), 'public', 'data', 'monologue-questions.json')
+    const questionsContent = await fs.readFile(questionsPath, 'utf-8')
+    const { questions } = JSON.parse(questionsContent)
+    
+    const existingQuestion = questions.find((q: any) => q.id === questionId)
     if (!existingQuestion) {
       throw createError({
         statusCode: 400,

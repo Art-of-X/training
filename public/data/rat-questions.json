@@ -1,0 +1,34 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "word1": "cottage",
+      "word2": "swiss",
+      "word3": "cake"
+    },
+    {
+      "id": 2,
+      "word1": "cream",
+      "word2": "skate",
+      "word3": "water"
+    },
+    {
+      "id": 3,
+      "word1": "show",
+      "word2": "life",
+      "word3": "row"
+    },
+    {
+      "id": 4,
+      "word1": "night",
+      "word2": "wrist",
+      "word3": "stop"
+    },
+    {
+      "id": 5,
+      "word1": "sore",
+      "word2": "shoulder",
+      "word3": "sweat"
+    }
+  ]
+} 

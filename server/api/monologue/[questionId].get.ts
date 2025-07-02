@@ -34,9 +34,6 @@ export default defineEventHandler(async (event) => {
       where: {
         userId: user.id,
         questionId: questionIdNum
-      },
-      include: {
-        question: true
       }
     })
 

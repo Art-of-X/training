@@ -1,0 +1,554 @@
+{
+  "questions": [
+    {
+      "id": 7,
+      "text": "What time do you typically wake up on weekdays?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 8,
+      "text": "How much time do you spend commuting each day?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 9,
+      "text": "Do you make a daily to-do list?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 10,
+      "text": "How many hours of screen time do you have on average per day?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 11,
+      "text": "How often do you eat out versus cooking at home?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 12,
+      "text": "Do you exercise regularly (at least three times a week)?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 13,
+      "text": "How many hours of sleep do you typically get per night?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 14,
+      "text": "Do you have a set bedtime routine?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 15,
+      "text": "How often do you feel rushed or short on time?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 16,
+      "text": "Do you take time for leisure activities each day?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 17,
+      "text": "Do you rent or own your home?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 18,
+      "text": "How satisfied are you with your living situation?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 19,
+      "text": "How often do you do household chores?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 20,
+      "text": "Do you recycle regularly?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 21,
+      "text": "How much do you spend on groceries per week?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 22,
+      "text": "Do you have any pets?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 23,
+      "text": "Do you have a garden or plants at home?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 24,
+      "text": "How do you typically manage household repairs?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 25,
+      "text": "Do you feel safe in your neighborhood?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 26,
+      "text": "How often do you declutter your living space?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 27,
+      "text": "What is your current employment status?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 28,
+      "text": "How satisfied are you with your current job?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 29,
+      "text": "How do you manage your monthly budget?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 30,
+      "text": "Do you save money regularly?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 31,
+      "text": "Do you have any debt?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 32,
+      "text": "How do you pay your bills?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 33,
+      "text": "How often do you check your bank account?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 34,
+      "text": "Do you invest money?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 35,
+      "text": "How do you plan for retirement?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 36,
+      "text": "Do you feel financially secure?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 37,
+      "text": "How often do you socialize with friends and family?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 38,
+      "text": "Do you participate in any community activities?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 39,
+      "text": "How often do you use social media?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 40,
+      "text": "Do you feel connected to your community?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 41,
+      "text": "Do you volunteer your time?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 42,
+      "text": "Do you know your neighbors?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 43,
+      "text": "How often do you have meaningful conversations?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 44,
+      "text": "Do you feel supported by your social network?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 45,
+      "text": "Do you prefer online or in-person social interactions?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 46,
+      "text": "How often do you meet new people?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 47,
+      "text": "How would you rate your overall health?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 48,
+      "text": "Do you have any chronic health conditions?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 49,
+      "text": "How often do you visit a doctor?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 50,
+      "text": "Do you take any medications regularly?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 51,
+      "text": "How do you manage stress?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 52,
+      "text": "Do you practice any mindfulness or relaxation techniques?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 53,
+      "text": "How often do you drink alcohol?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 54,
+      "text": "Do you smoke or use tobacco products?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 55,
+      "text": "How do you maintain a healthy diet?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 56,
+      "text": "Do you feel mentally and emotionally well?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 57,
+      "text": "How often do you use the internet?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 58,
+      "text": "What devices do you use most frequently (smartphone, computer, etc.)?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 59,
+      "text": "How do you stay informed about current events?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 60,
+      "text": "Do you trust the information you find online?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 61,
+      "text": "How often do you experience technical problems with devices?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 62,
+      "text": "Do you use online banking or shopping?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 63,
+      "text": "How comfortable are you with new technology?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 64,
+      "text": "Do you worry about online privacy and security?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 65,
+      "text": "How do you learn new tech skills?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 66,
+      "text": "Do you rely heavily on technology for daily tasks?",
+      "category": "Daily Life"
+    },
+    {
+      "id": 67,
+      "text": "Which artists have fascinated you, and why?",
+      "category": "Art"
+    },
+    {
+      "id": 68,
+      "text": "What art do you find absolutely terrible, and why?",
+      "category": "Art"
+    },
+    {
+      "id": 69,
+      "text": "How would you experimentally determine the size of Europe?",
+      "category": "Art"
+    },
+    {
+      "id": 70,
+      "text": "What are your favorite ice cream flavors?",
+      "category": "Art"
+    },
+    {
+      "id": 71,
+      "text": "What would you advise Putin right now? What should his strategy be?",
+      "category": "Art"
+    },
+    {
+      "id": 72,
+      "text": "What are you most afraid of?",
+      "category": "Art"
+    },
+    {
+      "id": 73,
+      "text": "What was your first artwork?",
+      "category": "Art"
+    },
+    {
+      "id": 74,
+      "text": "What color is the sky?",
+      "category": "Art"
+    },
+    {
+      "id": 75,
+      "text": "How high is the sky?",
+      "category": "Art"
+    },
+    {
+      "id": 76,
+      "text": "What do you daydream about?",
+      "category": "Art"
+    },
+    {
+      "id": 77,
+      "text": "What is your favorite animal?",
+      "category": "Art"
+    },
+    {
+      "id": 78,
+      "text": "Which color is important in your life?",
+      "category": "Art"
+    },
+    {
+      "id": 79,
+      "text": "What distinguishes your art from that of the artist you feel closest to?",
+      "category": "Art"
+    },
+    {
+      "id": 80,
+      "text": "What materials do you work with?",
+      "category": "Art"
+    },
+    {
+      "id": 81,
+      "text": "How much money does it take to be happy?",
+      "category": "Art"
+    },
+    {
+      "id": 82,
+      "text": "Who is the most important person in the world to you?",
+      "category": "Art"
+    },
+    {
+      "id": 83,
+      "text": "What do you enjoy arguing about?",
+      "category": "Art"
+    },
+    {
+      "id": 84,
+      "text": "Which of your artworks would you never sell?",
+      "category": "Art"
+    },
+    {
+      "id": 85,
+      "text": "What is your daily routine?",
+      "category": "Art"
+    },
+    {
+      "id": 86,
+      "text": "How do you know that you've worked too much?",
+      "category": "Art"
+    },
+    {
+      "id": 87,
+      "text": "How do you know when an artwork is finished?",
+      "category": "Art"
+    },
+    {
+      "id": 88,
+      "text": "How do you recognize if an artwork (by you or others) is good?",
+      "category": "Art"
+    },
+    {
+      "id": 89,
+      "text": "How do you express love to another person?",
+      "category": "Art"
+    },
+    {
+      "id": 90,
+      "text": "Can children create art?",
+      "category": "Art"
+    },
+    {
+      "id": 91,
+      "text": "How can one recognize the artist's age from an artwork?",
+      "category": "Art"
+    },
+    {
+      "id": 92,
+      "text": "What is your understanding of power?",
+      "category": "Art"
+    },
+    {
+      "id": 93,
+      "text": "What does being rich mean to you?",
+      "category": "Art"
+    },
+    {
+      "id": 94,
+      "text": "What does being poor mean to you?",
+      "category": "Art"
+    },
+    {
+      "id": 95,
+      "text": "What is your goal in life?",
+      "category": "Art"
+    },
+    {
+      "id": 96,
+      "text": "To whom would you sell your soul, and if so, for how much?",
+      "category": "Art"
+    },
+    {
+      "id": 97,
+      "text": "How would you define \"soul\"?",
+      "category": "Art"
+    },
+    {
+      "id": 98,
+      "text": "How many identities do you have, and how would you describe them?",
+      "category": "Art"
+    },
+    {
+      "id": 99,
+      "text": "How long does it take for you to finish an artwork?",
+      "category": "Art"
+    },
+    {
+      "id": 100,
+      "text": "How many books have you read?",
+      "category": "Art"
+    },
+    {
+      "id": 101,
+      "text": "What is in your will (or if you don't have one, what should be in it)?",
+      "category": "Art"
+    },
+    {
+      "id": 102,
+      "text": "What is art for you?",
+      "category": "Art"
+    },
+    {
+      "id": 103,
+      "text": "What would you like to receive as a gift?",
+      "category": "Art"
+    },
+    {
+      "id": 104,
+      "text": "What do you think about when you brush your teeth?",
+      "category": "Art"
+    },
+    {
+      "id": 105,
+      "text": "What plants do you have or would you plant in your garden?",
+      "category": "Art"
+    },
+    {
+      "id": 106,
+      "text": "Is there a legitimate reason for you to kill another person?",
+      "category": "Art"
+    },
+    {
+      "id": 107,
+      "text": "What would be the harshest punishment that could be imposed on you?",
+      "category": "Art"
+    },
+    {
+      "id": 108,
+      "text": "What are you afraid of?",
+      "category": "Art"
+    },
+    {
+      "id": 109,
+      "text": "Which law should be abolished immediately?",
+      "category": "Art"
+    },
+    {
+      "id": 110,
+      "text": "Which law should definitely be introduced?",
+      "category": "Art"
+    },
+    {
+      "id": 111,
+      "text": "What superpower do you wish you had?",
+      "category": "Art"
+    },
+    {
+      "id": 112,
+      "text": "Would you like to live forever, and what would that mean to you?",
+      "category": "Art"
+    },
+    {
+      "id": 113,
+      "text": "What is something a person you are just getting to know should not find out about you?",
+      "category": "Art"
+    },
+    {
+      "id": 114,
+      "text": "What is your favorite joke?",
+      "category": "Art"
+    },
+    {
+      "id": 115,
+      "text": "What do you take responsibility for?",
+      "category": "Art"
+    },
+    {
+      "id": 116,
+      "text": "What five things would you take with you to a deserted island?",
+      "category": "Art"
+    }
+  ]
+} 

@@ -46,18 +46,7 @@ model PortfolioItem {
 }
 
 // Monologue Module
-model MonologueQuestion {
-  id        Int      @id @default(autoincrement())
-  text      String
-  category  String
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // Relation
-  recordings MonologueRecording[]
-
-  @@map("monologue_questions")
-}
-
+// Questions are now stored in public/data/monologue-questions.json
 model MonologueRecording {
   id                     String   @id @default(uuid()) @db.Uuid
   userId                 String   @map("user_id") @db.Uuid
@@ -68,11 +57,10 @@ model MonologueRecording {
   supplementaryLink      String?  @map("supplementary_link")
   supplementaryDescription String? @map("supplementary_description")
   createdAt              DateTime @default(now()) @map("created_at")
+  questionId             Int      @map("question_id") // References JSON file questions
 
   // Relations
-  user            UserProfile       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  question        MonologueQuestion @relation(fields: [questionId], references: [id])
-  questionId      Int               @map("question_id")
+  user            UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("monologue_recordings")
 }
@@ -104,52 +92,31 @@ model PeerTrainingParticipant {
 }
 
 // Creativity Benchmarking Module
+// Questions are now stored in public/data/aut-questions.json and public/data/rat-questions.json
 
 // Alternate Uses Test (AUT)
-model AUTQuestion {
-  id      Int         @id @default(autoincrement())
-  object  String      @unique // The object for which to find uses (e.g., "brick")
-  answers AUTAnswer[]
-
-  @@map("aut_questions")
-}
-
 model AUTAnswer {
   id         String   @id @default(uuid()) @db.Uuid
   userId     String   @map("user_id") @db.Uuid
-  questionId Int      @map("question_id")
+  questionId Int      @map("question_id") // References JSON file questions
   uses       String[]
   createdAt  DateTime @default(now()) @map("created_at")
 
   user     UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
-  question AUTQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@map("aut_answers")
 }
 
 // Remote Associates Test (RAT)
-model RATQuestion {
-  id    Int    @id @default(autoincrement())
-  word1 String
-  word2 String
-  word3 String
-
-  answers RATAnswer[]
-
-  @@unique([word1, word2, word3])
-  @@map("rat_questions")
-}
-
 model RATAnswer {
   id         String   @id @default(uuid()) @db.Uuid
   userId     String   @map("user_id") @db.Uuid
-  questionId Int      @map("question_id")
+  questionId Int      @map("question_id") // References JSON file questions
   answer     String
   isCorrect  Boolean? // Some RATs have correct answers
   createdAt  DateTime @default(now()) @map("created_at")
 
   user     UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
-  question RATQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@map("rat_answers")
 }

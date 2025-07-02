@@ -1,6 +1,8 @@
 import { defineEventHandler, createError } from 'h3'
 import { serverSupabaseUser } from '#supabase/server'
 import { prisma } from '../../../utils/prisma'
+import fs from 'fs/promises'
+import path from 'path'
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event)
@@ -9,7 +11,11 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const total = await prisma.aUTQuestion.count();
+    // Get total questions from JSON file
+    const questionsPath = path.join(process.cwd(), 'public', 'data', 'aut-questions.json')
+    const questionsContent = await fs.readFile(questionsPath, 'utf-8')
+    const { questions } = JSON.parse(questionsContent)
+    const total = questions.length
     
     const answeredRecords = await prisma.aUTAnswer.findMany({
         where: { userId: user.id },
