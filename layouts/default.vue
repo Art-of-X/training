@@ -98,14 +98,15 @@
               v-for="link in versionConfig.footerLinks"
               :key="link.to"
               :to="link.to"
+              :external="link.external"
+              :target="link.external ? '_blank' : undefined"
+              :rel="link.external ? 'noopener noreferrer' : undefined"
               class="text-sm text-secondary-600 hover:text-primary-600 dark:text-secondary-400 dark:hover:text-primary-400 transition-colors"
             >
               {{ link.text }}
             </NuxtLink>
           </div>
-          <div class="text-center text-sm text-secondary-500 dark:text-secondary-400">
-            © {{ new Date().getFullYear() }} Artistic AI. All Rights Reserved.
-          </div>
+ 
         </div>
       </div>
     </footer>

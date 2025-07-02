@@ -20,8 +20,9 @@ export const useVersion = () => {
         policyType: 'research',
         theme: 'minimal',
         footerLinks: [
-          { text: 'Imprint', to: '/imprint' },
-          { text: 'Data Policy', to: '/policy-research' }
+          { text: 'Imprint', to: 'https://hfbk-hamburg.de/en/hochschule/impressum/', external: true },
+          { text: 'Data Policy', to: 'https://hfbk-hamburg.de/en/hochschule/datenschutzerkl%C3%A4rung/', external: true },
+          { text: 'Research Information', to: '/legal/research-information', external: false }
         ],
         colors: {
           // Primary colors - all red variations
@@ -95,9 +96,9 @@ export const useVersion = () => {
       policyType: 'commercial',
       theme: 'standard',
       footerLinks: [
-        { text: 'Imprint', to: '/imprint' },
-        { text: 'Data Policy', to: '/policy-commercial' },
-        { text: 'Terms of Service', to: '/terms' }
+        { text: 'Imprint', to: '/imprint', external: false },
+        { text: 'Data Policy', to: '/policy-commercial', external: false },
+        { text: 'Terms of Service', to: '/terms', external: false }
       ],
       colors: {
         // Standard Tailwind color palette for commercial

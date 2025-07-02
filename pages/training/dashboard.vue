@@ -127,26 +127,6 @@
       </div>
     </div>
     
-    <!-- Policy Section -->
-    <div>
-      <h2 class="text-2xl font-semibold text-secondary-900 dark:text-white mb-4 border-b pb-2">Policy</h2>
-      <div class="card">
-        <div class="card-body">
-          <p class="text-secondary-600 dark:text-secondary-300">
-            Read about the context of this experiment and our data usage policy.
-          </p>
-          <button @click="openPolicyModal" class="btn-primary mt-4">Read Policy</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Policy Modal -->
-    <PolicyModal 
-      :isOpen="isPolicyModalOpen" 
-      @close="closePolicyModal"
-      @accept="handlePolicyAccept"
-    />
-
   </div>
 </template>
 
@@ -166,9 +146,6 @@ interface UserProfile {
 
 const userProfile = ref<UserProfile | null>(null)
 
-// Policy modal state
-const isPolicyModalOpen = ref(false)
-
 // Load user profile
 const loadUserProfile = async () => {
   if (user.value) {
@@ -179,21 +156,6 @@ const loadUserProfile = async () => {
       console.error('Failed to load user profile:', error)
     }
   }
-}
-
-// Policy modal handlers
-const openPolicyModal = () => {
-  isPolicyModalOpen.value = true
-}
-
-const closePolicyModal = () => {
-  isPolicyModalOpen.value = false
-}
-
-const handlePolicyAccept = () => {
-  // Handle policy acceptance if needed
-  console.log('Policy accepted')
-  closePolicyModal()
 }
 
 // Load profile on mount and when user changes
