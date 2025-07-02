@@ -66,6 +66,18 @@ export default defineEventHandler(async (event) => {
     // Validate additional data
     const { question, duration, questionId, supplementaryDescription, supplementaryLink } = monologueDataSchema.parse(additionalData || {})
 
+    // Validate that the questionId exists in the database
+    const existingQuestion = await prisma.monologueQuestion.findUnique({
+      where: { id: questionId }
+    })
+
+    if (!existingQuestion) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: `Invalid question ID: ${questionId}. Question does not exist.`
+      })
+    }
+
     // Validate supplementary content (file or link)
     if (supplementaryFile && supplementaryLink) {
       throw createError({
