@@ -46,7 +46,8 @@
 // Set page metadata
 definePageMeta({
   title: 'Artistic AI Platform',
-  description: 'Secure platform for capturing artists\' creative DNA through AI training'
+  description: 'Secure platform for capturing artists\' creative DNA through AI training',
+  layout: 'public'
 })
 
 // Get authentication state
