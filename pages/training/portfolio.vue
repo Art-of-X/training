@@ -1,5 +1,5 @@
 <template>
-  <div class="py-8">
+  <div class="py-8 container-wide">
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-secondary-900 dark:text-white mb-2">Portfolio Training</h1>

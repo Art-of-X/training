@@ -44,7 +44,7 @@
       <!-- Chat messages -->
       <div 
         ref="chatContainer"
-        class="flex-1 overflow-y-auto mb-4 text-xl min-h-0"
+        class="flex-1 overflow-y-auto mb-4 text-base min-h-0"
         style="scroll-behavior: smooth;"
       >
         <div v-for="(message, index) in messages" :key="index" 
@@ -84,12 +84,12 @@
             v-model="input"
             type="text"
             placeholder="Type your message..."
-            class="w-full px-3 py-2 border-2 border-secondary-300 dark:border-secondary-600 text-xl focus:outline-none me-4 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-white"
+            class="w-full px-3 py-2 border-2 border-secondary-300 dark:border-secondary-600 text-base focus:outline-none me-4 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-white"
             :disabled="isLoading || isTyping"
           />
           <button 
             type="submit"
-            class="py-2 px-6 text-xl text-white whitespace-nowrap min-w-fit bg-primary-500 hover:bg-primary-600 disabled:opacity-70"
+            class="py-2 px-6 text-base text-white whitespace-nowrap min-w-fit bg-primary-500 hover:bg-primary-600 disabled:opacity-70"
             :disabled="isLoading || isTyping"
           >
             Send

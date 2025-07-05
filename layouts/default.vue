@@ -199,6 +199,7 @@ import { useAuth } from "~/composables/useAuth";
 import { useVersion } from "~/composables/useVersion";
 import { useUserProfile } from "~/composables/useUserProfile";
 import { useDynamicColors } from "~/composables/useDynamicColors";
+import { useHead } from "nuxt/app";
 
 const { user, signOut } = useAuth();
 const { versionConfig } = useVersion();
@@ -206,6 +207,19 @@ const { userProfile, isLoadingProfile } = useUserProfile();
 const { setColors } = useDynamicColors();
 
 onMounted(setColors);
+
+const pageTitle = computed(() => {
+  if (userProfile.value?.name) {
+    return `Art of ${userProfile.value.name}`;
+  }
+  return "Artx";
+});
+
+useHead({
+  titleTemplate: (titleChunk) => {
+    return titleChunk ? `${titleChunk} - ${pageTitle.value}` : pageTitle.value;
+  },
+});
 
 // State
 const isUserMenuOpen = ref(false);

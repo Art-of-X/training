@@ -1,10 +1,10 @@
 <template>
-  <div class="h-screen">
+  <div class="h-full flex flex-col">
     <!-- Header -->
     <div class="text-start container-wide py-8 px-8 w-100 px-8">
       <h1 class="text-3xl font-bold text-secondary-900 dark:text-white mb-2">Welcome, <span class="text-primary-500">{{ userProfile?.name || 'Artist' }}</span>. Let's train your <span class="text-primary-500 italic">spark</span>.</h1>
       <p class="text-2xl text-secondary-600 dark:text-secondary-300">
-        Complete the following modules to train the artistic AI.
+        Start adding your portfolio and answer questions to train your personal model.
       </p>
     </div>
 
@@ -12,8 +12,8 @@
       
       <!-- Left Column: Training Modules -->
       <div class="h-full overflow-y-auto">
-        <div class="sticky top-0 z-10 flex items-center justify-between border-b pb-2 pt-1 dark:bg-secondary-900 mb-4">
-          <h2 class="text-2xl font-semibold text-secondary-900 dark:text-white">Training your AI</h2>
+        <div class="sticky top-0 z-10 flex items-center justify-between border-b pb-2 pt-1 bg-white dark:bg-secondary-900 mb-4">
+          <h2 class="text-2xl font-semibold text-secondary-900 dark:text-white">Training your spark</h2>
           
           <!-- Switcher -->
           <div class="flex bg-secondary-100 dark:bg-secondary-800 rounded-lg p-1">
@@ -43,7 +43,7 @@
         </div>
         
         <!-- Static Training Cards -->
-        <div v-if="activeTab === 'static'" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div v-if="activeTab === 'static'" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <!-- Portfolio Card -->
           <NuxtLink to="/training/portfolio" class="block hover:opacity-80 transition-opacity">
             <div class="h-full">
@@ -71,30 +71,30 @@
           </NuxtLink>
 
           <!-- Creativity Benchmarking Card -->
-          <NuxtLink to="/training/creativity-benchmarking" class="block hover:opacity-80 transition-opacity">
+          <div class="block cursor-not-allowed opacity-60">
             <div class="h-full">
-              <h3 class="text-lg font-semibold text-secondary-900 dark:text-white">Creativity</h3>
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-secondary-900 dark:text-white">Creativity</h3>
+                <span class="text-xs font-semibold bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300 px-2 py-1">SOON</span>
+              </div>
               <p class="text-sm text-secondary-600 dark:text-secondary-300 mt-1">
                 Engage in standardized tests to measure and understand your creative potential.
               </p>
-              <div class="mt-3" v-if="progressData">
-                <ProgressBar label="Tests" :completed="progressData.creativity.completed" :total="progressData.creativity.total" />
-              </div>
             </div>
-          </NuxtLink>
+          </div>
 
           <!-- Demographics Card -->
-          <NuxtLink to="/training/demographics" class="block hover:opacity-80 transition-opacity">
+          <div class="block cursor-not-allowed opacity-60">
             <div class="h-full">
-              <h3 class="text-lg font-semibold text-secondary-900 dark:text-white">Demographics</h3>
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-secondary-900 dark:text-white">Demographics</h3>
+                <span class="text-xs font-semibold bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300 px-2 py-1">SOON</span>
+              </div>
               <p class="text-sm text-secondary-600 dark:text-secondary-300 mt-1">
                 Share your background information to help us understand your creative context.
               </p>
-              <div class="mt-3" v-if="progressData">
-                <ProgressBar label="Answered" :completed="progressData.demographics.completed" :total="progressData.demographics.total" />
-              </div>
             </div>
-          </NuxtLink>
+          </div>
 
           <!-- Peer Training Card -->
           <div class="block cursor-not-allowed opacity-60">
@@ -136,7 +136,7 @@
 
       <!-- Right Column: Using your AI -->
       <div class="h-full overflow-y-auto">
-        <h2 class="sticky top-0 z-10 text-2xl font-semibold text-secondary-900 dark:text-white mb-4 border-b pb-2 pt-1 dark:bg-secondary-900">Using your AI</h2>
+        <h2 class="sticky top-0 z-10 text-2xl font-semibold text-secondary-900 dark:text-white mb-4 border-b pb-2 pt-1 bg-white dark:bg-secondary-900">Using your AI</h2>
         
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <!-- API Card -->
