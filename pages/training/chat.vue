@@ -40,9 +40,6 @@
     
     <!-- Embedded Chat (playground style) -->
     <div v-else class="flex flex-col h-full min-h-0">
-      <header class="mb-4 flex-shrink-0">
-        <h1 class="text-xl font-bold text-secondary-900 dark:text-white">AI Chat</h1>
-      </header>
       
       <!-- Chat messages -->
       <div 
@@ -160,8 +157,8 @@ watch(isLoading, forceScrollToBottom);
 watch(input, scrollToBottom); // Scroll when user types
 
 // Enhanced submit handler with auto-scroll
-const handleSubmitWithScroll = async () => {
-  await handleSubmit();
+const handleSubmitWithScroll = async (e: Event) => {
+  await handleSubmit(e);
   forceScrollToBottom();
 };
 
