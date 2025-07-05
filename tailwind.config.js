@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const defaultTheme = require('tailwindcss/defaultTheme')
+
 module.exports = {
   darkMode: 'class',
   content: [
@@ -14,29 +16,29 @@ module.exports = {
       // Custom color palette for the AI training platform
       colors: {
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
-          950: '#082f49'
+          50: 'hsl(var(--color-primary-50) / <alpha-value>)',
+          100: 'hsl(var(--color-primary-100) / <alpha-value>)',
+          200: 'hsl(var(--color-primary-200) / <alpha-value>)',
+          300: 'hsl(var(--color-primary-300) / <alpha-value>)',
+          400: 'hsl(var(--color-primary-400) / <alpha-value>)',
+          500: 'hsl(var(--color-primary-500) / <alpha-value>)',
+          600: 'hsl(var(--color-primary-600) / <alpha-value>)',
+          700: 'hsl(var(--color-primary-700) / <alpha-value>)',
+          800: 'hsl(var(--color-primary-800) / <alpha-value>)',
+          900: 'hsl(var(--color-primary-900) / <alpha-value>)',
+          950: 'hsl(var(--color-primary-950) / <alpha-value>)',
         },
         secondary: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a'
+          50: '#f9fafb',
+          100: '#f3f4f6',
+          200: '#e5e7eb',
+          300: '#d1d5db',
+          400: '#9ca3af',
+          500: '#6b7280',
+          600: '#4b5563',
+          700: '#374151',
+          800: '#1f2937',
+          900: '#111827',
         },
         success: {
           50: '#f0fdf4',
@@ -55,7 +57,8 @@ module.exports = {
           500: '#ef4444',
           600: '#dc2626',
           700: '#b91c1c'
-        }
+        },
+        background: 'hsl(var(--color-background) / <alpha-value>)'
       },
       
       // Sharp corners - NO rounded corners
@@ -80,8 +83,8 @@ module.exports = {
       
       // Typography enhancements
       fontFamily: {
-        'sans': ['Px Grotesk', 'system-ui', 'sans-serif'],
-        'mono': ['JetBrains Mono', 'Menlo', 'Monaco', 'Courier New', 'monospace']
+        sans: ['"Px Grotesk"', ...defaultTheme.fontFamily.sans],
+        mono: ['JetBrains Mono', 'Menlo', 'Monaco', 'Courier New', 'monospace']
       },
       
       // Animation for smooth interactions
@@ -108,5 +111,7 @@ module.exports = {
     require('@tailwindcss/forms')({
       strategy: 'class' // Use class-based strategy for better control
     }),
+    require('@tailwindcss/typography'),
+    require('@tailwindcss/aspect-ratio'),
   ],
 } 

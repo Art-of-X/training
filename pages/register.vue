@@ -1,132 +1,131 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-secondary-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-      <!-- Header -->
-      <div class="text-center">
-        <h2 class="text-3xl font-bold text-secondary-900 dark:text-white">
-          Create your account
-        </h2>
-        <p class="mt-2 text-sm text-secondary-600 dark:text-secondary-300">
-          Start your training journey        </p>
-      </div>
+  <div class="w-full space-y-8">
+    <!-- Header -->
+    <div class="text-center">
+      <h2 class="text-3xl font-bold text-secondary-900">
+        Create your account
+      </h2>
+      <p class="mt-2 text-sm text-secondary-600">
+        Start your training journey
+      </p>
+    </div>
 
-      <!-- Sign up form -->
-      <form class="mt-8 space-y-6" @submit.prevent="handleSignUp">
-        <div class="space-y-4">
-          <div>
-            <label for="name" class="form-label">
-              Full Name
-            </label>
-            <input
-              id="name"
-              v-model="form.name"
-              name="name"
-              type="text"
-              autocomplete="name"
-              required
-              class="form-input"
-              :class="{ 'border-error-300': errors.name }"
-              placeholder="Enter your full name"
-            />
-            <p v-if="errors.name" class="form-error">
-              {{ errors.name }}
-            </p>
-          </div>
-
-          <div>
-            <label for="email" class="form-label">
-              Email address
-            </label>
-            <input
-              id="email"
-              v-model="form.email"
-              name="email"
-              type="email"
-              autocomplete="email"
-              required
-              class="form-input"
-              :class="{ 'border-error-300': errors.email }"
-              placeholder="Enter your email"
-            />
-            <p v-if="errors.email" class="form-error">
-              {{ errors.email }}
-            </p>
-          </div>
-
-          <div>
-            <label for="password" class="form-label">
-              Password
-            </label>
-            <input
-              id="password"
-              v-model="form.password"
-              name="password"
-              type="password"
-              autocomplete="new-password"
-              required
-              class="form-input"
-              :class="{ 'border-error-300': errors.password }"
-              placeholder="Create a strong password"
-            />
-            <p v-if="errors.password" class="form-error">
-              {{ errors.password }}
-            </p>
-          </div>
-
-          <div>
-            <label for="confirmPassword" class="form-label">
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              v-model="form.confirmPassword"
-              name="confirmPassword"
-              type="password"
-              autocomplete="new-password"
-              required
-              class="form-input"
-              :class="{ 'border-error-300': errors.confirmPassword }"
-              placeholder="Confirm your password"
-            />
-            <p v-if="errors.confirmPassword" class="form-error">
-              {{ errors.confirmPassword }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Error display -->
-        <div v-if="authError" class="bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-500/30 text-error-700 dark:text-error-300 px-4 py-3">
-          {{ authError }}
-        </div>
-
-        <!-- Terms notice -->
-        <div class="text-xs text-secondary-500 dark:text-secondary-400">
-          By creating an account, you agree to our secure data handling practices for AI training purposes.
-        </div>
-
-        <!-- Submit button -->
+    <!-- Sign up form -->
+    <form class="mt-8 space-y-6" @submit.prevent="handleSignUp">
+      <div class="space-y-4">
         <div>
-          <button
-            type="submit"
-            :disabled="isLoading"
-            class="w-full btn-primary"
-          >
-            <span v-if="isLoading" class="loading-spinner mr-2"></span>
-            {{ isLoading ? 'Creating account...' : 'Create account' }}
-          </button>
-        </div>
-
-        <!-- Link to sign in -->
-        <div class="text-center">
-          <p class="text-sm text-secondary-600 dark:text-secondary-300">
-            Already have an account?
-            <NuxtLink to="/login" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300">
-              Sign in
-            </NuxtLink>
+          <label for="name" class="form-label">
+            Full Name
+          </label>
+          <input
+            id="name"
+            v-model="form.name"
+            name="name"
+            type="text"
+            autocomplete="name"
+            required
+            class="form-input"
+            :class="{ 'border-error-300': errors.name }"
+            placeholder="Enter your full name"
+          />
+          <p v-if="errors.name" class="form-error">
+            {{ errors.name }}
           </p>
         </div>
-      </form>
-    </div>
+
+        <div>
+          <label for="email" class="form-label">
+            Email address
+          </label>
+          <input
+            id="email"
+            v-model="form.email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+            class="form-input"
+            :class="{ 'border-error-300': errors.email }"
+            placeholder="Enter your email"
+          />
+          <p v-if="errors.email" class="form-error">
+            {{ errors.email }}
+          </p>
+        </div>
+
+        <div>
+          <label for="password" class="form-label">
+            Password
+          </label>
+          <input
+            id="password"
+            v-model="form.password"
+            name="password"
+            type="password"
+            autocomplete="new-password"
+            required
+            class="form-input"
+            :class="{ 'border-error-300': errors.password }"
+            placeholder="Create a strong password"
+          />
+          <p v-if="errors.password" class="form-error">
+            {{ errors.password }}
+          </p>
+        </div>
+
+        <div>
+          <label for="confirmPassword" class="form-label">
+            Confirm Password
+          </label>
+          <input
+            id="confirmPassword"
+            v-model="form.confirmPassword"
+            name="confirmPassword"
+            type="password"
+            autocomplete="new-password"
+            required
+            class="form-input"
+            :class="{ 'border-error-300': errors.confirmPassword }"
+            placeholder="Confirm your password"
+          />
+          <p v-if="errors.confirmPassword" class="form-error">
+            {{ errors.confirmPassword }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Error display -->
+      <div v-if="authError" class="bg-error-50/80 border border-error-200 text-error-700 px-4 py-3">
+        {{ authError }}
+      </div>
+
+      <!-- Terms notice -->
+      <div class="text-xs text-secondary-500">
+        By creating an account, you agree to our secure data handling practices for AI training purposes.
+      </div>
+
+      <!-- Submit button -->
+      <div>
+        <button
+          type="submit"
+          :disabled="isLoading"
+          class="w-full btn-primary"
+        >
+          <span v-if="isLoading" class="loading-spinner mr-2"></span>
+          {{ isLoading ? 'Creating account...' : 'Create account' }}
+        </button>
+      </div>
+
+      <!-- Link to sign in -->
+      <div class="text-center">
+        <p class="text-sm text-secondary-600">
+          Already have an account?
+          <NuxtLink to="/login" class="font-medium text-primary-600 hover:text-primary-500">
+            Sign in
+          </NuxtLink>
+        </p>
+      </div>
+    </form>
   </div>
 </template>
 
@@ -135,7 +134,7 @@
 definePageMeta({
   title: 'Sign Up',
   description: 'Create your Artistic AI account',
-  layout: false
+  layout: 'public'
 })
 
 // Form state

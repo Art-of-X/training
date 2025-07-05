@@ -1,4 +1,5 @@
 import { nextTick, watch, onMounted } from 'vue'
+import { useDynamicColors } from '~/composables/useDynamicColors'
 
 export default defineNuxtPlugin(() => {
   const { version, versionConfig } = useVersion()
@@ -201,6 +202,8 @@ export default defineNuxtPlugin(() => {
         // Commercial version (default)
         html.classList.add('version-commercial')
         body.classList.add('version-commercial')
+        const { setColors } = useDynamicColors()
+        setColors()
       }
     }
 

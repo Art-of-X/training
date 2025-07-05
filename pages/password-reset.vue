@@ -1,139 +1,137 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-secondary-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-      <!-- Header -->
-      <div class="text-center">
-        <h2 class="text-3xl font-bold text-secondary-900 dark:text-white">
-          {{ isResetting ? 'Set New Password' : 'Reset Password' }}
-        </h2>
-        <p class="mt-2 text-sm text-secondary-600 dark:text-secondary-300">
-          {{ isResetting 
-            ? 'Enter your new password below' 
-            : 'Enter your email address and we\'ll send you a reset link' 
-          }}
+  <div class="w-full space-y-8">
+    <!-- Header -->
+    <div class="text-center">
+      <h2 class="text-3xl font-bold text-secondary-900">
+        {{ isResetting ? 'Set New Password' : 'Reset Password' }}
+      </h2>
+      <p class="mt-2 text-sm text-secondary-600">
+        {{ isResetting 
+          ? 'Enter your new password below' 
+          : 'Enter your email address and we\'ll send you a reset link' 
+        }}
+      </p>
+    </div>
+
+    <!-- Success message -->
+    <div v-if="showSuccess" class="bg-success-50/80 border border-success-200 text-success-700 px-4 py-3">
+      {{ successMessage }}
+    </div>
+
+    <!-- Reset request form -->
+    <form v-if="!isResetting && !showSuccess" class="mt-8 space-y-6" @submit.prevent="handleResetRequest">
+      <div>
+        <label for="email" class="form-label">
+          Email address
+        </label>
+        <input
+          id="email"
+          v-model="form.email"
+          name="email"
+          type="email"
+          autocomplete="email"
+          required
+          class="form-input"
+          :class="{ 'border-error-300': errors.email }"
+          placeholder="Enter your email"
+        />
+        <p v-if="errors.email" class="form-error">
+          {{ errors.email }}
         </p>
       </div>
 
-      <!-- Success message -->
-      <div v-if="showSuccess" class="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-500/30 text-success-700 dark:text-success-300 px-4 py-3">
-        {{ successMessage }}
+      <!-- Error display -->
+      <div v-if="authError" class="bg-error-50/80 border border-error-200 text-error-700 px-4 py-3">
+        {{ authError }}
       </div>
 
-      <!-- Reset request form -->
-      <form v-if="!isResetting && !showSuccess" class="mt-8 space-y-6" @submit.prevent="handleResetRequest">
-        <div>
-          <label for="email" class="form-label">
-            Email address
-          </label>
-          <input
-            id="email"
-            v-model="form.email"
-            name="email"
-            type="email"
-            autocomplete="email"
-            required
-            class="form-input"
-            :class="{ 'border-error-300': errors.email }"
-            placeholder="Enter your email"
-          />
-          <p v-if="errors.email" class="form-error">
-            {{ errors.email }}
-          </p>
-        </div>
+      <!-- Submit button -->
+      <div>
+        <button
+          type="submit"
+          :disabled="isLoading"
+          class="w-full btn-primary"
+        >
+          <span v-if="isLoading" class="loading-spinner mr-2"></span>
+          {{ isLoading ? 'Sending...' : 'Send Reset Link' }}
+        </button>
+      </div>
 
-        <!-- Error display -->
-        <div v-if="authError" class="bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-500/30 text-error-700 dark:text-error-300 px-4 py-3">
-          {{ authError }}
-        </div>
-
-        <!-- Submit button -->
-        <div>
-          <button
-            type="submit"
-            :disabled="isLoading"
-            class="w-full btn-primary"
-          >
-            <span v-if="isLoading" class="loading-spinner mr-2"></span>
-            {{ isLoading ? 'Sending...' : 'Send Reset Link' }}
-          </button>
-        </div>
-
-        <!-- Back to login -->
-        <div class="text-center">
-          <NuxtLink to="/login" class="text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300">
-            Back to Sign In
-          </NuxtLink>
-        </div>
-      </form>
-
-      <!-- Password update form -->
-      <form v-else-if="isResetting" class="mt-8 space-y-6" @submit.prevent="handlePasswordUpdate">
-        <div class="space-y-4">
-          <div>
-            <label for="password" class="form-label">
-              New Password
-            </label>
-            <input
-              id="password"
-              v-model="form.password"
-              name="password"
-              type="password"
-              autocomplete="new-password"
-              required
-              class="form-input"
-              :class="{ 'border-error-300': errors.password }"
-              placeholder="Enter your new password"
-            />
-            <p v-if="errors.password" class="form-error">
-              {{ errors.password }}
-            </p>
-          </div>
-
-          <div>
-            <label for="confirmPassword" class="form-label">
-              Confirm New Password
-            </label>
-            <input
-              id="confirmPassword"
-              v-model="form.confirmPassword"
-              name="confirmPassword"
-              type="password"
-              autocomplete="new-password"
-              required
-              class="form-input"
-              :class="{ 'border-error-300': errors.confirmPassword }"
-              placeholder="Confirm your new password"
-            />
-            <p v-if="errors.confirmPassword" class="form-error">
-              {{ errors.confirmPassword }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Error display -->
-        <div v-if="authError" class="bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-500/30 text-error-700 dark:text-error-300 px-4 py-3">
-          {{ authError }}
-        </div>
-
-        <!-- Submit button -->
-        <div>
-          <button
-            type="submit"
-            :disabled="isLoading"
-            class="w-full btn-primary"
-          >
-            <span v-if="isLoading" class="loading-spinner mr-2"></span>
-            {{ isLoading ? 'Updating...' : 'Update Password' }}
-          </button>
-        </div>
-      </form>
-
-      <!-- Back to login after success -->
-      <div v-if="showSuccess" class="text-center">
-        <NuxtLink to="/login" class="btn-primary">
+      <!-- Back to login -->
+      <div class="text-center">
+        <NuxtLink to="/login" class="text-sm font-medium text-primary-600 hover:text-primary-500">
           Back to Sign In
         </NuxtLink>
       </div>
+    </form>
+
+    <!-- Password update form -->
+    <form v-else-if="isResetting" class="mt-8 space-y-6" @submit.prevent="handlePasswordUpdate">
+      <div class="space-y-4">
+        <div>
+          <label for="password" class="form-label">
+            New Password
+          </label>
+          <input
+            id="password"
+            v-model="form.password"
+            name="password"
+            type="password"
+            autocomplete="new-password"
+            required
+            class="form-input"
+            :class="{ 'border-error-300': errors.password }"
+            placeholder="Enter your new password"
+          />
+          <p v-if="errors.password" class="form-error">
+            {{ errors.password }}
+          </p>
+        </div>
+
+        <div>
+          <label for="confirmPassword" class="form-label">
+            Confirm New Password
+          </label>
+          <input
+            id="confirmPassword"
+            v-model="form.confirmPassword"
+            name="confirmPassword"
+            type="password"
+            autocomplete="new-password"
+            required
+            class="form-input"
+            :class="{ 'border-error-300': errors.confirmPassword }"
+            placeholder="Confirm your new password"
+          />
+          <p v-if="errors.confirmPassword" class="form-error">
+            {{ errors.confirmPassword }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Error display -->
+      <div v-if="authError" class="bg-error-50/80 border border-error-200 text-error-700 px-4 py-3">
+        {{ authError }}
+      </div>
+
+      <!-- Submit button -->
+      <div>
+        <button
+          type="submit"
+          :disabled="isLoading"
+          class="w-full btn-primary"
+        >
+          <span v-if="isLoading" class="loading-spinner mr-2"></span>
+          {{ isLoading ? 'Updating...' : 'Update Password' }}
+        </button>
+      </div>
+    </form>
+
+    <!-- Back to login after success -->
+    <div v-if="showSuccess" class="text-center">
+      <NuxtLink to="/login" class="btn-primary">
+        Back to Sign In
+      </NuxtLink>
     </div>
   </div>
 </template>
@@ -143,7 +141,7 @@
 definePageMeta({
   title: 'Reset Password',
   description: 'Reset your password',
-  layout: false
+  layout: 'public'
 })
 
 // Form state

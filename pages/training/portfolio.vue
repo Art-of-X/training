@@ -74,7 +74,7 @@
             </div>
             <div>
               <label for="file-upload" class="form-label">File (max 10MB)</label>
-              <input id="file-upload" type="file" @change="handleFileSelect" required class="form-input-file w-full mt-1">
+              <input id="file-upload" type="file" @change="handleFileSelect" required class="form-input mt-1">
             </div>
             <button type="submit" class="btn-primary w-full" :disabled="!newFile.file || !newFile.description || isUploadingFile">
               <span v-if="isUploadingFile" class="loading-spinner mr-2"></span>
@@ -224,14 +224,6 @@ const deleteItem = async (item: PortfolioItem) => {
 <style scoped>
 .form-label {
   @apply block text-sm font-medium text-secondary-700 dark:text-secondary-300;
-}
-.form-input-file {
-    @apply block w-full text-sm text-secondary-900 border border-secondary-300 rounded-md cursor-pointer bg-secondary-50 dark:text-secondary-400 focus:outline-none dark:bg-secondary-700 dark:border-secondary-600 dark:placeholder-secondary-400
-    file:mr-4 file:py-2 file:px-4
-    file:rounded-l-md file:border-0
-    file:text-sm file:font-semibold
-    file:bg-primary-50 file:text-primary-700
-    hover:file:bg-primary-100;
 }
 .loading-spinner-small {
   @apply w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin;

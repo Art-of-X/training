@@ -47,7 +47,7 @@ export default defineNuxtConfig({
   // App configuration
   app: {
     head: {
-      titleTemplate: 'Artistic AI',
+      titleTemplate: 'Art of X',
       title: 'AAT Platform',
       meta: [
         { charset: 'utf-8' },

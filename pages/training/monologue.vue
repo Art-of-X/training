@@ -1,5 +1,5 @@
 <template>
-  <div class="py-8">
+  <div class="py-8 container-wide">
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-secondary-900 dark:text-white mb-2">
@@ -30,7 +30,7 @@
           </div>
           <div class="w-full bg-secondary-200 dark:bg-secondary-700 h-2 overflow-hidden">
             <div
-              class="h-full bg-primary-600 dark:bg-primary-500 transition-all duration-500 ease-out"
+              class="h-full bg-primary-600 transition-all duration-500 ease-out"
               :style="{ width: overallProgress.percentage + '%' }"
             ></div>
           </div>

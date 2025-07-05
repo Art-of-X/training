@@ -96,9 +96,9 @@ export const useVersion = () => {
       policyType: 'commercial',
       theme: 'standard',
       footerLinks: [
-        { text: 'Imprint', to: '/imprint', external: false },
-        { text: 'Data Policy', to: '/policy-commercial', external: false },
-        { text: 'Terms of Service', to: '/terms', external: false }
+        { text: 'Imprint', to: '/legal/imprint', external: false },
+        { text: 'Data Policy', to: '/legal/dataprivacy', external: false },
+        { text: 'Terms of Service', to: '/legal/terms', external: false }
       ],
       colors: {
         // Standard Tailwind color palette for commercial

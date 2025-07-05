@@ -1,98 +1,96 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-secondary-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-      <!-- Header -->
-      <div class="text-center">
-        <h2 class="text-3xl font-bold text-secondary-900 dark:text-white">
-          Sign in to your account
-        </h2>
-        <p class="mt-2 text-sm text-secondary-600 dark:text-secondary-300">
-          Continue your training journey
+  <div class="w-full space-y-8">
+    <!-- Header -->
+    <div class="text-center">
+      <h2 class="text-3xl font-bold text-secondary-900">
+        Sign in to your account
+      </h2>
+      <p class="mt-2 text-sm text-secondary-600">
+        Continue your training journey
+      </p>
+    </div>
+
+    <!-- Success message from redirect (e.g., email confirmed) -->
+    <div v-if="successMessage" class="bg-success-50/80 border border-success-200 text-success-700 px-4 py-3">
+      {{ successMessage }}
+    </div>
+
+    <!-- Sign in form -->
+    <form class="mt-8 space-y-6" @submit.prevent="handleSignIn">
+      <div class="space-y-4">
+        <div>
+          <label for="email" class="form-label">
+            Email address
+          </label>
+          <input
+            id="email"
+            v-model="form.email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+            class="form-input"
+            :class="{ 'border-error-300': errors.email }"
+            placeholder="Enter your email"
+          />
+          <p v-if="errors.email" class="form-error">
+            {{ errors.email }}
+          </p>
+        </div>
+
+        <div>
+          <label for="password" class="form-label">
+            Password
+          </label>
+          <input
+            id="password"
+            v-model="form.password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+            class="form-input"
+            :class="{ 'border-error-300': errors.password }"
+            placeholder="Enter your password"
+          />
+          <p v-if="errors.password" class="form-error">
+            {{ errors.password }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Error display -->
+      <div v-if="authError" class="bg-error-50/80 border border-error-200 text-error-700 px-4 py-3">
+        {{ authError }}
+      </div>
+
+      <!-- Submit button -->
+      <div>
+        <button
+          type="submit"
+          :disabled="isLoading"
+          class="w-full btn-primary"
+        >
+          <span v-if="isLoading" class="loading-spinner mr-2"></span>
+          {{ isLoading ? 'Signing in...' : 'Sign in' }}
+        </button>
+      </div>
+
+      <!-- Links -->
+      <div class="text-center space-y-2">
+        <p class="text-sm text-secondary-600">
+          Don't have an account?
+          <NuxtLink to="/register" class="font-medium text-primary-600 hover:text-primary-500">
+            Sign up
+          </NuxtLink>
+        </p>
+        <p class="text-sm">
+          <NuxtLink to="/password-reset" class="font-medium text-primary-600 hover:text-primary-500">
+            Forgot your password?
+          </NuxtLink>
         </p>
       </div>
-
-      <!-- Success message from redirect (e.g., email confirmed) -->
-      <div v-if="successMessage" class="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-500/30 text-success-700 dark:text-success-300 px-4 py-3">
-        {{ successMessage }}
-      </div>
-
-      <!-- Sign in form -->
-      <form class="mt-8 space-y-6" @submit.prevent="handleSignIn">
-        <div class="space-y-4">
-          <div>
-            <label for="email" class="form-label">
-              Email address
-            </label>
-            <input
-              id="email"
-              v-model="form.email"
-              name="email"
-              type="email"
-              autocomplete="email"
-              required
-              class="form-input"
-              :class="{ 'border-error-300': errors.email }"
-              placeholder="Enter your email"
-            />
-            <p v-if="errors.email" class="form-error">
-              {{ errors.email }}
-            </p>
-          </div>
-
-          <div>
-            <label for="password" class="form-label">
-              Password
-            </label>
-            <input
-              id="password"
-              v-model="form.password"
-              name="password"
-              type="password"
-              autocomplete="current-password"
-              required
-              class="form-input"
-              :class="{ 'border-error-300': errors.password }"
-              placeholder="Enter your password"
-            />
-            <p v-if="errors.password" class="form-error">
-              {{ errors.password }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Error display -->
-        <div v-if="authError" class="bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-500/30 text-error-700 dark:text-error-300 px-4 py-3">
-          {{ authError }}
-        </div>
-
-        <!-- Submit button -->
-        <div>
-          <button
-            type="submit"
-            :disabled="isLoading"
-            class="w-full btn-primary"
-          >
-            <span v-if="isLoading" class="loading-spinner mr-2"></span>
-            {{ isLoading ? 'Signing in...' : 'Sign in' }}
-          </button>
-        </div>
-
-        <!-- Links -->
-        <div class="text-center space-y-2">
-          <p class="text-sm text-secondary-600 dark:text-secondary-300">
-            Don't have an account?
-            <NuxtLink to="/register" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300">
-              Sign up
-            </NuxtLink>
-          </p>
-          <p class="text-sm">
-            <NuxtLink to="/password-reset" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300">
-              Forgot your password?
-            </NuxtLink>
-          </p>
-        </div>
-      </form>
-    </div>
+    </form>
   </div>
 </template>
 
@@ -101,7 +99,7 @@
 definePageMeta({
   title: 'Sign In',
   description: 'Sign in to your Artistic AI account',
-  layout: false
+  layout: 'public'
 })
 
 // Form state

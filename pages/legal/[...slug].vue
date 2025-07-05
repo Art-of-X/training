@@ -1,14 +1,14 @@
 <script lang="ts" setup>
 
 definePageMeta({
-    layout: 'public',
+    layout: 'legal',
 });
 </script>
 
 <template>
-  <div class="py-12">
-    <ContentDoc class="legal-content" />
-  </div>
+  <main>
+    <ContentDoc />
+  </main>
 </template>
 
 <style>

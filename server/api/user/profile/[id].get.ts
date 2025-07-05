@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    return userProfile
+    return { data: userProfile }
   } catch (error: any) {
     // Re-throw createError instances
     if (error.statusCode) {
