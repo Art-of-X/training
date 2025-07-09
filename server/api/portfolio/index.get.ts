@@ -1,5 +1,5 @@
 import { defineEventHandler, createError } from 'h3'
-import { serverSupabaseUser } from '#supabase/server'
+import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { prisma } from '../../utils/prisma'
 
 export default defineEventHandler(async (event) => {
@@ -14,9 +14,18 @@ export default defineEventHandler(async (event) => {
       orderBy: { createdAt: 'asc' },
     })
 
+    const supabase = await serverSupabaseClient(event)
+    const itemsWithUrls = portfolioItems.map(item => {
+      if (item.filePath) {
+        const { data: { publicUrl } } = supabase.storage.from('uploads').getPublicUrl(item.filePath)
+        return { ...item, filePath: publicUrl }
+      }
+      return item
+    })
+
     return {
       success: true,
-      data: portfolioItems || [],
+      data: itemsWithUrls || [],
     }
   } catch (error: any) {
     console.error('Error fetching portfolio items:', error)

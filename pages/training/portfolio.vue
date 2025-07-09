@@ -44,7 +44,7 @@
           <h2 class="text-xl font-semibold text-secondary-900 dark:text-white">Add Portfolio Link</h2>
         </div>
         <div class="card-body">
-          <form @submit.prevent="addLink" class="space-y-4">
+          <form @submit.prevent="handleAddLink" class="space-y-4">
             <div>
               <label for="link-url" class="form-label">Link URL</label>
               <input v-model="newLink.url" id="link-url" type="url" required class="form-input w-full mt-1" placeholder="https://example.com">
@@ -67,14 +67,14 @@
           <h2 class="text-xl font-semibold text-secondary-900 dark:text-white">Upload File</h2>
         </div>
         <div class="card-body">
-          <form @submit.prevent="uploadFile" class="space-y-4">
+          <form @submit.prevent="handleFileUpload" class="space-y-4">
              <div>
               <label for="file-description" class="form-label">Description</label>
               <input v-model="newFile.description" id="file-description" type="text" required class="form-input w-full mt-1" placeholder="e.g., My latest design case study">
             </div>
             <div>
               <label for="file-upload" class="form-label">File (max 10MB)</label>
-              <input id="file-upload" type="file" @change="handleFileSelect" required class="form-input mt-1">
+              <input id="file-upload" type="file" @change="handleFileChange" required class="form-input mt-1">
             </div>
             <button type="submit" class="btn-primary w-full" :disabled="!newFile.file || !newFile.description || isUploadingFile">
               <span v-if="isUploadingFile" class="loading-spinner mr-2"></span>
@@ -146,48 +146,53 @@ const getFileName = (filePath: string) => {
   return fileName.substring(fileName.indexOf('_') + 1)
 }
 
-const handleFileSelect = (event: Event) => {
+const handleFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (file) {
-    if (file.size > 10 * 1024 * 1024) { // 10MB
-      error.value = 'File size cannot exceed 10MB.'
-      return
-    }
-    newFile.file = file
-    error.value = null
+  if (target.files && target.files.length > 0) {
+    newFile.file = target.files[0]
   }
 }
 
-const addLink = async () => {
-  error.value = null
+const handleAddLink = async () => {
+  if (!newLink.url || !newLink.description) {
+    alert('Please fill in both URL and description.')
+    return
+  }
+
   isAddingLink.value = true
+  error.value = null
+
   try {
-    await $fetch('/api/portfolio/link', {
+    await $fetch('/api/portfolio', {
       method: 'POST',
       body: { link: newLink.url, description: newLink.description }
     })
     newLink.url = ''
     newLink.description = ''
-    await refreshPortfolioItems()
-  } catch (e: any) {
-    error.value = e.data?.message || 'Failed to add link.'
+    await refreshPortfolioItems() // Refresh list
+  } catch (err: any) {
+    error.value = err.data?.message || 'Failed to add link.'
+    console.error(err)
   } finally {
     isAddingLink.value = false
   }
 }
 
-const uploadFile = async () => {
-  if (!newFile.file) return
-  error.value = null
-  isUploadingFile.value = true
-  
+const handleFileUpload = async () => {
+  if (!newFile.file || !newFile.description) {
+    alert('Please select a file and provide a description.')
+    return
+  }
+
   const formData = new FormData()
-  formData.append('description', newFile.description)
   formData.append('file', newFile.file)
+  formData.append('description', newFile.description)
+
+  isUploadingFile.value = true
+  error.value = null
 
   try {
-    await $fetch('/api/portfolio/upload', {
+    await $fetch('/api/portfolio', {
       method: 'POST',
       body: formData
     })
@@ -196,8 +201,9 @@ const uploadFile = async () => {
     const fileInput = document.getElementById('file-upload') as HTMLInputElement
     if(fileInput) fileInput.value = ''
     await refreshPortfolioItems()
-  } catch (e: any) {
-    error.value = e.data?.message || 'Failed to upload file.'
+  } catch (err: any) {
+    error.value = err.data?.message || 'Failed to upload file.'
+    console.error(err)
   } finally {
     isUploadingFile.value = false
   }

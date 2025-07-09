@@ -4,6 +4,27 @@ import { prisma } from './prisma';
 import { Prisma } from '@prisma/client';
 import fs from 'fs/promises';
 import path from 'path';
+import { serverSupabaseClient } from '#supabase/server';
+
+// Helper function to read JSON data files.
+async function readJsonData(filePath: string) {
+    try {
+        const fullPath = path.join(process.cwd(), 'public', 'data', filePath);
+        const fileContent = await fs.readFile(fullPath, 'utf-8');
+        const data = JSON.parse(fileContent);
+        // Standardize access to the questions array
+        if (data && Array.isArray(data.questions)) {
+            return data.questions;
+        }
+        if (Array.isArray(data)) {
+            return data;
+        }
+        return [];
+    } catch (error) {
+        console.error(`Error reading or parsing JSON file at ${filePath}:`, error);
+        return [];
+    }
+}
 
 // A Zod schema for the allowed model names, derived from your Prisma schema.
 // This prevents the AI from trying to query a non-existent or disallowed model.
@@ -113,45 +134,8 @@ ${modelSchemaString}
     }
 });
 
-// This is the actual implementation of the tool logic.
-async function getUnansweredDemographicsQuestions(userId: string) {
-    const questionsPath = path.join(process.cwd(), 'public', 'data', 'demographics.json');
-    const questionsContent = await fs.readFile(questionsPath, 'utf-8');
-    const { demographics } = JSON.parse(questionsContent);
-
-    const existingAnswers = await prisma.demographicsAnswer.findMany({
-      where: { userId: userId },
-      select: { questionKey: true }
-    });
-    const answeredKeys = existingAnswers.map(a => a.questionKey);
-
-    const unansweredQuestions = demographics.filter((q: any) => !answeredKeys.includes(q.key));
-
-    return unansweredQuestions.map((q:any) => ({ question: q.label, key: q.key, options: q.options }));
-}
-
-// This is the tool definition that the AI will see.
-export const createGetDemographicsTool = (userId: string) => tool({
-    description: 'Get the list of unanswered demographic questions for the user. Use this to ask the user for their demographic information.',
-    parameters: z.object({}),
-    execute: async () => {
-        try {
-            const questions = await getUnansweredDemographicsQuestions(userId);
-            return {
-                questions: questions,
-                count: questions.length,
-            }
-        } catch (error) {
-            console.error('Error in getDemographicsTool:', error);
-            return { error: 'Failed to get demographics questions.' };
-        }
-    }
-});
-
 async function getMonologueProgress(userId: string) {
-    const questionsPath = path.join(process.cwd(), 'public', 'data', 'monologue-questions.json');
-    const questionsContent = await fs.readFile(questionsPath, 'utf-8');
-    const { questions } = JSON.parse(questionsContent);
+    const questions = await readJsonData('monologue-questions.json');
     const total = questions.length;
 
     const answeredRecords = await prisma.monologueRecording.findMany({
@@ -178,25 +162,58 @@ export const createGetMonologueProgressTool = (userId: string) => tool({
     }
 });
 
-async function getOverallProgress(userId: string) {
-    async function readJsonData(filePath: string) {
-        try {
-            const fullPath = path.join(process.cwd(), 'public', 'data', filePath);
-            const fileContent = await fs.readFile(fullPath, 'utf-8');
-            const data = JSON.parse(fileContent);
-            if (typeof data === 'object' && data !== null && Array.isArray(data.questions)) {
-                return data.questions;
-            }
-            if (Array.isArray(data)) {
-                return data;
-            }
-            return [];
-        } catch (error) {
-            console.error(`Error reading or parsing JSON file at ${filePath}:`, error);
-            return [];
+async function getNextQuestion(userId: string) {
+    const progress = await getOverallProgress(userId);
+    const portfolioThreshold = 3; // We want at least 3 items to start with.
+
+    // Phase 1: Onboarding & Initial Portfolio Building
+    if (progress.portfolio.completed < portfolioThreshold) {
+        if (progress.portfolio.completed === 0 && progress.monologue.completed === 0) {
+            // This is the user's very first interaction.
+            return {
+                type: 'greeting_and_portfolio_request',
+                module: 'Introduction',
+                text: `This is the user's first interaction. Please generate a warm, encouraging welcome message. Briefly introduce yourself as their AI partner for this creativity training. Explain that the first step is to get to know them and their work. Then, ask them to introduce themselves and share some examples of their work by providing links (e.g., to their website, social media, or specific pieces) or by uploading files.`,
+            };
+        } else {
+            // User has started but not met the threshold yet.
+            return {
+                type: 'task',
+                module: 'Portfolio',
+                text: `Thanks for sharing! Let's continue building out your portfolio. You've added ${progress.portfolio.completed} item(s) so far. To get a good overview, we're aiming for about ${portfolioThreshold} initial items. Please share another link or upload another file.`
+            };
         }
     }
 
+    // Phase 2: Monologue Deep Dive
+    const monologueUnanswered = await getUnansweredQuestions(userId, 'monologue');
+    if (monologueUnanswered && !('error' in monologueUnanswered) && monologueUnanswered.unansweredCount > 0) {
+        const q = monologueUnanswered.unansweredQuestions[0];
+        
+        const isFirstMonologueQuestion = progress.monologue.completed === 0;
+        const introText = isFirstMonologueQuestion
+            ? `That's a fantastic start for your portfolio. Now, let's switch gears to some short reflective questions. They're designed to help you think about your creative process. Here's the first one: "${q.text}"`
+            : `Great, let's move on to the next reflection. Here's what I'd like you to think about now: "${q.text}"`;
+
+        return {
+            type: 'question',
+            module: 'Monologue',
+            text: introText,
+            questionDetails: { id: q.id },
+            questionId: q.id
+        };
+    }
+
+    // Phase 3: All Done (for now)
+    // All monologue questions are answered. The user can still add to their portfolio.
+    return {
+        type: 'done',
+        module: 'All Complete',
+        text: "Congratulations! You've completed all the monologue questions for now. This is a huge accomplishment. You can always come back to add more items to your portfolio or review your reflections."
+    };
+}
+
+async function getOverallProgress(userId: string) {
     const [
         monologueQuestions, 
         autQuestions, 
@@ -273,6 +290,248 @@ export const createGetOverallProgressTool = (userId: string) => tool({
         } catch (error) {
             console.error('Error in getOverallProgressTool:', error);
             return { error: 'Failed to get overall progress.' };
+        }
+    }
+});
+
+export const createGetNextQuestionTool = (userId: string) => tool({
+    description: 'Determines and retrieves the very next single question or task the user should work on to continue their training. Call this to proactively guide the user. It automatically finds where they left off and what the next logical step is.',
+    parameters: z.object({}),
+    execute: async () => {
+        try {
+            const nextStep = await getNextQuestion(userId);
+            return { success: true, ...nextStep };
+        } catch (error: any) {
+            console.error('Error in getNextQuestionTool:', error);
+            return { success: false, error: `Failed to get next question: ${error.message}` };
+        }
+    }
+});
+
+export const createAddPortfolioLinkTool = (userId: string) => tool({
+    description: 'Add a new portfolio item using a URL. Use this when the user provides a link to their work and a description or uploads a file.',
+    parameters: z.object({
+        link: z.string().url().describe('The URL of the portfolio item.'),
+        description: z.string().describe('A description of the portfolio item.'),
+    }),
+    execute: async ({ link, description }) => {
+        if (!userId) {
+            return { success: false, error: 'User is not authenticated.' };
+        }
+        try {
+            const newItem = await prisma.portfolioItem.create({
+                data: {
+                    userId,
+                    link,
+                    description,
+                }
+            });
+            return { success: true, data: newItem };
+        } catch (error: any) {
+            console.error(`Error creating portfolio link for user ${userId}:`, error);
+            return { success: false, error: `Failed to add portfolio link: ${error.message}` };
+        }
+    }
+});
+
+export const createFinalizeFileUploadTool = (userId: string, event: any) => tool({
+    description: "Once the user has provided a temporary file URL and all necessary context (like a description and the target module), use this tool to finalize the upload. This moves the file to its permanent location and saves the metadata to the database.",
+    parameters: z.object({
+        tempUrl: z.string().url().describe("The temporary URL of the file provided by the user."),
+        target: z.enum(['portfolio', 'monologue']).describe("The module this file is for ('portfolio' or 'monologue')."),
+        description: z.string().describe("The user-provided description for the file."),
+        questionId: z.number().optional().describe("If the target is 'monologue', the ID of the question this file is supplementary to."),
+    }),
+    execute: async ({ tempUrl, target, description, questionId }) => {
+        try {
+            const supabase = await serverSupabaseClient(event);
+            const bucketName = 'uploads';
+
+            // 1. Parse the temp path from the URL
+            const urlParts = tempUrl.split('/');
+            const tempPath = urlParts.slice(urlParts.indexOf(bucketName) + 1).join('/');
+
+            if (!tempPath.startsWith('temp/')) {
+                return { success: false, error: 'Invalid temporary URL provided.' };
+            }
+
+            // 2. Determine the new path
+            const fileName = tempPath.split('/').pop();
+            let newPath: string;
+            if (target === 'portfolio') {
+                newPath = `portfolio/${userId}/${fileName}`;
+            } else if (target === 'monologue') {
+                 if (!questionId) {
+                    return { success: false, error: "A questionId is required for monologue file uploads." };
+                }
+                newPath = `monologue/${userId}/${questionId}/${fileName}`;
+            } else {
+                return { success: false, error: 'Invalid target specified.' };
+            }
+
+            // 3. Copy the file to the new location
+            const { error: copyError } = await supabase.storage.from(bucketName).copy(tempPath, newPath);
+            if (copyError) {
+                console.error('Error copying file:', copyError);
+                return { success: false, error: `Failed to move file: ${copyError.message}` };
+            }
+             const { data: { publicUrl: newPublicUrl } } = supabase.storage.from(bucketName).getPublicUrl(newPath);
+
+
+            // 4. Create the database record
+            if (target === 'portfolio') {
+                await prisma.portfolioItem.create({
+                    data: {
+                        userId,
+                        description,
+                        filePath: newPublicUrl,
+                    },
+                });
+            } else if (target === 'monologue' && questionId) {
+                // This assumes we are adding a supplementary file to an *existing* recording.
+                // A more complex flow would be needed to create the recording and file simultaneously.
+                 await prisma.monologueRecording.updateMany({
+                    where: { userId, questionId },
+                    data: {
+                        supplementaryFilePath: newPublicUrl,
+                        supplementaryDescription: description,
+                    },
+                });
+                // If no record exists, you might want to create one.
+                // This simplified version updates existing records.
+            }
+
+            // 5. Delete the temporary file
+            const { error: deleteError } = await supabase.storage.from(bucketName).remove([tempPath]);
+            if (deleteError) {
+                // Log the error but don't fail the whole operation, since the file is already copied.
+                console.error('Failed to delete temporary file:', deleteError);
+            }
+
+            return { success: true, message: `File successfully saved to ${target}.` };
+        } catch (error: any) {
+            console.error(`Error finalizing file upload for user ${userId}:`, error);
+            return { success: false, error: `An unexpected error occurred: ${error.message}` };
+        }
+    }
+});
+
+async function getUnansweredQuestions(userId: string, module: 'monologue' | 'aut' | 'rat' | 'demographics') {
+    let questions: any[] = [];
+    let answeredIds: Set<number | string>;
+
+    switch (module) {
+        case 'monologue':
+            questions = await readJsonData('monologue-questions.json');
+            const answeredMonologueRecords = await prisma.monologueRecording.findMany({
+                where: { userId },
+                select: { questionId: true },
+            });
+            answeredIds = new Set(answeredMonologueRecords.map(r => r.questionId));
+            break;
+        case 'aut':
+            questions = await readJsonData('aut-questions.json');
+            const answeredAutRecords = await prisma.aUTAnswer.findMany({
+                where: { userId },
+                select: { questionId: true },
+            });
+            answeredIds = new Set(answeredAutRecords.map(a => a.questionId));
+            break;
+        case 'rat':
+            questions = await readJsonData('rat-questions.json');
+            const answeredRatRecords = await prisma.rATAnswer.findMany({
+                where: { userId },
+                select: { questionId: true },
+            });
+            answeredIds = new Set(answeredRatRecords.map(r => r.questionId));
+            break;
+        case 'demographics':
+            questions = await readJsonData('demographics.json');
+            const existingAnswers = await prisma.demographicsAnswer.findMany({
+              where: { userId: userId },
+              select: { questionKey: true }
+            });
+            answeredIds = new Set(existingAnswers.map(a => a.questionKey));
+            break;
+        default:
+            return { error: 'Invalid module specified.' };
+    }
+
+    const idField = module === 'demographics' ? 'key' : 'id';
+    const unansweredQuestions = questions.filter(q => !answeredIds.has(q[idField]));
+    
+    let responsePayload;
+
+    if (module === 'demographics') {
+        responsePayload = unansweredQuestions.map((q: any) => ({ question: q.question, key: q.key, options: q.options }));
+    } else {
+        responsePayload = unansweredQuestions;
+    }
+
+    return {
+        module,
+        unansweredCount: unansweredQuestions.length,
+        totalCount: questions.length,
+        unansweredQuestions: responsePayload.slice(0, 5) 
+    };
+}
+
+export const createGetUnansweredQuestionsTool = (userId: string) => tool({
+    description: `Get a list of unanswered questions for a specific module (monologue, aut, rat, demographics). Use this to guide the user on what to do next.`,
+    parameters: z.object({
+        module: z.enum(['monologue', 'aut', 'rat', 'demographics'])
+    }),
+    execute: async ({ module }) => {
+        try {
+            return await getUnansweredQuestions(userId, module);
+        } catch (error: any) {
+            console.error(`Error in getUnansweredQuestionsTool for module ${module}:`, error);
+            return { error: `Failed to get unanswered questions for ${module}: ${error.message}` };
+        }
+    }
+});
+
+export const createSaveMonologueTextResponseTool = (userId: string) => tool({
+    description: "Saves a user's text-based response to the last monologue question they were asked. The tool automatically identifies the correct question.",
+    parameters: z.object({
+        textResponse: z.string().describe("The user's complete, text-based answer to the monologue question."),
+    }),
+    execute: async ({ textResponse }) => {
+        try {
+            const unansweredResult = await getUnansweredQuestions(userId, 'monologue');
+            if (unansweredResult.error || !unansweredResult.unansweredQuestions || unansweredResult.unansweredQuestions.length === 0) {
+                 return { success: false, error: 'Could not determine which question to save the answer for. No unanswered questions found.' };
+            }
+
+            const questionToAnswer = unansweredResult.unansweredQuestions[0];
+            const questionId = questionToAnswer.id;
+            const questionText = questionToAnswer.text;
+            
+            const existingRecording = await prisma.monologueRecording.findFirst({
+                where: { userId, questionId },
+            });
+
+            if (existingRecording) {
+                await prisma.monologueRecording.update({
+                    where: { id: existingRecording.id },
+                    data: { textResponse },
+                });
+            } else {
+                await prisma.monologueRecording.create({
+                    data: {
+                        userId,
+                        questionId,
+                        questionText: questionText,
+                        textResponse,
+                        audioPath: null, 
+                    },
+                });
+            }
+            
+            return { success: true, message: 'Response saved successfully.' };
+        } catch (error: any) {
+            console.error(`Error saving monologue text response for user ${userId}:`, error);
+            return { success: false, error: `An unexpected error occurred: ${error.message}` };
         }
     }
 }); 

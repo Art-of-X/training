@@ -1,97 +1,78 @@
-# Datenschutzerklärung
+# Datenschutzerklärung für art ×
 
-Wir freuen uns sehr über Ihr Interesse an unserem Unternehmen. Datenschutz hat einen besonders hohen Stellenwert für die Geschäftsleitung der KLUBHAUS GmbH. Eine Nutzung der Internetseiten der KLUBHAUS GmbH ist grundsätzlich ohne jede Angabe personenbezogener Daten möglich. Sofern eine betroffene Person besondere Services unseres Unternehmens über unsere Internetseite in Anspruch nehmen möchte, könnte jedoch eine Verarbeitung personenbezogener Daten erforderlich werden. Ist die Verarbeitung personenbezogener Daten erforderlich und besteht für eine solche Verarbeitung keine gesetzliche Grundlage, holen wir generell eine Einwilligung der betroffenen Person ein.
+**Stand: [Datum]**
 
-Die Verarbeitung personenbezogener Daten, beispielsweise des Namens, der Anschrift, E-Mail-Adresse oder Telefonnummer einer betroffenen Person, erfolgt stets im Einklang mit der Datenschutz-Grundverordnung und in Übereinstimmung mit den für die KLUBHAUS GmbH geltenden landesspezifischen Datenschutzbestimmungen. Mittels dieser Datenschutzerklärung möchte unser Unternehmen die Öffentlichkeit über Art, Umfang und Zweck der von uns erhobenen, genutzten und verarbeiteten personenbezogenen Daten informieren. Ferner werden betroffene Personen mittels dieser Datenschutzerklärung über die ihnen zustehenden Rechte aufgeklärt.
+Wir freuen uns über Ihr Interesse an unserer Plattform. Der Schutz Ihrer persönlichen Daten ist uns, der **art × - Art of X UG (haftungsbeschränkt)**, ein wichtiges Anliegen. Nachfolgend informieren wir Sie ausführlich über den Umgang mit Ihren Daten.
 
-Die KLUBHAUS GmbH hat als für die Verarbeitung Verantwortlicher zahlreiche technische und organisatorische Maßnahmen umgesetzt, um einen möglichst lückenlosen Schutz der über diese Internetseite verarbeiteten personenbezogenen Daten sicherzustellen. Dennoch können Internetbasierte Datenübertragungen grundsätzlich Sicherheitslücken aufweisen, sodass ein absoluter Schutz nicht gewährleistet werden kann. Aus diesem Grund steht es jeder betroffenen Person frei, personenbezogene Daten auch auf alternativen Wegen, beispielsweise telefonisch, an uns zu übermitteln.
+## 1. Verantwortlicher für die Datenverarbeitung
 
-## 1. BEGRIFFSBESTIMMUNGEN
+Verantwortlicher im Sinne der Datenschutz-Grundverordnung (DSGVO) und anderer nationaler Datenschutzgesetze ist:
 
-Die Datenschutzerklärung der KLUBHAUS GmbH beruht auf den Begrifflichkeiten, die durch den Europäischen Richtlinien- und Verordnungsgeber beim Erlass der Datenschutz-Grundverordnung (DS-GVO) verwendet wurden. Unsere Datenschutzerklärung soll sowohl für die Öffentlichkeit als auch für unsere Kunden und Geschäftspartner einfach lesbar und verständlich sein. Um dies zu gewährleisten, möchten wir vorab die verwendeten Begrifflichkeiten erläutern.
-
-Wir verwenden in dieser Datenschutzerklärung unter anderem die folgenden Begriffe:
-
-### a) personenbezogene Daten
-
-Personenbezogene Daten sind alle Informationen, die sich auf eine identifizierte oder identifizierbare natürliche Person (im Folgenden „betroffene Person“) beziehen. Als identifizierbar wird eine natürliche Person angesehen, die direkt oder indirekt, insbesondere mittels Zuordnung zu einer Kennung wie einem Namen, zu einer Kennnummer, zu Standortdaten, zu einer Online-Kennung oder zu einem oder mehreren besonderen Merkmalen, die Ausdruck der physischen, physiologischen, genetischen, psychischen, wirtschaftlichen, kulturellen oder sozialen Identität dieser natürlichen Person sind, identifiziert werden kann.
-
-### b) betroffene Person
-
-Betroffene Person ist jede identifizierte oder identifizierbare natürliche Person, deren personenbezogene Daten von dem für die Verarbeitung Verantwortlichen verarbeitet werden.
-
-### c) Verarbeitung
-
-Verarbeitung ist jeder mit oder ohne Hilfe automatisierter Verfahren ausgeführte Vorgang oder jede solche Vorgangsreihe im Zusammenhang mit personenbezogenen Daten wie das Erheben, das Erfassen, die Organisation, das Ordnen, die Speicherung, die Anpassung oder Veränderung, das Auslesen, das Abfragen, die Verwendung, die Offenlegung durch Übermittlung, Verbreitung oder eine andere Form der Bereitstellung, den Abgleich oder die Verknüpfung, die Einschränkung, das Löschen oder die Vernichtung.
-
-### d) Einschränkung der Verarbeitung
-
-Einschränkung der Verarbeitung ist die Markierung gespeicherter personenbezogener Daten mit dem Ziel, ihre künftige Verarbeitung einzuschränken.
-
-### e) Profiling
-
-Profiling ist jede Art der automatisierten Verarbeitung personenbezogener Daten, die darin besteht, dass diese personenbezogenen Daten verwendet werden, um bestimmte persönliche Aspekte, die sich auf eine natürliche Person beziehen, zu bewerten, insbesondere, um Aspekte bezüglich Arbeitsleistung, wirtschaftlicher Lage, Gesundheit, persönlicher Vorlieben, Interessen, Zuverlässigkeit, Verhalten, Aufenthaltsort oder Ortswechsel dieser natürlichen Person zu analysieren oder vorherzusagen.
-
-### f) Pseudonymisierung
-
-Pseudonymisierung ist die Verarbeitung personenbezogener Daten in einer Weise, auf welche die personenbezogenen Daten ohne Hinzuziehung zusätzlicher Informationen nicht mehr einer spezifischen betroffenen Person zugeordnet werden können, sofern diese zusätzlichen Informationen gesondert aufbewahrt werden und technischen und organisatorischen Maßnahmen unterliegen, die gewährleisten, dass die personenbezogenen Daten nicht einer identifizierten oder identifizierbaren natürlichen Person zugewiesen werden.
-
-### g) Verantwortlicher oder für die Verarbeitung Verantwortlicher
-
-Verantwortlicher oder für die Verarbeitung Verantwortlicher ist die natürliche oder juristische Person, Behörde, Einrichtung oder andere Stelle, die allein oder gemeinsam mit anderen über die Zwecke und Mittel der Verarbeitung von personenbezogenen Daten entscheidet. Sind die Zwecke und Mittel dieser Verarbeitung durch das Unionsrecht oder das Recht der Mitgliedstaaten vorgegeben, so kann der Verantwortliche beziehungsweise können die bestimmten Kriterien seiner Benennung nach dem Unionsrecht oder dem Recht der Mitgliedstaaten vorgesehen werden.
-
-### h) Auftragsverarbeiter
-
-Auftragsverarbeiter ist eine natürliche oder juristische Person, Behörde, Einrichtung oder andere Stelle, die personenbezogene Daten im Auftrag des Verantwortlichen verarbeitet.
-
-### i) Empfänger
-
-Empfänger ist eine natürliche oder juristische Person, Behörde, Einrichtung oder andere Stelle, der personenbezogene Daten offengelegt werden, unabhängig davon, ob es sich bei ihr um einen Dritten handelt oder nicht. Behörden, die im Rahmen eines bestimmten Untersuchungsauftrags nach dem Unionsrecht oder dem Recht der Mitgliedstaaten möglicherweise personenbezogene Daten erhalten, gelten jedoch nicht als Empfänger.
-
-### j) Dritter
-
-Dritter ist eine natürliche oder juristische Person, Behörde, Einrichtung oder andere Stelle außer der betroffenen Person, dem Verantwortlichen, dem Auftragsverarbeiter und den Personen, die unter der unmittelbaren Verantwortung des Verantwortlichen oder des Auftragsverarbeiters befugt sind, die personenbezogenen Daten zu verarbeiten.
-
-### k) Einwilligung
-
-Einwilligung ist jede von der betroffenen Person freiwillig für den bestimmten Fall in informierter Weise und unmissverständlich abgegebene Willensbekundung in Form einer Erklärung oder einer sonstigen eindeutigen bestätigenden Handlung, mit der die betroffene Person zu verstehen gibt, dass sie mit der Verarbeitung der sie betreffenden personenbezogenen Daten einverstanden ist.
-
-## 2. NAME UND ANSCHRIFT DES FÜR DIE VERARBEITUNG VERANTWORTLICHEN
-
-Verantwortlicher im Sinne der Datenschutz-Grundverordnung, sonstiger in den Mitgliedstaaten der Europäischen Union geltenden Datenschutzgesetze und anderer Bestimmungen mit datenschutzrechtlichem Charakter ist die:
-
-KLUBHAUS GmbH  
-Ursulaplatz 1  
-50668 Köln  
+**art × - Art of X UG (haftungsbeschränkt)**  
+Goethestr. 59  
+10625 Berlin  
 Deutschland
 
-Tel.: +49 221 4686730  
-E-Mail: info@KLUBHAUS.de  
-Website: www.klubhaus.de
+E-Mail: hello@art-of-x.com
 
-## 3. NAME UND ANSCHRIFT DES DATENSCHUTZBEAUFTRAGTEN
+Bei allen Fragen und Anliegen zum Datenschutz können Sie sich jederzeit an uns wenden.
 
-Der Datenschutzbeauftragte des für die Verarbeitung Verantwortlichen ist:
+## 2. Grundsätzliches zur Datenverarbeitung
 
-Jasmin Lieffering  
-LITC Jasmin Lieffering  
-Bärenmarsch 3  
-D – 31623 Drakenburg
+Gegenstand des Datenschutzes sind personenbezogene Daten. Dies sind alle Informationen, die sich auf eine identifizierte oder identifizierbare natürliche Person beziehen. Wir erheben und verarbeiten personenbezogene Daten unserer Nutzer grundsätzlich nur, soweit dies zur Bereitstellung einer funktionsfähigen Plattform sowie unserer Inhalte und Leistungen erforderlich ist.
 
-Tel.: +49 5024 9817 244  
-Web: www.litc.de  
-Email: jasmin.lieffering@litc.de
+## 3. Welche Daten wir verarbeiten und zu welchem Zweck
 
-Jede betroffene Person kann sich jederzeit bei allen Fragen und Anregungen zum Datenschutz direkt an unseren Datenschutzbeauftragten wenden.
+### a. Bei der Registrierung und Nutzung Ihres Accounts
 
-## 4. COOKIES
+Zur Nutzung unserer Plattform müssen Sie ein Benutzerkonto anlegen. Hierbei erheben wir folgende Daten:
+*   Name
+*   E-Mail-Adresse
+*   Passwort (gespeichert in verschlüsselter Form)
 
-Die Internetseiten der KLUBHAUS GmbH verwenden Cookies. Cookies sind Textdateien, welche über einen Internetbrowser auf einem Computersystem abgelegt und gespeichert werden.
+Diese Daten sind erforderlich, um Ihr Konto zu verwalten und Ihnen den Zugang zu unseren Diensten zu ermöglichen. Die Rechtsgrundlage für diese Verarbeitung ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).
 
-Zahlreiche Internetseiten und Server verwenden Cookies. Viele Cookies enthalten eine sogenannte Cookie-ID. Eine Cookie-ID ist eine eindeutige Kennung des Cookies. Sie besteht aus einer Zeichenfolge, durch welche Internetseiten und Server dem konkreten Internetbrowser zugeordnet werden können, in dem das Cookie gespeichert wurde. Dies ermöglicht es den besuchten Internetseiten und Servern, den individuellen Browser der betroffenen Person von anderen Internetbrowsern, die andere Cookies enthalten, zu unterscheiden. Ein bestimmter Internetbrowser kann über die eindeutige Cookie-ID wiedererkannt und identifiziert werden.
+### b. Von Ihnen hochgeladene Inhalte (Nutzerinhalte)
 
-Durch den Einsatz von Cookies kann die KLUBHAUS GmbH den Nutzern dieser Internetseite nutzerfreundlichere Services bereitstellen, die ohne die Cookie-Setzung nicht möglich wären.
+Das Herzstück unserer Plattform ist die Verarbeitung von Inhalten, die Sie uns zur Verfügung stellen, um künstliche Intelligenz-Modelle zu trainieren. Dies können beispielsweise Sprachaufnahmen, Texte, Bilder oder andere kreative Werke sein ("Nutzerinhalte").
 
-Mittels eines Cookies können die Informationen und Angebote auf unserer Internetseite im Sinne des Benutzers optimiert werden. Cookies ermöglichen uns, wie bereits erwähnt, die Benutzer unserer Internetseite wiederzuerkennen. Zweck dieser Wiedererkennung ist es, den Nutzern die Verwendung unserer Internetseite zu erleichtern. Der Benutzer einer Internetseite, die Cookies verwendet, muss beispielsweise nicht bei jedem Besuch der Internetseite erneut seine Zugangsdaten eingeben, weil dies von der Internetseite und dem auf dem Computersystem des Benutzers abgelegten Cookie übernommen wird. Ein weiteres Beispiel ist das Cookie eines Warenkorbes im Online-Shop. Der Online-Shop merkt sich die Artikel, die ein Kunde in den virtuellen Warenkorb gelegt hat, über ein Cookie.
+Diese Daten werden für folgende Zwecke verarbeitet:
 
-Die betroffene Person kann die Setzung von Cookies durch unsere Internetseite jederzeit mittels einer entsprechenden Einstellung des genutzten Internetbrowsers verhindern und damit der Setzung von Cookies dauerhaft widersprechen. Ferner können bereits gesetzte Cookies jederzeit über einen Internetbrowser oder andere Softwareprogramme gelöscht werden. Dies ist in allen gängigen Internetbrowsern möglich. Deaktiviert die betroffene Person die Setzung von Cookies in dem genutzten Internetbrowser
+*   **Training Ihres persönlichen KI-Modells:** Wir verwenden Ihre Nutzerinhalte, um ein persönliches KI-Modell zu erstellen, das auf Ihren individuellen Beiträgen basiert.
+*   **Training allgemeiner KI-Modelle:** Sofern Sie uns Ihre Einwilligung erteilen, verwenden wir Ihre Nutzerinhalte auch, um sie in unsere größeren, allgemeinen KI-Modelle einfließen zu lassen. Diese Modelle können wir für kommerzielle Zwecke nutzen und unseren Kunden zur Verfügung stellen.
+
+Die Verarbeitung Ihrer Nutzerinhalte erfolgt ausschließlich auf Grundlage Ihrer ausdrücklichen Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO, die Sie im Rahmen des Upload-Prozesses erteilen.
+
+### c. Cookies
+
+Wir verwenden auf unserer Webseite Cookies. Das sind kleine Textdateien, die auf Ihrem Endgerät gespeichert werden. Einige der von uns verwendeten Cookies sind so genannte "Session-Cookies". Sie werden nach Ende Ihres Besuchs automatisch gelöscht. Andere Cookies bleiben auf Ihrem Endgerät gespeichert, bis Sie diese löschen. Diese Cookies ermöglichen es uns, Ihren Browser beim nächsten Besuch wiederzuerkennen.
+
+Die Verarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO aus unserem berechtigten Interesse an einer nutzerfreundlichen Gestaltung unserer Webseite.
+
+## 4. Speicherdauer und Datenlöschung
+
+Wir speichern Ihre personenbezogenen Daten nur so lange, wie es für die Erreichung der hier genannten Zwecke erforderlich ist oder wie es die vom Gesetzgeber vorgesehenen Speicherfristen vorsehen.
+
+**Ihr Recht auf Löschung ist uns besonders wichtig:** Sie können jederzeit die Löschung Ihres Accounts und aller damit verbundenen Daten verlangen. Nach einem solchen Antrag werden wir Ihre personenbezogenen Daten und Nutzerinhalte dauerhaft aus unseren aktiven Systemen entfernen. Wir werden Ihre Daten dann nicht mehr für das Training neuer Modelle verwenden und alle zumutbaren technischen Schritte unternehmen, um sie auch aus bestehenden Modellen zu entfernen.
+
+## 5. Ihre Rechte als betroffene Person
+
+Ihnen stehen bezüglich Ihrer personenbezogenen Daten folgende Rechte zu:
+*   **Recht auf Auskunft** (Art. 15 DSGVO)
+*   **Recht auf Berichtigung** (Art. 16 DSGVO)
+*   **Recht auf Löschung** ("Recht auf Vergessenwerden") (Art. 17 DSGVO)
+*   **Recht auf Einschränkung der Verarbeitung** (Art. 18 DSGVO)
+*   **Recht auf Datenübertragbarkeit** (Art. 20 DSGVO)
+*   **Recht auf Widerspruch** (Art. 21 DSGVO)
+
+Sie haben zudem das Recht, eine erteilte Einwilligung jederzeit mit Wirkung für die Zukunft zu **widerrufen** (Art. 7 Abs. 3 DSGVO). Durch den Widerruf der Einwilligung wird die Rechtmäßigkeit der aufgrund der Einwilligung bis zum Widerruf erfolgten Verarbeitung nicht berührt.
+
+Zur Ausübung Ihrer Rechte wenden Sie sich bitte an die oben genannte Kontaktadresse.
+
+## 6. Beschwerderecht bei der Aufsichtsbehörde
+
+Unbeschadet eines anderweitigen verwaltungsrechtlichen oder gerichtlichen Rechtsbehelfs steht Ihnen das Recht auf Beschwerde bei einer Aufsichtsbehörde, insbesondere in dem Mitgliedstaat Ihres Aufenthaltsorts, Ihres Arbeitsplatzes oder des Orts des mutmaßlichen Verstoßes, zu, wenn Sie der Ansicht sind, dass die Verarbeitung der Sie betreffenden personenbezogenen Daten gegen die DSGVO verstößt (Art. 77 DSGVO).
+
+## 7. Änderung dieser Datenschutzerklärung
+
+Wir behalten uns vor, diese Datenschutzerklärung anzupassen, damit sie stets den aktuellen rechtlichen Anforderungen entspricht oder um Änderungen unserer Leistungen in der Datenschutzerklärung umzusetzen, z. B. bei der Einführung neuer Services. Für Ihren erneuten Besuch gilt dann die neue Datenschutzerklärung.

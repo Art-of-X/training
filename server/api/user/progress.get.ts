@@ -1,30 +1,6 @@
 import { serverSupabaseUser } from '#supabase/server';
-import { PrismaClient } from '@prisma/client';
-import fs from 'node:fs/promises';
-import path from 'node:path';
-
-const prisma = new PrismaClient();
-
-async function readJsonData(filePath: string) {
-  try {
-    const fullPath = path.join(process.cwd(), 'public', 'data', filePath);
-    const fileContent = await fs.readFile(fullPath, 'utf-8');
-    const data = JSON.parse(fileContent);
-    // If data is an object and has a 'questions' property, return that array.
-    if (typeof data === 'object' && data !== null && Array.isArray(data.questions)) {
-      return data.questions;
-    }
-    // If data is already an array, return it directly.
-    if (Array.isArray(data)) {
-      return data;
-    }
-    // Otherwise, return an empty array as a fallback.
-    return [];
-  } catch (error) {
-    console.error(`Error reading or parsing JSON file at ${filePath}:`, error);
-    return [];
-  }
-}
+import { prisma } from '../../utils/prisma';
+import { readJsonData } from '../../utils/data';
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event);

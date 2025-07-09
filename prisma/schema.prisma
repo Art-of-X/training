@@ -26,6 +26,7 @@ model UserProfile {
   ratAnswers               RATAnswer[]
   datSubmissions           DATSubmission[]
   demographicsAnswers      DemographicsAnswer[]
+  chatMessages             ChatMessage[]
 
   @@map("user_profiles") // Map to the public.user_profiles table
 }
@@ -51,7 +52,8 @@ model MonologueRecording {
   id                     String   @id @default(uuid()) @db.Uuid
   userId                 String   @map("user_id") @db.Uuid
   questionText           String   @map("question_text")
-  audioPath              String   @map("audio_path")
+  textResponse           String?  @map("text_response")
+  audioPath              String?  @map("audio_path")
   durationSeconds        Int?     @map("duration_seconds")
   supplementaryFilePath  String?  @map("supplementary_file_path")
   supplementaryLink      String?  @map("supplementary_link")
@@ -62,6 +64,7 @@ model MonologueRecording {
   // Relations
   user            UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, questionId])
   @@map("monologue_recordings")
 }
 
@@ -148,4 +151,18 @@ model DemographicsAnswer {
 
   @@unique([userId, questionKey]) // One answer per user per question
   @@map("demographics_answers")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  role      String // "user" or "assistant"
+  content   String   @db.Text
+
+  // Relations
+  user   UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String      @db.Uuid
+
+  @@index([userId, createdAt])
+  @@map("chat_messages")
 } 

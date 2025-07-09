@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../landing"
+		},
+		{
+			"path": "../../../misc/deepgram-voice-agent-demo"
+		}
+	],
+	"settings": {}
+}

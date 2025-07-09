@@ -152,7 +152,7 @@ export default defineEventHandler(async (event) => {
     })
 
     // Upload audio file to Supabase Storage
-    const { data, error } = await supabaseUser.storage
+    const { error } = await supabaseUser.storage
       .from('monologue-recordings')
       .upload(audioFilePath, audioFile.data, {
         contentType: audioFile.type,
@@ -167,13 +167,8 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Get public URL for audio file
-    const { data: publicData } = supabaseServiceRole.storage
-      .from('monologue-recordings')
-      .getPublicUrl(audioFilePath)
-
     // Handle supplementary file upload if present
-    let supplementaryFileUrl = null
+    let supplementaryStoragePath = null
     if (supplementaryFile) {
       // Get file extension from filename or mime type
       const originalFileName = supplementaryFile.filename || 'file'
@@ -181,7 +176,7 @@ export default defineEventHandler(async (event) => {
       const supplementaryFileName = `${timestamp}_supplementary.${fileExtension}`
       const supplementaryFilePath = `${user.id}/${supplementaryFileName}`
 
-      const { data: supplementaryData, error: supplementaryError } = await supabaseUser.storage
+      const { error: supplementaryError } = await supabaseUser.storage
         .from('monologue-recordings')
         .upload(supplementaryFilePath, supplementaryFile.data, {
           contentType: supplementaryFile.type || 'application/octet-stream',
@@ -195,13 +190,8 @@ export default defineEventHandler(async (event) => {
           statusMessage: `Failed to upload supplementary file: ${supplementaryError.message}`
         })
       }
-
-      // Get public URL for supplementary file
-      const { data: supplementaryPublicData } = supabaseServiceRole.storage
-        .from('monologue-recordings')
-        .getPublicUrl(supplementaryFilePath)
       
-      supplementaryFileUrl = supplementaryPublicData.publicUrl
+      supplementaryStoragePath = supplementaryFilePath
     }
 
     // Save to database using Prisma (bypasses RLS but we control access via user.id)
@@ -210,10 +200,10 @@ export default defineEventHandler(async (event) => {
         data: {
           userId: user.id,
           questionText: question,
-          audioPath: publicData.publicUrl,
+          audioPath: audioFilePath,
           durationSeconds: duration ? Math.round(duration) : null,
           questionId: questionId,
-          supplementaryFilePath: supplementaryFileUrl,
+          supplementaryFilePath: supplementaryStoragePath,
           supplementaryLink: supplementaryLink?.trim() || null,
           supplementaryDescription: supplementaryDescription?.trim() || null
         }

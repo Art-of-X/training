@@ -1,5 +1,5 @@
 import { defineEventHandler, createError, getRouterParam } from 'h3'
-import { serverSupabaseUser } from '#supabase/server'
+import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { prisma } from '../../utils/prisma'
 
 export default defineEventHandler(async (event) => {
@@ -43,6 +43,19 @@ export default defineEventHandler(async (event) => {
         statusMessage: 'No recording found for this question'
       })
     }
+    
+    const supabase = await serverSupabaseClient(event)
+    let audioUrl = null
+    if (recording.audioPath) {
+      const { data } = supabase.storage.from('monologue-recordings').getPublicUrl(recording.audioPath)
+      audioUrl = data.publicUrl
+    }
+
+    let supplementaryFileUrl = null
+    if (recording.supplementaryFilePath) {
+      const { data } = supabase.storage.from('monologue-recordings').getPublicUrl(recording.supplementaryFilePath)
+      supplementaryFileUrl = data.publicUrl
+    }
 
     return {
       success: true,
@@ -50,9 +63,9 @@ export default defineEventHandler(async (event) => {
         id: recording.id,
         questionId: recording.questionId,
         questionText: recording.questionText,
-        audioPath: recording.audioPath,
+        audioPath: audioUrl,
         durationSeconds: recording.durationSeconds,
-        supplementaryFilePath: recording.supplementaryFilePath,
+        supplementaryFilePath: supplementaryFileUrl,
         supplementaryLink: recording.supplementaryLink,
         supplementaryDescription: recording.supplementaryDescription,
         createdAt: recording.createdAt

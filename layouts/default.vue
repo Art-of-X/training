@@ -23,6 +23,7 @@
             >
               Art<sup class="ml-1 text-base font-semibold">x</sup>
             </span>
+            <span class="bg-primary-100 text-primary-800 text-xs font-semibold px-2 py-0.5 rounded-full dark:bg-primary-900 dark:text-primary-300 ml-2">BETA</span>
           </NuxtLink>
 
           <!-- Right Aligned Items -->

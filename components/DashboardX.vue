@@ -16,19 +16,6 @@ const clock = new THREE.Clock();
 const colorMode = useColorMode();
 const mouse = new THREE.Vector2();
 
-const themeSettings = {
-  light: {
-    background: 0xffffff,
-    object: 0x0f172a, // secondary-900
-    glow: 0x67e8f9, // A cyan color for glowing
-  },
-  dark: {
-    background: 0x0f172a, // secondary-900
-    object: 0xffffff,
-    glow: 0x0891b2, // A darker cyan for glowing
-  }
-};
-
 // Function to get primary color from CSS custom properties
 const getPrimaryColor = () => {
   if (typeof document === 'undefined') return 0x0f172a;

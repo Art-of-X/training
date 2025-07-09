@@ -29,9 +29,19 @@ export default defineEventHandler(async (event) => {
     // If there's a file path, delete the file from storage
     if (itemToDelete.filePath) {
       const supabase = await serverSupabaseClient(event)
+      
+      // Handle both full URLs and relative paths for robustness
+      let pathToDelete = itemToDelete.filePath
+      const BUCKET_NAME = 'uploads'
+      const bucketUrlPart = `/storage/v1/object/public/${BUCKET_NAME}/`
+
+      if (pathToDelete.includes(bucketUrlPart)) {
+        pathToDelete = pathToDelete.split(bucketUrlPart)[1]
+      }
+      
       const { error: deleteError } = await supabase.storage
-        .from('portfolio-assets')
-        .remove([itemToDelete.filePath])
+        .from(BUCKET_NAME)
+        .remove([pathToDelete])
       
       if (deleteError) {
         // Log the error but proceed to delete from DB anyway

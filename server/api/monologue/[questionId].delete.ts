@@ -45,30 +45,35 @@ export default defineEventHandler(async (event) => {
     }
 
     const supabase = await serverSupabaseClient(event)
+    const BUCKET_NAME = 'monologue-recordings'
+
+    // Function to extract path from URL or use as is
+    const getPath = (fullPath: string | null) => {
+      if (!fullPath) return null
+      const bucketUrlPart = `/storage/v1/object/public/${BUCKET_NAME}/`
+      if (fullPath.includes(bucketUrlPart)) {
+        return fullPath.split(bucketUrlPart)[1]
+      }
+      return fullPath
+    }
 
     // Delete files from Supabase Storage
     const filesToDelete = []
     
-    // Extract file path from audio URL
-    if (recording.audioPath) {
-      const audioUrlParts = recording.audioPath.split('/monologue-recordings/')
-      if (audioUrlParts.length > 1) {
-        filesToDelete.push(audioUrlParts[1])
-      }
+    const audioPath = getPath(recording.audioPath)
+    if (audioPath) {
+      filesToDelete.push(audioPath)
     }
 
-    // Extract file path from supplementary file URL
-    if (recording.supplementaryFilePath) {
-      const supplementaryUrlParts = recording.supplementaryFilePath.split('/monologue-recordings/')
-      if (supplementaryUrlParts.length > 1) {
-        filesToDelete.push(supplementaryUrlParts[1])
-      }
+    const supplementaryPath = getPath(recording.supplementaryFilePath)
+    if (supplementaryPath) {
+      filesToDelete.push(supplementaryPath)
     }
 
     // Delete files from storage
     if (filesToDelete.length > 0) {
       const { error: storageError } = await supabase.storage
-        .from('monologue-recordings')
+        .from(BUCKET_NAME)
         .remove(filesToDelete)
 
       if (storageError) {

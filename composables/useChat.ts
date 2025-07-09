@@ -3,96 +3,88 @@ import { type CoreMessage } from 'ai';
 
 export const useChat = () => {
   const messages = ref<CoreMessage[]>([]);
-  const input = ref('');
   const isLoading = ref(false);
   const error = ref<any>(null);
 
-  const handleSubmit = async (e: Event) => {
-    e.preventDefault();
-    if (!input.value.trim()) return;
-
-    const userInput = input.value;
-    messages.value.push({ role: 'user', content: userInput });
-    
-    input.value = '';
+  const sendMessage = async (newMessages: CoreMessage[]) => {
     isLoading.value = true;
     error.value = null;
 
+    // Add a placeholder for the assistant's response
+    if (newMessages.some(m => m.role === 'user')) {
+        messages.value.push({ role: 'assistant', content: '' });
+    }
+
     try {
+      // Filter out any messages that might have empty content before sending.
+      const messagesToSend = newMessages.filter(m => {
+        if (typeof m.content === 'string') {
+          return m.content.trim() !== '';
+        }
+        // Keep non-string content blocks, assuming they are valid (e.g., for multi-modal input in the future)
+        return true;
+      });
+
       const response = await fetch('/api/chat/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: messages.value,
+          messages: messagesToSend,
         }),
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        throw new Error(await response.text());
       }
 
-      if (!response.body) {
-        throw new Error('Response body is null');
-      }
+      const { content } = await response.json();
       
-      const assistantMessage: CoreMessage = { role: 'assistant', content: '' };
-      messages.value.push(assistantMessage);
-      const assistantMessageIndex = messages.value.length - 1;
-
-      // More robust manual stream parser
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      const processBuffer = () => {
-        // The stream protocol is `[type]:[data]\n`. Process buffer line by line.
-        let eolIndex;
-        while ((eolIndex = buffer.indexOf('\n')) >= 0) {
-          const line = buffer.substring(0, eolIndex).trim();
-          buffer = buffer.substring(eolIndex + 1);
-
-          if (line.startsWith('0:')) {
-            try {
-              const textContent = JSON.parse(line.substring(2));
-              messages.value[assistantMessageIndex].content += textContent;
-            } catch (e) {
-              console.error("Failed to parse text chunk:", line, e);
-            }
-          } else if (line) {
-             console.log("Received non-text data chunk:", line);
-          }
-        }
-      };
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          if (buffer) {
-            processBuffer();
-          }
-          break;
-        }
-        buffer += decoder.decode(value, { stream: true });
-        processBuffer();
+      // Update the last assistant message with the actual content
+      const lastMessage = messages.value[messages.value.length - 1];
+      if (lastMessage && lastMessage.role === 'assistant') {
+        lastMessage.content = content;
+      } else {
+        // This case handles the initial message where there's no user message yet
+        messages.value.push({ role: 'assistant', content });
       }
 
     } catch (e) {
       error.value = e;
       const lastMessage = messages.value[messages.value.length - 1];
-      if(lastMessage && lastMessage.role === 'assistant') {
-        lastMessage.content = 'Sorry, I ran into an error.';
+      if (lastMessage && lastMessage.role === 'assistant') {
+          lastMessage.content = 'Sorry, I ran into an error.';
       }
     } finally {
       isLoading.value = false;
     }
   };
 
+  const getInitialMessage = async () => {
+     messages.value = []; // Reset messages for a new chat
+     const initialPrompt: CoreMessage[] = [
+      { 
+        role: 'user', 
+        content: 'Welcome the user back. Your main goal is to guide them through their training. Determine the next single most important question they should answer from any module. Ask them this question directly and concisely. Do not start with a progress summary. Just ask the question.' 
+      }
+    ];
+    // We don't push the user message to the history here, just send it.
+    await sendMessage(initialPrompt);
+  };
+  
+  const handleSubmit = async (userInput: string) => {
+    if (!userInput || !userInput.trim()) return;
+
+    const userMessage: CoreMessage = { role: 'user', content: userInput };
+    messages.value.push(userMessage);
+
+    await sendMessage(messages.value);
+  };
+
   return {
     messages,
-    input,
     handleSubmit,
     isLoading,
     error,
+    getInitialMessage
   };
 }; 
