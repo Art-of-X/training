@@ -367,7 +367,18 @@ const playAudio = async (audioBlob: Blob): Promise<void> => {
 
 // Process text with TTS and typing animation sentence by sentence with proper synchronization
 const processResponseWithTTS = async (text: string) => {
-    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+    // Split into sentences and clean up whitespace
+    const rawSentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+    
+    // Filter out empty sentences after trimming
+    const sentences = rawSentences
+        .map(sentence => sentence.trim())
+        .filter(sentence => sentence.length > 0);
+    
+    // If no valid sentences, return early
+    if (sentences.length === 0) {
+        return;
+    }
 
     for (const sentence of sentences) {
         try {
@@ -396,7 +407,7 @@ const processResponseWithTTS = async (text: string) => {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({ 
-                            text: sentence.trim(),
+                            text: sentence,
                             speed: 1.2,
                             voice: 'shimmer'
                         })
@@ -434,7 +445,7 @@ const processResponseWithTTS = async (text: string) => {
             // Fallback: just display the text in a new message
             messages.value.push({
                 role: 'assistant',
-                content: sentence.trim()
+                content: sentence
             });
             scrollToBottom();
         }
