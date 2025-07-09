@@ -165,6 +165,11 @@ export const useChat = () => {
   };
 
   const playTTS = async (text: string) => {
+    // Early return if TTS is disabled - safety check
+    if (!isTTSEnabled.value) {
+      return;
+    }
+    
     try {
       isPlayingTTS.value = true;
       

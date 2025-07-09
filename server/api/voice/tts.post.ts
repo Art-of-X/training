@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
             throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
         }
 
-        const { text, voice = 'alloy' } = await readBody(event);
+        const { text, voice = 'alloy', speed = 1.2 } = await readBody(event);
         
         if (!text || typeof text !== 'string' || text.trim().length === 0) {
             throw createError({ statusCode: 400, statusMessage: 'Text is required' });
@@ -23,7 +23,8 @@ export default defineEventHandler(async (event) => {
                 model: 'tts-1',
                 input: text.trim(),
                 voice: voice,
-                response_format: 'mp3'
+                response_format: 'mp3',
+                speed: speed
             }),
         });
 

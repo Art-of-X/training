@@ -127,7 +127,7 @@
 
             <!-- Chat Component -->
             <div v-show="activeTab === 'chat'" class="h-[60vh] flex flex-col">
-              <Chat :embedded="true" />
+              <ChatComponent :embedded="true" />
             </div>
           </div>
         </div>
@@ -164,7 +164,7 @@
 <script setup lang="ts">
 import DashboardX from '~/components/DashboardX.vue';
 import ProgressBar from '~/components/ProgressBar.vue';
-import Chat from '~/components/Chat.vue';
+import ChatComponent from '~/components/Chat.vue';
 import { useUserProfile } from '~/composables/useUserProfile';
 
 definePageMeta({

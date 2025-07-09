@@ -88,25 +88,6 @@
              </div>
           </div>
         </div>
-        
-        <!-- Voice Status Indicators -->
-        <div v-if="isRecording" class="mb-4 text-center">
-          <div class="inline-block py-2 px-3 rounded-lg bg-primary-500 text-white">
-            <div class="flex items-center space-x-2 text-sm">
-              <div class="recording-pulse"></div>
-              <span>Recording...</span>
-            </div>
-          </div>
-        </div>
-        
-        <div v-if="isPlayingTTS" class="mb-4 text-center">
-          <div class="inline-block py-2 px-3 rounded-lg bg-primary-500 text-white">
-            <div class="flex items-center space-x-2 text-sm">
-              <div class="loading-spinner-sm"></div>
-              <span>Speaking...</span>
-            </div>
-          </div>
-        </div>
       </div>
       
       <!-- Input area - always visible -->
@@ -163,13 +144,11 @@
             ]"
             aria-label="Toggle text-to-speech"
           >
-            <svg v-if="!isPlayingTTS" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M9 12H7a1 1 0 01-1-1v-2a1 1 0 011-1h2l3.464-2.464A1 1 0 0114 6v12a1 1 0 01-1.536.844L9 16z"></path>
             </svg>
-            <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18 12m-2.536-3.536a5 5 0 00-7.072 0M9 12H7a1 1 0 01-1-1v-2a1 1 0 011-1h2l3.464-2.464A1 1 0 0114 6v12a1 1 0 01-1.536.844L9 16z"></path>
-            </svg>
           </button>
+          
           <input 
             v-model="inputValue"
             @keyup.enter="handleSubmitWithScroll"
@@ -207,27 +186,109 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { 
   messages, 
-  handleSubmit, 
+  handleSubmit: originalHandleSubmit, 
   isLoading, 
   error, 
   getInitialMessage,
   // Voice functionality
   isRecording,
-  isPlayingTTS,
-  isTTSEnabled,
-  startRecording,
-  stopRecording,
-  toggleTTS,
-  stopTTS
+  isTTSEnabled: composableTTSEnabled,
+  startRecording: originalStartRecording,
+  stopRecording: originalStopRecording,
+  toggleTTS: toggleComposableTTS
 } = useChat();
+
+// Our own TTS state (separate from composable)
+const isTTSEnabled = ref(false);
+
+// Our own TTS toggle function
+const toggleTTS = () => {
+  isTTSEnabled.value = !isTTSEnabled.value;
+  
+  // Stop current audio if disabling TTS
+  if (!isTTSEnabled.value) {
+    cleanupAudio();
+  }
+};
 
 const inputValue = ref('');
 const chatContainer = ref<HTMLElement | null>(null);
+const currentAudio = ref<HTMLAudioElement | null>(null);
+const isPlayingAudio = ref(false);
 
 // File upload state
 const fileInput = ref<HTMLInputElement | null>(null);
 const isUploadingFile = ref(false);
 const uploadError = ref<string | null>(null);
+
+// Custom voice functions that use our message handling
+const mediaRecorder = ref<MediaRecorder | null>(null);
+const audioChunks = ref<Blob[]>([]);
+
+const startRecording = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    
+    mediaRecorder.value = new MediaRecorder(stream);
+    audioChunks.value = [];
+    
+    mediaRecorder.value.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        audioChunks.value.push(event.data);
+      }
+    };
+    
+    mediaRecorder.value.onstop = async () => {
+      const audioBlob = new Blob(audioChunks.value, { type: 'audio/webm' });
+      await processVoiceInput(audioBlob);
+      
+      // Clean up
+      stream.getTracks().forEach(track => track.stop());
+    };
+    
+    mediaRecorder.value.start();
+    isRecording.value = true;
+  } catch (e) {
+    error.value = e;
+    console.error('Error starting recording:', e);
+  }
+};
+
+const stopRecording = () => {
+  if (mediaRecorder.value && isRecording.value) {
+    mediaRecorder.value.stop();
+    isRecording.value = false;
+  }
+};
+
+const processVoiceInput = async (audioBlob: Blob) => {
+  try {
+    isLoading.value = true;
+    
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.webm');
+    
+    const response = await fetch('/api/voice/stt', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to transcribe audio');
+    }
+    
+    const { text } = await response.json();
+    
+    if (text && text.trim()) {
+      await handleMessage(text.trim());
+    }
+  } catch (e) {
+    error.value = e;
+    console.error('Error processing voice input:', e);
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 const triggerFileUpload = () => {
   fileInput.value?.click();
@@ -252,7 +313,7 @@ const handleProactiveFileUpload = async (event: Event) => {
         
         // Use the returned temporary URL to start the conversation
         const message = `I have just uploaded a file. You can find it at this URL: ${response.url}. Please ask me for any context you need to categorize it.`;
-        await handleSubmit(message);
+        await handleMessage(message);
 
     } catch (e: any) {
         uploadError.value = e.data?.message || 'The file could not be uploaded. Please try again.';
@@ -260,6 +321,123 @@ const handleProactiveFileUpload = async (event: Event) => {
         isUploadingFile.value = false;
         // Reset file input so the user can upload the same file again
         if (target) target.value = '';
+    }
+};
+
+
+
+// Clean up audio
+const cleanupAudio = () => {
+    if (currentAudio.value) {
+        currentAudio.value.pause();
+        currentAudio.value.currentTime = 0;
+        URL.revokeObjectURL(currentAudio.value.src);
+        currentAudio.value = null;
+    }
+    isPlayingAudio.value = false;
+};
+
+// Play audio blob and return a promise that resolves when audio finishes
+const playAudio = async (audioBlob: Blob): Promise<void> => {
+    return new Promise((resolve, reject) => {
+        cleanupAudio();
+        
+        const audioUrl = URL.createObjectURL(audioBlob);
+        currentAudio.value = new Audio(audioUrl);
+        isPlayingAudio.value = true;
+        
+        currentAudio.value.addEventListener('ended', () => {
+            cleanupAudio();
+            resolve();
+        });
+
+        currentAudio.value.addEventListener('error', (e) => {
+            console.error('Audio playback error:', e);
+            cleanupAudio();
+            reject(e);
+        });
+
+        currentAudio.value.play().catch(error => {
+            console.error('Failed to play audio:', error);
+            cleanupAudio();
+            reject(error);
+        });
+    });
+};
+
+// Process text with TTS and typing animation sentence by sentence with proper synchronization
+const processResponseWithTTS = async (text: string) => {
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+
+    for (const sentence of sentences) {
+        try {
+            // Wait for any previous audio to finish
+            while (isPlayingAudio.value) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            // Create a new message bubble for this sentence
+            messages.value.push({
+                role: 'assistant',
+                content: ''
+            });
+            
+            await nextTick();
+            scrollToBottom();
+            
+            let audioPromise = null;
+            
+            // Start TTS audio if enabled
+            if (isTTSEnabled.value) {
+                try {
+                    const audioResponse = await fetch('/api/voice/tts', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                            text: sentence.trim(),
+                            speed: 1.2,
+                            voice: 'shimmer'
+                        })
+                    });
+
+                    if (audioResponse.ok) {
+                        const audioBlob = await audioResponse.blob();
+                        // Start playing audio (don't wait for it to finish)
+                        audioPromise = playAudio(audioBlob);
+                    }
+                } catch (ttsError) {
+                    console.error('TTS Error:', ttsError);
+                    // Continue with typing even if TTS fails
+                }
+            }
+            
+            // Start typing animation simultaneously with audio
+            const currentMessage = messages.value[messages.value.length - 1];
+            let displayedText = '';
+
+            for (const char of sentence) {
+                displayedText += char;
+                currentMessage.content = displayedText;
+                scrollToBottom();
+                await new Promise(resolve => setTimeout(resolve, 20));
+            }
+            
+            // Wait for audio to finish before moving to next sentence
+            if (audioPromise) {
+                await audioPromise;
+            }
+            
+        } catch (error) {
+            console.error('Error processing sentence:', error);
+            // Fallback: just display the text in a new message
+            messages.value.push({
+                role: 'assistant',
+                content: sentence.trim()
+            });
+            scrollToBottom();
+        }
     }
 };
 
@@ -272,23 +450,119 @@ const scrollToBottom = () => {
   });
 };
 
-// Watch for changes that should trigger scrolling
-watch(messages, () => scrollToBottom(), { deep: true });
-
-// Enhanced submit handler with auto-scroll
+// Custom submit handler that handles both text and voice input
 const handleSubmitWithScroll = async (e: Event) => {
   e.preventDefault();
   if (!inputValue.value.trim()) return;
   
-  await handleSubmit(inputValue.value);
-
+  const userMessage = inputValue.value;
   inputValue.value = '';
   
-  scrollToBottom();
+  // Use the composable's handleSubmit which properly handles voice input
+  await handleMessage(userMessage);
 };
 
+// Handle message processing (used by both text and voice input)
+const handleMessage = async (message: string) => {
+  // Wait for any previous audio to finish before starting new message
+  while (isPlayingAudio.value) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
+  // Add user message directly to our messages array
+  messages.value.push({
+    role: 'user',
+    content: message
+  });
+  
+  scrollToBottom();
+  
+  try {
+    isLoading.value = true;
+    
+    // Call the API directly to get the response
+    const response = await $fetch('/api/chat/message', {
+      method: 'POST',
+      body: { messages: messages.value }
+    });
+    
+    if (response.content) {
+      // Process the response with TTS and typing animation
+      await processResponseWithTTS(response.content);
+    }
+  } catch (e) {
+    console.error('Error processing message:', e);
+    error.value = e;
+    // Add error message
+    messages.value.push({
+      role: 'assistant',
+      content: 'Sorry, I ran into an error.'
+    });
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Custom getInitialMessage function that uses our new approach
+const getInitialMessageWithTTS = async () => {
+  // Wait for any previous audio to finish before starting
+  while (isPlayingAudio.value) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
+  messages.value = []; // Reset messages for a new chat
+  
+  try {
+    isLoading.value = true;
+    
+    const initialPrompt = [
+      { 
+        role: 'user', 
+        content: 'Welcome the user back. Your main goal is to guide them through their training. Determine the next single most important question they should answer from any module. Ask them this question directly and concisely. Do not start with a progress summary. Just ask the question.' 
+      }
+    ];
+    
+    // Call the API directly to get the initial response
+    const response = await $fetch('/api/chat/message', {
+      method: 'POST',
+      body: { messages: initialPrompt }
+    });
+    
+    if (response.content) {
+      // Process the response with TTS and typing animation
+      await processResponseWithTTS(response.content);
+    }
+  } catch (e) {
+    console.error('Error getting initial message:', e);
+    error.value = e;
+    // Add fallback message
+    messages.value.push({
+      role: 'assistant',
+      content: 'Welcome back! How can I help you with your training today?'
+    });
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Watch for changes that should trigger scrolling
+watch(messages, () => scrollToBottom(), { deep: true });
+
+// Ensure composable TTS stays disabled
+watch(composableTTSEnabled, (newVal) => {
+  if (newVal) {
+    composableTTSEnabled.value = false;
+  }
+});
+
 onMounted(() => {
-  getInitialMessage();
+  // Completely disable composable's TTS to prevent double audio
+  composableTTSEnabled.value = false;
+  
+  // Enable our own TTS by default
+  isTTSEnabled.value = true;
+  
+  getInitialMessageWithTTS();
   scrollToBottom();
 });
 </script>
@@ -345,7 +619,6 @@ input:disabled, button:disabled {
   cursor: not-allowed;
 }
 
-/* Remove old typing indicator styles */
 .typing-indicator {
   display: flex;
   padding: 8px;
@@ -376,9 +649,5 @@ input:disabled, button:disabled {
 }
 .loading-spinner-sm {
   @apply w-4 h-4 border-2 border-gray-300 border-t-primary-600 dark:border-secondary-500 dark:border-t-primary-400 rounded-full animate-spin;
-}
-
-.recording-pulse {
-  @apply w-4 h-4 bg-red-500 rounded-full animate-pulse;
 }
 </style> 
