@@ -88,6 +88,25 @@
              </div>
           </div>
         </div>
+        
+        <!-- Voice Status Indicators -->
+        <div v-if="isRecording" class="mb-4 text-center">
+          <div class="inline-block py-2 px-3 rounded-lg bg-primary-500 text-white">
+            <div class="flex items-center space-x-2 text-sm">
+              <div class="recording-pulse"></div>
+              <span>Recording...</span>
+            </div>
+          </div>
+        </div>
+        
+        <div v-if="isPlayingTTS" class="mb-4 text-center">
+          <div class="inline-block py-2 px-3 rounded-lg bg-primary-500 text-white">
+            <div class="flex items-center space-x-2 text-sm">
+              <div class="loading-spinner-sm"></div>
+              <span>Speaking...</span>
+            </div>
+          </div>
+        </div>
       </div>
       
       <!-- Input area - always visible -->
@@ -107,6 +126,49 @@
             aria-label="Upload a file"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+          </button>
+          
+          <!-- Voice Controls -->
+          <!-- Microphone button -->
+          <button
+            type="button"
+            @click="isRecording ? stopRecording() : startRecording()"
+            :disabled="isLoading || isUploadingFile"
+            :class="[
+              'p-2 rounded-full focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
+              isRecording 
+                ? 'bg-primary-500 text-white' 
+                : 'text-secondary-500 hover:bg-secondary-100 dark:hover:bg-secondary-700'
+            ]"
+            aria-label="Toggle voice recording"
+          >
+            <svg v-if="!isRecording" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+            </svg>
+            <svg v-else class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 6h12v12H6z"></path>
+            </svg>
+          </button>
+          
+          <!-- Speaker button -->
+          <button
+            type="button"
+            @click="toggleTTS"
+            :disabled="isLoading || isUploadingFile"
+            :class="[
+              'p-2 rounded-full focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
+              isTTSEnabled 
+                ? 'bg-primary-500 text-white' 
+                : 'text-secondary-500 hover:bg-secondary-100 dark:hover:bg-secondary-700'
+            ]"
+            aria-label="Toggle text-to-speech"
+          >
+            <svg v-if="!isPlayingTTS" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M9 12H7a1 1 0 01-1-1v-2a1 1 0 011-1h2l3.464-2.464A1 1 0 0114 6v12a1 1 0 01-1.536.844L9 16z"></path>
+            </svg>
+            <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18 12m-2.536-3.536a5 5 0 00-7.072 0M9 12H7a1 1 0 01-1-1v-2a1 1 0 011-1h2l3.464-2.464A1 1 0 0114 6v12a1 1 0 01-1.536.844L9 16z"></path>
+            </svg>
           </button>
           <input 
             v-model="inputValue"
@@ -143,7 +205,21 @@ const props = withDefaults(defineProps<Props>(), {
   embedded: false
 });
 
-const { messages, handleSubmit, isLoading, error, getInitialMessage } = useChat();
+const { 
+  messages, 
+  handleSubmit, 
+  isLoading, 
+  error, 
+  getInitialMessage,
+  // Voice functionality
+  isRecording,
+  isPlayingTTS,
+  isTTSEnabled,
+  startRecording,
+  stopRecording,
+  toggleTTS,
+  stopTTS
+} = useChat();
 
 const inputValue = ref('');
 const chatContainer = ref<HTMLElement | null>(null);
@@ -300,5 +376,9 @@ input:disabled, button:disabled {
 }
 .loading-spinner-sm {
   @apply w-4 h-4 border-2 border-gray-300 border-t-primary-600 dark:border-secondary-500 dark:border-t-primary-400 rounded-full animate-spin;
+}
+
+.recording-pulse {
+  @apply w-4 h-4 bg-red-500 rounded-full animate-pulse;
 }
 </style> 
