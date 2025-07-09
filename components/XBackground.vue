@@ -163,49 +163,178 @@ function animate() {
     x.rotation.y += x.userData.angularVelocity.y * deltaTime;
     x.rotation.z += x.userData.angularVelocity.z * deltaTime;
 
+    // Exact X-shape wall collision detection
     const halfRoomSize = roomSize / 2;
-    const positionOffset = 1.2; 
+    const bounceFactor = -1;
+    const positionOffset = 0.1;
 
-    if (x.position.x > halfRoomSize - positionOffset) {
-        x.position.x = halfRoomSize - positionOffset;
-        x.userData.velocity.x *= -1;
-    } else if (x.position.x < -halfRoomSize + positionOffset) {
-        x.position.x = -halfRoomSize + positionOffset;
-        x.userData.velocity.x *= -1;
+    // Function to get the extreme points of the X shape in world coordinates
+    function getXExtremePoints(xObject) {
+        const points = [];
+        // Sample points along both diagonal bars
+        for (let bar = 0; bar < 2; bar++) {
+            for (let t = 0; t <= 10; t++) {
+                const progress = t / 10;
+                let localPoint;
+                
+                if (bar === 0) { // First diagonal
+                    localPoint = new THREE.Vector3(
+                        (progress - 0.5) * 2,
+                        (progress - 0.5) * 2,
+                        0
+                    );
+                } else { // Second diagonal
+                    localPoint = new THREE.Vector3(
+                        (progress - 0.5) * 2,
+                        (0.5 - progress) * 2,
+                        0
+                    );
+                }
+                
+                const worldPoint = localPoint.applyMatrix4(xObject.matrixWorld);
+                points.push(worldPoint);
+            }
+        }
+        return points;
     }
 
-    if (x.position.y > halfRoomSize - positionOffset) {
-        x.position.y = halfRoomSize - positionOffset;
-        x.userData.velocity.y *= -1;
-    } else if (x.position.y < -halfRoomSize + positionOffset) {
-        x.position.y = -halfRoomSize + positionOffset;
-        x.userData.velocity.y *= -1;
+    const xPoints = getXExtremePoints(x);
+    
+    // Check each point against walls
+    for (const point of xPoints) {
+        // X walls
+        if (point.x <= -halfRoomSize) {
+            x.userData.velocity.x = Math.abs(x.userData.velocity.x);
+            x.position.x += positionOffset;
+            x.userData.angularVelocity.y += (Math.random() - 0.5) * 0.5;
+            break;
+        }
+        if (point.x >= halfRoomSize) {
+            x.userData.velocity.x = -Math.abs(x.userData.velocity.x);
+            x.position.x -= positionOffset;
+            x.userData.angularVelocity.y += (Math.random() - 0.5) * 0.5;
+            break;
+        }
+    }
+    
+    for (const point of xPoints) {
+        // Y walls
+        if (point.y <= -halfRoomSize) {
+            x.userData.velocity.y = Math.abs(x.userData.velocity.y);
+            x.position.y += positionOffset;
+            x.userData.angularVelocity.x += (Math.random() - 0.5) * 0.5;
+            break;
+        }
+        if (point.y >= halfRoomSize) {
+            x.userData.velocity.y = -Math.abs(x.userData.velocity.y);
+            x.position.y -= positionOffset;
+            x.userData.angularVelocity.x += (Math.random() - 0.5) * 0.5;
+            break;
+        }
     }
 
-    if (x.position.z > halfRoomSize - positionOffset) {
-        x.position.z = halfRoomSize - positionOffset;
-        x.userData.velocity.z *= -1;
-    } else if (x.position.z < -halfRoomSize + positionOffset) {
-        x.position.z = -halfRoomSize + positionOffset;
-        x.userData.velocity.z *= -1;
+    for (const point of xPoints) {
+        // Z walls
+        if (point.z <= -halfRoomSize) {
+            x.userData.velocity.z = Math.abs(x.userData.velocity.z);
+            x.position.z += positionOffset;
+            x.userData.angularVelocity.y += (Math.random() - 0.5) * 0.5;
+            break;
+        }
+        if (point.z >= halfRoomSize) {
+            x.userData.velocity.z = -Math.abs(x.userData.velocity.z);
+            x.position.z -= positionOffset;
+            x.userData.angularVelocity.y += (Math.random() - 0.5) * 0.5;
+            break;
+        }
     }
   });
 
+  // Exact X-shape collision detection
   for (let i = 0; i < bouncingXs.length; i++) {
     for (let j = i + 1; j < bouncingXs.length; j++) {
         const x1 = bouncingXs[i];
         const x2 = bouncingXs[j];
 
+        // Check if X shapes are close enough to potentially collide
         const distance = x1.position.distanceTo(x2.position);
+        if (distance < 3) {
+            let collision = false;
 
-        if (distance < 2) { 
-            const tempVelocity = x1.userData.velocity.clone();
-            x1.userData.velocity.copy(x2.userData.velocity);
-            x2.userData.velocity.copy(tempVelocity);
+            // Function to check if a point is inside a rotated box (X bar)
+            function pointInXBar(point, xObject, barIndex) {
+                const localPoint = point.clone();
+                const inverseMatrix = new THREE.Matrix4().copy(xObject.matrixWorld).invert();
+                localPoint.applyMatrix4(inverseMatrix);
+                
+                // Bar dimensions
+                const barLength = 2;
+                const barWidth = 0.3;
+                
+                // Check if point is within the bar bounds considering rotation
+                if (barIndex === 0) { // First diagonal bar (45 degrees)
+                    const rotatedPoint = localPoint.clone();
+                    rotatedPoint.applyAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI / 4);
+                    return Math.abs(rotatedPoint.x) <= barWidth/2 && 
+                           Math.abs(rotatedPoint.y) <= barLength/2 && 
+                           Math.abs(rotatedPoint.z) <= barWidth/2;
+                } else { // Second diagonal bar (-45 degrees)
+                    const rotatedPoint = localPoint.clone();
+                    rotatedPoint.applyAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 4);
+                    return Math.abs(rotatedPoint.x) <= barWidth/2 && 
+                           Math.abs(rotatedPoint.y) <= barLength/2 && 
+                           Math.abs(rotatedPoint.z) <= barWidth/2;
+                }
+            }
 
-            const tempAngular = x1.userData.angularVelocity.clone();
-            x1.userData.angularVelocity.copy(x2.userData.angularVelocity);
-            x2.userData.angularVelocity.copy(tempAngular);
+            // Generate points along X1's bars and check if they intersect with X2's bars
+            const testResolution = 10;
+            for (let bar = 0; bar < 2; bar++) {
+                for (let t = 0; t <= testResolution; t++) {
+                    const progress = t / testResolution;
+                    let localPoint;
+                    
+                    if (bar === 0) { // First diagonal
+                        localPoint = new THREE.Vector3(
+                            (progress - 0.5) * 2,
+                            (progress - 0.5) * 2,
+                            0
+                        );
+                    } else { // Second diagonal
+                        localPoint = new THREE.Vector3(
+                            (progress - 0.5) * 2,
+                            (0.5 - progress) * 2,
+                            0
+                        );
+                    }
+                    
+                    const worldPoint = localPoint.applyMatrix4(x1.matrixWorld);
+                    
+                    // Check if this point intersects with either bar of X2
+                    if (pointInXBar(worldPoint, x2, 0) || pointInXBar(worldPoint, x2, 1)) {
+                        collision = true;
+                        break;
+                    }
+                }
+                if (collision) break;
+            }
+
+            if (collision) {
+                // Nudge apart to avoid sticking
+                const direction = new THREE.Vector3().subVectors(x1.position, x2.position).normalize();
+                x1.position.add(direction.clone().multiplyScalar(0.15));
+                x2.position.add(direction.clone().multiplyScalar(-0.15));
+
+                // Realistic elastic collision
+                const tempVelocity = x1.userData.velocity.clone();
+                x1.userData.velocity.copy(x2.userData.velocity);
+                x2.userData.velocity.copy(tempVelocity);
+
+                // Add some randomness to angular velocity for more dynamic bouncing
+                const tempAngular = x1.userData.angularVelocity.clone();
+                x1.userData.angularVelocity.copy(x2.userData.angularVelocity);
+                x2.userData.angularVelocity.copy(tempAngular);
+            }
         }
     }
   }
