@@ -661,7 +661,7 @@ const getInitialMessageWithTTS = async () => {
     const initialPrompt = [
       { 
         role: 'user', 
-        content: 'This is the user\'s first message in a new chat session. Start your response with "Welcome back!" and then determine their next training step. Use the getNextQuestion tool to find what they should work on, but always begin your response with "Welcome back!" regardless of their progress level.' 
+        content: 'This is the user\'s first message in a new chat session. Start your response with a personalized welcome using their name and then determine their next training step. Use the getNextQuestion tool to find what they should work on, and make sure to address them personally throughout the conversation.' 
       }
     ];
     

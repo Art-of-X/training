@@ -20,6 +20,13 @@ export default defineEventHandler(async (event) => {
             throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
         }
 
+        // Get user profile for personalization
+        const userProfile = await prisma.userProfile.findUnique({
+            where: { id: user.id },
+            select: { name: true }
+        });
+        const userName = userProfile?.name || 'Artist';
+
         let { messages }: { messages: CoreMessage[] } = await readBody(event);
 
         // Save the user's message
@@ -47,6 +54,10 @@ export default defineEventHandler(async (event) => {
             They will have to share their personality and the way they think, currently by sharing their creative portfolio in forms of links, files and describing them extensively. 
             Then, they will answer specific questions ("monolouges") that you are aware of. Right now it's 100 questions that need to be answered extensively.
             Your goal is to proactively guide the user (likely an artist, composer, director or other creative) through the training steps one question at a time and record their answers.
+
+            **User Information:**
+            The user you're speaking with is named: ${userName}
+            Always address them by their name when appropriate to create a personal connection.
 
             **Core Directives:**
             1.  **Focus on the Current Question**: If you've asked a question, your primary goal is to get a meaningful response. If the user gives a short or vague answer, gently guide them back and try to get more information. Always accept though if users don't want to share more and be aware they are artists so their answers don't always have to make sense to you.

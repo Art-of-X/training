@@ -163,6 +163,13 @@ export const createGetMonologueProgressTool = (userId: string) => tool({
 });
 
 async function getNextQuestion(userId: string) {
+    // Get user profile for personalization
+    const userProfile = await prisma.userProfile.findUnique({
+        where: { id: userId },
+        select: { name: true }
+    });
+    const userName = userProfile?.name || 'Artist';
+    
     const progress = await getOverallProgress(userId);
     const portfolioThreshold = 3; // We want at least 3 items to start with.
 
@@ -173,14 +180,14 @@ async function getNextQuestion(userId: string) {
             return {
                 type: 'greeting_and_portfolio_request',
                 module: 'Introduction',
-                text: `This is the user's first interaction. Start with "Welcome back!" and then generate a warm, encouraging welcome message. Briefly introduce yourself as their AI partner for this creativity training. Explain that the first step is to get to know them and their work. Then, ask them to introduce themselves and share some examples of their work by providing links (e.g., to their website, social media, or specific pieces) or by uploading files.`,
+                text: `This is the user's first interaction. Start with "Welcome back, ${userName}!" and then generate a warm, encouraging welcome message. Briefly introduce yourself as their AI partner for this creativity training. Explain that the first step is to get to know them and their work. Then, ask them to introduce themselves and share some examples of their work by providing links (e.g., to their website, social media, or specific pieces) or by uploading files.`,
             };
         } else {
             // User has started but not met the threshold yet.
             return {
                 type: 'task',
                 module: 'Portfolio', 
-                text: `The user has added ${progress.portfolio.completed} portfolio item(s) but needs to reach ${portfolioThreshold} to move forward. Guide them to add more items. Be encouraging and contextual - avoid generic phrases like "thanks for sharing." Ask them to share another piece of their work by providing a link or uploading a file.`
+                text: `The user ${userName} has added ${progress.portfolio.completed} portfolio item(s) but needs to reach ${portfolioThreshold} to move forward. Guide them to add more items. Be encouraging and contextual - avoid generic phrases like "thanks for sharing." Address them by name when appropriate and ask them to share another piece of their work by providing a link or uploading a file.`
             };
         }
     }
@@ -192,8 +199,8 @@ async function getNextQuestion(userId: string) {
         
         const isFirstMonologueQuestion = progress.monologue.completed === 0;
         const introText = isFirstMonologueQuestion
-            ? `That's a fantastic start for your portfolio. Now, let's switch gears to some short reflective questions. They're designed to help you think about your creative process. Here's the first one: "${q.text}"`
-            : `Great, let's move on to the next reflection. Here's what I'd like you to think about now: "${q.text}"`;
+            ? `That's a fantastic start for your portfolio, ${userName}. Now, let's switch gears to some short reflective questions. They're designed to help you think about your creative process. Here's the first one: "${q.text}"`
+            : `Great, ${userName}, let's move on to the next reflection. Here's what I'd like you to think about now: "${q.text}"`;
 
         return {
             type: 'question',
@@ -209,7 +216,7 @@ async function getNextQuestion(userId: string) {
     return {
         type: 'done',
         module: 'All Complete',
-        text: "Congratulations! You've completed all the monologue questions for now. This is a huge accomplishment. You can always come back to add more items to your portfolio or review your reflections."
+        text: `Congratulations, ${userName}! You've completed all the monologue questions for now. This is a huge accomplishment. You can always come back to add more items to your portfolio or review your reflections.`
     };
 }
 
