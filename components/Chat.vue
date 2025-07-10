@@ -313,11 +313,25 @@ const handleProactiveFileUpload = async (event: Event) => {
         
         // Use the returned temporary URL to start the conversation
         const message = `I have just uploaded a file. You can find it at this URL: ${response.url}. Please ask me for any context you need to categorize it.`;
-        await handleMessage(message);
+        
+        // Handle the message but don't let any errors in message handling affect upload state
+        try {
+            await handleMessage(message);
+        } catch (messageError) {
+            console.error('Error handling message after upload:', messageError);
+            // Still show the message even if there's an error
+            messages.value.push({
+                role: 'user',
+                content: message
+            });
+            scrollToBottom();
+        }
 
     } catch (e: any) {
-        uploadError.value = e.data?.message || 'The file could not be uploaded. Please try again.';
+        console.error('Upload error:', e);
+        uploadError.value = e.data?.message || e.message || 'The file could not be uploaded. Please try again.';
     } finally {
+        // Ensure the upload indicator is always cleared
         isUploadingFile.value = false;
         // Reset file input so the user can upload the same file again
         if (target) target.value = '';
@@ -529,7 +543,7 @@ const getInitialMessageWithTTS = async () => {
     const initialPrompt = [
       { 
         role: 'user', 
-        content: 'Welcome the user back. Your main goal is to guide them through their training. Determine the next single most important question they should answer from any module. Ask them this question directly and concisely. Do not start with a progress summary. Just ask the question.' 
+        content: 'This is the user\'s first message in a new chat session. Start your response with "Welcome back!" and then determine their next training step. Use the getNextQuestion tool to find what they should work on, but always begin your response with "Welcome back!" regardless of their progress level.' 
       }
     ];
     

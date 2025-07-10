@@ -173,14 +173,14 @@ async function getNextQuestion(userId: string) {
             return {
                 type: 'greeting_and_portfolio_request',
                 module: 'Introduction',
-                text: `This is the user's first interaction. Please generate a warm, encouraging welcome message. Briefly introduce yourself as their AI partner for this creativity training. Explain that the first step is to get to know them and their work. Then, ask them to introduce themselves and share some examples of their work by providing links (e.g., to their website, social media, or specific pieces) or by uploading files.`,
+                text: `This is the user's first interaction. Start with "Welcome back!" and then generate a warm, encouraging welcome message. Briefly introduce yourself as their AI partner for this creativity training. Explain that the first step is to get to know them and their work. Then, ask them to introduce themselves and share some examples of their work by providing links (e.g., to their website, social media, or specific pieces) or by uploading files.`,
             };
         } else {
             // User has started but not met the threshold yet.
             return {
                 type: 'task',
-                module: 'Portfolio',
-                text: `Thanks for sharing! Let's continue building out your portfolio. You've added ${progress.portfolio.completed} item(s) so far. To get a good overview, we're aiming for about ${portfolioThreshold} initial items. Please share another link or upload another file.`
+                module: 'Portfolio', 
+                text: `The user has added ${progress.portfolio.completed} portfolio item(s) but needs to reach ${portfolioThreshold} to move forward. Guide them to add more items. Be encouraging and contextual - avoid generic phrases like "thanks for sharing." Ask them to share another piece of their work by providing a link or uploading a file.`
             };
         }
     }
