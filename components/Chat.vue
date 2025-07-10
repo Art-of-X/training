@@ -49,12 +49,15 @@
         style="scroll-behavior: smooth;"
       >
         <div v-for="(message, index) in messages" :key="index" 
-             :class="['mb-4', message.role === 'user' ? 'text-right' : 'text-left']">
+             :class="['mb-4', message.role === 'user' || message.role === 'recording' ? 'text-right' : 'text-left']">
           <div :class="['inline-block py-2 px-3 rounded-lg max-w-[80%]', 
                         message.role === 'user' 
                           ? 'bg-secondary-500 text-white' 
+                          : message.role === 'recording'
+                          ? 'bg-secondary-500 text-white'
                           : 'bg-primary-500 text-white']">
-             <p v-if="message.content" class="whitespace-pre-wrap">{{ message.content }}</p>
+             <div v-if="message.role === 'recording'" class="whitespace-pre-wrap">{{ message.content }}</div>
+             <p v-else-if="message.content" class="whitespace-pre-wrap">{{ message.content }}</p>
              <!-- This is the "thinking" indicator -->
              <div v-else class="typing-indicator">
               <span></span>
@@ -102,6 +105,7 @@
           <button
             type="button"
             @click="triggerFileUpload"
+            @focus="initializeChat"
             :disabled="isLoading || isUploadingFile"
             class="p-2 rounded-full text-secondary-500 hover:bg-secondary-100 dark:hover:bg-secondary-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Upload a file"
@@ -114,11 +118,12 @@
           <button
             type="button"
             @click="isRecording ? stopRecording() : startRecording()"
+            @focus="initializeChat"
             :disabled="isLoading || isUploadingFile"
             :class="[
               'p-2 rounded-full focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
               isRecording 
-                ? 'bg-primary-500 text-white' 
+                ? 'bg-red-500 text-white animate-pulse' 
                 : 'text-secondary-500 hover:bg-secondary-100 dark:hover:bg-secondary-700'
             ]"
             aria-label="Toggle voice recording"
@@ -135,6 +140,7 @@
           <button
             type="button"
             @click="toggleTTS"
+            @focus="initializeChat"
             :disabled="isLoading || isUploadingFile"
             :class="[
               'p-2 rounded-full focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
@@ -152,6 +158,7 @@
           <input 
             v-model="inputValue"
             @keyup.enter="handleSubmitWithScroll"
+            @focus="initializeChat"
             type="text"
             placeholder="Type your message..."
             class="flex-1 w-full px-2 py-2 bg-transparent focus:outline-none dark:text-white"
@@ -173,7 +180,7 @@
 
 <script setup lang="ts">
 import { useChat } from '~/composables/useChat';
-import { onMounted, ref, watch, nextTick } from 'vue';
+import { onMounted, onUnmounted, ref, watch, nextTick } from 'vue';
 
 // Props
 interface Props {
@@ -201,6 +208,9 @@ const {
 // Our own TTS state (separate from composable)
 const isTTSEnabled = ref(false);
 
+// State to track if initial message has been sent
+const hasInitialized = ref(false);
+
 // Our own TTS toggle function
 const toggleTTS = () => {
   isTTSEnabled.value = !isTTSEnabled.value;
@@ -225,6 +235,10 @@ const uploadError = ref<string | null>(null);
 const mediaRecorder = ref<MediaRecorder | null>(null);
 const audioChunks = ref<Blob[]>([]);
 
+// Recording timer state
+const recordingTime = ref(0);
+const recordingTimer = ref<NodeJS.Timeout | null>(null);
+
 const startRecording = async () => {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -248,6 +262,15 @@ const startRecording = async () => {
     
     mediaRecorder.value.start();
     isRecording.value = true;
+    
+    // Start recording timer and add recording message
+    recordingTime.value = 0;
+    addRecordingMessage();
+    recordingTimer.value = setInterval(() => {
+      recordingTime.value++;
+      updateRecordingMessage();
+    }, 1000);
+    
   } catch (e) {
     error.value = e;
     console.error('Error starting recording:', e);
@@ -258,6 +281,91 @@ const stopRecording = () => {
   if (mediaRecorder.value && isRecording.value) {
     mediaRecorder.value.stop();
     isRecording.value = false;
+    
+    // Clean up recording timer and update message to processing
+    if (recordingTimer.value) {
+      clearInterval(recordingTimer.value);
+      recordingTimer.value = null;
+    }
+    updateRecordingToProcessing();
+  }
+};
+
+// Helper functions for recording message display
+const formatTime = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+const addRecordingMessage = () => {
+  messages.value.push({
+    role: 'recording',
+    content: `Recording... ${formatTime(recordingTime.value)}\nPress ⏹ to stop`
+  });
+  scrollToBottom();
+};
+
+const updateRecordingMessage = () => {
+  const lastMessage = messages.value[messages.value.length - 1];
+  if (lastMessage && lastMessage.role === 'recording') {
+    // Keep the instruction text but update the time
+    lastMessage.content = `Recording... ${formatTime(recordingTime.value)}\nPress ⏹ to stop`;
+  }
+};
+
+const removeRecordingMessage = () => {
+  const lastMessage = messages.value[messages.value.length - 1];
+  if (lastMessage && lastMessage.role === 'recording') {
+    messages.value.pop();
+  }
+};
+
+const updateRecordingToProcessing = () => {
+  const lastMessage = messages.value[messages.value.length - 1];
+  if (lastMessage && lastMessage.role === 'recording') {
+    lastMessage.content = 'Processing...';
+  }
+};
+
+const updateRecordingToTranscription = (transcription: string) => {
+  const lastMessage = messages.value[messages.value.length - 1];
+  if (lastMessage && lastMessage.role === 'recording') {
+    lastMessage.content = transcription;
+    lastMessage.role = 'user'; // Convert to user message
+  }
+};
+
+// Process AI response using current messages (for voice input after transcription is already added)
+const processAIResponse = async () => {
+  // Wait for any previous audio to finish before starting new message
+  while (isPlayingAudio.value) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
+  try {
+    isLoading.value = true;
+    
+    // Call the API directly to get the response using current messages
+    const response = await $fetch('/api/chat/message', {
+      method: 'POST',
+      body: { messages: messages.value }
+    });
+    
+    if (response.content) {
+      // Process the response with TTS and typing animation
+      await processResponseWithTTS(response.content);
+    }
+  } catch (e) {
+    console.error('Error processing AI response:', e);
+    error.value = e;
+    // Add error message
+    messages.value.push({
+      role: 'assistant',
+      content: 'Sorry, I ran into an error.'
+    });
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -280,11 +388,21 @@ const processVoiceInput = async (audioBlob: Blob) => {
     const { text } = await response.json();
     
     if (text && text.trim()) {
-      await handleMessage(text.trim());
+      // Update the recording message with transcription
+      updateRecordingToTranscription(text.trim());
+      scrollToBottom();
+      
+      // Process the message with AI without adding another user message
+      await processAIResponse();
+    } else {
+      // Remove the message if no transcription
+      removeRecordingMessage();
     }
   } catch (e) {
     error.value = e;
     console.error('Error processing voice input:', e);
+    // Remove the message on error
+    removeRecordingMessage();
   } finally {
     isLoading.value = false;
   }
@@ -580,15 +698,68 @@ watch(composableTTSEnabled, (newVal) => {
   }
 });
 
-onMounted(() => {
+// Function to initialize chat when it becomes visible
+const initializeChat = () => {
+  if (!hasInitialized.value) {
+    hasInitialized.value = true;
+    getInitialMessageWithTTS();
+    scrollToBottom();
+  }
+};
+
+// Observer to detect when chat becomes visible
+const chatObserver = ref<IntersectionObserver | null>(null);
+
+onMounted(async () => {
   // Completely disable composable's TTS to prevent double audio
   composableTTSEnabled.value = false;
   
   // Enable our own TTS by default
   isTTSEnabled.value = true;
   
-  getInitialMessageWithTTS();
-  scrollToBottom();
+  // Wait for DOM to be ready
+  await nextTick();
+  
+  if (!props.embedded) {
+    // For non-embedded chat (standalone page), initialize immediately
+    initializeChat();
+    return;
+  }
+  
+  // For embedded chat, set up intersection observer
+  const setupObserver = () => {
+    if (chatContainer.value) {
+      chatObserver.value = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && entry.intersectionRatio > 0) {
+              initializeChat();
+            }
+          });
+        },
+        { threshold: 0.1 } // Trigger when 10% of the component is visible
+      );
+      
+      chatObserver.value.observe(chatContainer.value);
+    } else {
+      // Fallback: retry after a short delay
+      setTimeout(setupObserver, 100);
+    }
+  };
+  
+  setupObserver();
+});
+
+// Clean up observer and timer on unmount
+onUnmounted(() => {
+  if (chatObserver.value) {
+    chatObserver.value.disconnect();
+  }
+  
+  if (recordingTimer.value) {
+    clearInterval(recordingTimer.value);
+    recordingTimer.value = null;
+  }
 });
 </script>
 
