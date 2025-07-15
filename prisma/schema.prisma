@@ -27,8 +27,23 @@ model UserProfile {
   datSubmissions           DATSubmission[]
   demographicsAnswers      DemographicsAnswer[]
   chatMessages             ChatMessage[]
+  preferences              UserPreferences?
 
   @@map("user_profiles") // Map to the public.user_profiles table
+}
+
+// User Preferences
+model UserPreferences {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @map("user_id") @db.Uuid
+  ttsEnabled Boolean @default(true) @map("tts_enabled")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
 }
 
 // Portfolio Module
@@ -47,7 +62,7 @@ model PortfolioItem {
 }
 
 // Monologue Module
-// Questions are now stored in public/data/monologue-questions.json
+// Questions can be from JSON files or custom questions from the AI agent
 model MonologueRecording {
   id                     String   @id @default(uuid()) @db.Uuid
   userId                 String   @map("user_id") @db.Uuid
@@ -59,12 +74,12 @@ model MonologueRecording {
   supplementaryLink      String?  @map("supplementary_link")
   supplementaryDescription String? @map("supplementary_description")
   createdAt              DateTime @default(now()) @map("created_at")
-  questionId             Int      @map("question_id") // References JSON file questions
+  questionId             Int?     @map("question_id") // Optional - References JSON file questions
+  isCustomQuestion       Boolean  @default(false) @map("is_custom_question") // True if AI generated the question
 
   // Relations
   user            UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, questionId])
   @@map("monologue_recordings")
 }
 

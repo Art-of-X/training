@@ -213,6 +213,8 @@ const hasInitialized = ref(false);
 
 // Our own TTS toggle function
 const toggleTTS = () => {
+  // Mark user as having interacted
+  hasUserInteracted.value = true;
   isTTSEnabled.value = !isTTSEnabled.value;
   
   // Stop current audio if disabling TTS
@@ -225,6 +227,7 @@ const inputValue = ref('');
 const chatContainer = ref<HTMLElement | null>(null);
 const currentAudio = ref<HTMLAudioElement | null>(null);
 const isPlayingAudio = ref(false);
+const hasUserInteracted = ref(false); // Track user interaction for audio autoplay
 
 // File upload state
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -241,6 +244,9 @@ const recordingTimer = ref<NodeJS.Timeout | null>(null);
 
 const startRecording = async () => {
   try {
+    // Mark user as having interacted
+    hasUserInteracted.value = true;
+    
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     
     mediaRecorder.value = new MediaRecorder(stream);
@@ -463,7 +469,10 @@ const cleanupAudio = () => {
     if (currentAudio.value) {
         currentAudio.value.pause();
         currentAudio.value.currentTime = 0;
-        URL.revokeObjectURL(currentAudio.value.src);
+        // Only revoke if it's a blob URL
+        if (currentAudio.value.src && currentAudio.value.src.startsWith('blob:')) {
+            URL.revokeObjectURL(currentAudio.value.src);
+        }
         currentAudio.value = null;
     }
     isPlayingAudio.value = false;
@@ -484,13 +493,24 @@ const playAudio = async (audioBlob: Blob): Promise<void> => {
         });
 
         currentAudio.value.addEventListener('error', (e) => {
-            console.error('Audio playback error:', e);
+            // Only log meaningful errors, not blob URL errors or expected autoplay errors
+            if (e.target?.error?.code !== 4) {
+                console.error('Audio playback error:', e);
+            }
             cleanupAudio();
             reject(e);
         });
 
-        currentAudio.value.play().catch(error => {
-            console.error('Failed to play audio:', error);
+        currentAudio.value.play().then(() => {
+            // Audio started successfully
+        }).catch(error => {
+            // Don't log autoplay errors - they're expected until user interaction
+            const isAutoplayError = error.name === 'NotAllowedError';
+            
+            if (!isAutoplayError) {
+                console.error('Failed to play audio:', error);
+            }
+            
             cleanupAudio();
             reject(error);
         });
@@ -498,7 +518,7 @@ const playAudio = async (audioBlob: Blob): Promise<void> => {
 };
 
 // Process text with TTS and typing animation sentence by sentence with proper synchronization
-const processResponseWithTTS = async (text: string) => {
+const processResponseWithTTS = async (text: string, isFirstMessage: boolean = false) => {
     // Split into sentences and clean up whitespace
     const rawSentences = text.match(/[^.!?]+[.!?]+/g) || [text];
     
@@ -512,26 +532,31 @@ const processResponseWithTTS = async (text: string) => {
         return;
     }
 
-    for (const sentence of sentences) {
+    // Create ONE message bubble for the entire response
+    messages.value.push({
+        role: 'assistant',
+        content: ''
+    });
+    
+    await nextTick();
+    scrollToBottom();
+    
+    const currentMessage = messages.value[messages.value.length - 1];
+    let displayedText = '';
+
+    for (let i = 0; i < sentences.length; i++) {
+        const sentence = sentences[i];
+        
         try {
             // Wait for any previous audio to finish
             while (isPlayingAudio.value) {
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
             
-            // Create a new message bubble for this sentence
-            messages.value.push({
-                role: 'assistant',
-                content: ''
-            });
-            
-            await nextTick();
-            scrollToBottom();
-            
             let audioPromise = null;
             
-            // Start TTS audio if enabled
-            if (isTTSEnabled.value) {
+            // Start TTS audio if enabled and (user has interacted OR this is first message)
+            if (isTTSEnabled.value && (hasUserInteracted.value || isFirstMessage)) {
                 try {
                     const audioResponse = await fetch('/api/voice/tts', {
                         method: 'POST',
@@ -546,20 +571,29 @@ const processResponseWithTTS = async (text: string) => {
                     });
 
                     if (audioResponse.ok) {
-                        const audioBlob = await audioResponse.blob();
+                        // The TTS endpoint returns a Uint8Array, so we need to convert it to a blob
+                        const audioBuffer = await audioResponse.arrayBuffer();
+                        const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
                         // Start playing audio (don't wait for it to finish)
                         audioPromise = playAudio(audioBlob);
                     }
                 } catch (ttsError) {
-                    console.error('TTS Error:', ttsError);
+                    // Don't log autoplay errors for first message - they're expected
+                    const isAutoplayError = ttsError.name === 'NotAllowedError';
+                    
+                    if (!isFirstMessage || !isAutoplayError) {
+                        console.error('TTS Error:', ttsError);
+                    }
                     // Continue with typing even if TTS fails
                 }
             }
             
-            // Start typing animation simultaneously with audio
-            const currentMessage = messages.value[messages.value.length - 1];
-            let displayedText = '';
-
+            // Add sentence to displayed text with proper spacing
+            if (i > 0) {
+                displayedText += ' ';
+            }
+            
+            // Typing animation for this sentence
             for (const char of sentence) {
                 displayedText += char;
                 currentMessage.content = displayedText;
@@ -574,12 +608,58 @@ const processResponseWithTTS = async (text: string) => {
             
         } catch (error) {
             console.error('Error processing sentence:', error);
-            // Fallback: just display the text in a new message
-            messages.value.push({
-                role: 'assistant',
-                content: sentence
-            });
+            // Fallback: just add the sentence to the current message
+            if (i > 0) {
+                displayedText += ' ';
+            }
+            displayedText += sentence;
+            currentMessage.content = displayedText;
             scrollToBottom();
+        }
+    }
+};
+
+// Simple response processing without sentence-by-sentence complexity
+const processResponseSimple = async (text: string, isFirstMessage: boolean = false) => {
+    // Create ONE message bubble for the entire response
+    messages.value.push({
+        role: 'assistant',
+        content: text // Display the full response immediately
+    });
+    
+    await nextTick();
+    scrollToBottom();
+    
+    // Only handle TTS if enabled and (user has interacted OR this is first message)
+    if (isTTSEnabled.value && (hasUserInteracted.value || isFirstMessage)) {
+        try {
+            const audioResponse = await fetch('/api/voice/tts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    text: text,
+                    speed: 1.2,
+                    voice: 'shimmer'
+                })
+            });
+
+            if (audioResponse.ok) {
+                // The TTS endpoint returns a Uint8Array, so we need to convert it to a blob
+                const audioBuffer = await audioResponse.arrayBuffer();
+                const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
+                await playAudio(audioBlob);
+            } else {
+                console.error('TTS request failed:', audioResponse.status, audioResponse.statusText);
+            }
+        } catch (ttsError) {
+            // Don't log autoplay errors for first message - they're expected
+            const isAutoplayError = ttsError.name === 'NotAllowedError';
+            
+            if (!isFirstMessage || !isAutoplayError) {
+                console.error('TTS Error:', ttsError);
+            }
         }
     }
 };
@@ -597,6 +677,9 @@ const scrollToBottom = () => {
 const handleSubmitWithScroll = async (e: Event) => {
   e.preventDefault();
   if (!inputValue.value.trim()) return;
+  
+  // Mark user as having interacted
+  hasUserInteracted.value = true;
   
   const userMessage = inputValue.value;
   inputValue.value = '';
@@ -631,7 +714,7 @@ const handleMessage = async (message: string) => {
     
     if (response.content) {
       // Process the response with TTS and typing animation
-      await processResponseWithTTS(response.content);
+      await processResponseSimple(response.content, false);
     }
   } catch (e) {
     console.error('Error processing message:', e);
@@ -655,26 +738,26 @@ const getInitialMessageWithTTS = async () => {
   
   messages.value = []; // Reset messages for a new chat
   
-  try {
-    isLoading.value = true;
-    
-    const initialPrompt = [
-      { 
-        role: 'user', 
-        content: 'This is the user\'s first message in a new chat session. Start your response with a personalized welcome using their name and then determine their next training step. Use the getNextQuestion tool to find what they should work on, and make sure to address them personally throughout the conversation.' 
-      }
-    ];
-    
-    // Call the API directly to get the initial response
-    const response = await $fetch('/api/chat/message', {
-      method: 'POST',
-      body: { messages: initialPrompt }
-    });
-    
-    if (response.content) {
-      // Process the response with TTS and typing animation
-      await processResponseWithTTS(response.content);
-    }
+      try {
+        isLoading.value = true;
+        
+        const initialPrompt = [
+            { 
+                role: 'user', 
+                content: 'This is the user\'s first message in a new chat session. CRITICAL: You MUST first call getPreviousQuestionsAsked tool to check what questions you have already asked this user and what they have already answered. DO NOT ask any questions they have already answered. After checking their previous responses, start your response with a personalized welcome using their name and determine their next training step using getNextQuestion tool. Reference their previous conversations and build on what they have already shared. Never repeat questions - always check first! IMPORTANT: Use plain text only - no markdown formatting like **bold** or *italics*. MANDATORY WORKFLOW: When user responds to any question, save it IMMEDIATELY using saveMonologueTextResponse before asking next question.' 
+            }
+        ];
+        
+        // Call the API directly to get the initial response
+        const response = await $fetch('/api/chat/message', {
+            method: 'POST',
+            body: { messages: initialPrompt }
+        });
+        
+        if (response.content) {
+            // Process the response with TTS and typing animation
+            await processResponseSimple(response.content, true); // Mark as first message
+        }
   } catch (e) {
     console.error('Error getting initial message:', e);
     error.value = e;
@@ -714,7 +797,7 @@ onMounted(async () => {
   // Completely disable composable's TTS to prevent double audio
   composableTTSEnabled.value = false;
   
-  // Enable our own TTS by default
+  // Enable our own TTS by default, but don't auto-play until user interaction
   isTTSEnabled.value = true;
   
   // Wait for DOM to be ready
@@ -760,6 +843,9 @@ onUnmounted(() => {
     clearInterval(recordingTimer.value);
     recordingTimer.value = null;
   }
+  
+  // Clean up any remaining audio and blob URLs
+  cleanupAudio();
 });
 </script>
 

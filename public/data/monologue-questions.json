@@ -499,6 +499,106 @@
       "id": 100,
       "category": "Art",
       "text": "Do you believe there is a god/goddess? How do you get in touch with them?"
+    },
+    {
+      "id": 101,
+      "category": "Creative Philosophy",
+      "text": "Why do you make art? What drives you to create?"
+    },
+    {
+      "id": 102,
+      "category": "Creative Philosophy", 
+      "text": "What distinguishes an artist from other people?"
+    },
+    {
+      "id": 103,
+      "category": "Creative Philosophy",
+      "text": "Do you consider yourself creative? What does creativity mean to you?"
+    },
+    {
+      "id": 104,
+      "category": "Creative Philosophy",
+      "text": "Can art change the world? How does your art aim to change something?"
+    },
+    {
+      "id": 105,
+      "category": "Creative Philosophy",
+      "text": "Does art need to have a purpose, or is it valuable for its own sake?"
+    },
+    {
+      "id": 106,
+      "category": "Creative Philosophy",
+      "text": "Is it important for you to make money from your art? How does financial pressure affect your creativity?"
+    },
+    {
+      "id": 107,
+      "category": "Creative Philosophy",
+      "text": "What role does failure play in your creative process?"
+    },
+    {
+      "id": 108,
+      "category": "Creative Philosophy",
+      "text": "Do you think art should be accessible to everyone, or is there value in exclusivity?"
+    },
+    {
+      "id": 109,
+      "category": "Creative Philosophy",
+      "text": "How do you balance personal expression with what others might want or expect from your art?"
+    },
+    {
+      "id": 110,
+      "category": "Creative Philosophy",
+      "text": "What is the relationship between art and truth? Does art reveal truth or create it?"
+    },
+    {
+      "id": 111,
+      "category": "Creative Process",
+      "text": "Describe your creative process from the moment an idea emerges to the finished work."
+    },
+    {
+      "id": 112,
+      "category": "Creative Process",
+      "text": "How do you deal with creative blocks or periods of low inspiration?"
+    },
+    {
+      "id": 113,
+      "category": "Creative Process",
+      "text": "What role does intuition play in your creative decisions?"
+    },
+    {
+      "id": 114,
+      "category": "Creative Process",
+      "text": "How important is solitude versus collaboration in your creative work?"
+    },
+    {
+      "id": 115,
+      "category": "Creative Process",
+      "text": "What rituals or habits do you have that support your creativity?"
+    },
+    {
+      "id": 116,
+      "category": "Creative Impact",
+      "text": "Who is your ideal audience? How do you imagine your work affecting them?"
+    },
+    {
+      "id": 117,
+      "category": "Creative Impact",
+      "text": "What do you hope people will remember about your art after you're gone?"
+    },
+    {
+      "id": 118,
+      "category": "Creative Impact",
+      "text": "How do you measure the success of your artistic work?"
+    },
+    {
+      "id": 119,
+      "category": "Creative Impact",
+      "text": "What responsibility, if any, do you feel as an artist toward society?"
+    },
+    {
+      "id": 120,
+      "category": "Creative Impact",
+      "text": "How has your art evolved since you started, and where do you see it going?"
     }
   ]
 } 

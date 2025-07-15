@@ -174,7 +174,7 @@ definePageMeta({
 const { userProfile } = useUserProfile();
 
 // Tab state
-const activeTab = ref<'static' | 'chat'>('static');
+const activeTab = ref<'static' | 'chat'>('chat');
 
 interface Progress {
   completed: number;
