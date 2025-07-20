@@ -1,11 +1,26 @@
-#!/usr/bin/env node
-
+/* eslint-disable no-console */
 /**
- * Verification script for Artistic AI Training Platform
- * Checks if environment variables are properly configured
+ * This script verifies that the project is set up correctly for development.
+ * It checks for:
+ * 1. The presence of a .env file.
+ * 2. Correct installation of node_modules.
+ * 3. Successful generation of the Prisma client.
+ * 4. Running Supabase Docker containers.
  */
 
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+const chalk = require('chalk');
+
+const log = console.log;
+const error = (message) => log(chalk.red.bold(`❌ ERROR: ${message}`));
+const success = (message) => log(chalk.green.bold(`✅ ${message}`));
+const info = (message) => log(chalk.blue.bold(`ℹ️ ${message}`));
+const warn = (message) => log(chalk.yellow.bold(`⚠️ ${message}`));
+
+let hasErrors = false;
 
 console.log('🔍 Verifying Artistic AI Platform Setup\n');
 

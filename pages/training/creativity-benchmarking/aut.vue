@@ -8,81 +8,79 @@
       </p>
     </div>
 
-    <!-- Main Test Card -->
-    <div class="card dark:bg-secondary-800 dark:border-secondary-700">
-      <div class="card-body">
-        <!-- Loading State -->
-        <div v-if="pending" class="text-center text-secondary-500 dark:text-secondary-400">
-          <div class="loading-spinner mx-auto"></div>
-          <p class="mt-2">Loading a creative challenge...</p>
+    <!-- Main Test Content -->
+    <div class="mb-8">
+      <!-- Loading State -->
+      <div v-if="pending" class="text-center text-secondary-500 dark:text-secondary-400">
+        <div class="loading-spinner mx-auto"></div>
+        <p class="mt-2">Loading a creative challenge...</p>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="text-center text-error-500">
+        <p>Could not load a question. Please try again later.</p>
+        <button @click="() => refresh()" class="btn-secondary mt-4">Try Again</button>
+      </div>
+      
+      <!-- Success State -->
+      <div v-else-if="submissionSuccess" class="text-center">
+          <div class="text-success-600 dark:text-success-400 flex flex-col items-center">
+              <svg class="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <h2 class="text-2xl font-semibold mb-2">Submission Successful!</h2>
+              <p class="text-secondary-600 dark:text-secondary-300 mb-6">Your ideas have been saved. Ready for another challenge?</p>
+          </div>
+          <button @click="getNextQuestion" class="btn-primary">Next Question</button>
+      </div>
+
+      <!-- Test Interface -->
+      <div v-else-if="question" class="space-y-6">
+        <div class="text-center">
+          <p class="text-sm text-secondary-600 dark:text-secondary-400">Your object is:</p>
+          <h2 class="text-4xl font-bold text-primary-600 dark:text-primary-400 capitalize">{{ question.object }}</h2>
         </div>
 
-        <!-- Error State -->
-        <div v-else-if="error" class="text-center text-error-500">
-          <p>Could not load a question. Please try again later.</p>
-          <button @click="() => refresh()" class="btn-secondary mt-4">Try Again</button>
-        </div>
-        
-        <!-- Success State -->
-        <div v-else-if="submissionSuccess" class="text-center">
-            <div class="text-success-600 dark:text-success-400 flex flex-col items-center">
-                <svg class="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <h2 class="text-2xl font-semibold mb-2">Submission Successful!</h2>
-                <p class="text-secondary-600 dark:text-secondary-300 mb-6">Your ideas have been saved. Ready for another challenge?</p>
-            </div>
-            <button @click="getNextQuestion" class="btn-primary">Next Question</button>
-        </div>
+        <!-- Input Form -->
+        <form @submit.prevent="addUse" class="flex gap-4">
+          <input
+            v-model="newUse"
+            type="text"
+            class="form-input flex-grow"
+            placeholder="Enter a creative use..."
+            required
+          />
+          <button type="submit" class="btn-secondary">Add Use</button>
+        </form>
 
-        <!-- Test Interface -->
-        <div v-else-if="question" class="space-y-6">
-          <div class="text-center">
-            <p class="text-sm text-secondary-600 dark:text-secondary-400">Your object is:</p>
-            <h2 class="text-4xl font-bold text-primary-600 dark:text-primary-400 capitalize">{{ question.object }}</h2>
-          </div>
-
-          <!-- Input Form -->
-          <form @submit.prevent="addUse" class="flex gap-4">
-            <input
-              v-model="newUse"
-              type="text"
-              class="form-input flex-grow"
-              placeholder="Enter a creative use..."
-              required
-            />
-            <button type="submit" class="btn-secondary">Add Use</button>
-          </form>
-
-          <!-- Uses List -->
-          <div v-if="uses.length > 0" class="space-y-3">
-             <transition-group name="list" tag="ul" class="space-y-3">
-              <li
-                v-for="(use, index) in uses"
-                :key="use" 
-                class="flex items-center justify-between p-3 rounded-lg bg-secondary-100 dark:bg-secondary-700/50"
-              >
-                <span class="text-secondary-800 dark:text-secondary-200">{{ use }}</span>
-                <button @click="removeUse(index)" class="text-secondary-400 hover:text-error-500 dark:hover:text-error-400 transition-colors">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-              </li>
-            </transition-group>
-          </div>
-          <div v-else class="text-center text-secondary-500 py-4">
-            Start by adding your first idea above.
-          </div>
-
-          <!-- Submission -->
-          <div class="pt-4 border-t border-secondary-200 dark:border-secondary-700 text-right">
-            <button
-              @click="submitAnswer"
-              :disabled="isSubmitting || uses.length === 0"
-              class="btn-primary"
+        <!-- Uses List -->
+        <div v-if="uses.length > 0" class="space-y-3">
+           <transition-group name="list" tag="ul" class="space-y-3">
+            <li
+              v-for="(use, index) in uses"
+              :key="use" 
+              class="flex items-center justify-between p-3 rounded-lg bg-secondary-100 dark:bg-secondary-700/50"
             >
-              <span v-if="isSubmitting" class="loading-spinner-sm mr-2"></span>
-              {{ isSubmitting ? 'Submitting...' : 'Submit All Uses' }}
-            </button>
-            <p v-if="submissionError" class="text-error-500 text-sm mt-2">{{ submissionError }}</p>
-          </div>
+              <span class="text-secondary-800 dark:text-secondary-200">{{ use }}</span>
+              <button @click="removeUse(index)" class="text-secondary-400 hover:text-error-500 dark:hover:text-error-400 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </li>
+          </transition-group>
+        </div>
+        <div v-else class="text-center text-secondary-500 py-4">
+          Start by adding your first idea above.
+        </div>
+
+        <!-- Submission -->
+        <div class="pt-4 border-t border-secondary-200 dark:border-secondary-700 text-right">
+          <button
+            @click="submitAnswer"
+            :disabled="isSubmitting || uses.length === 0"
+            class="btn-primary"
+          >
+            <span v-if="isSubmitting" class="loading-spinner-sm mr-2"></span>
+            {{ isSubmitting ? 'Submitting...' : 'Submit All Uses' }}
+          </button>
+          <p v-if="submissionError" class="text-error-500 text-sm mt-2">{{ submissionError }}</p>
         </div>
       </div>
     </div>

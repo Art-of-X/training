@@ -41,6 +41,9 @@
     
     <!-- Embedded Chat (playground style) -->
     <div v-else class="flex flex-col h-full max-w-4xl mx-auto w-full">
+      <div class="flex justify-end mb-2">
+        <button @click="showHistoryModal = true" class="btn-secondary text-sm px-3 py-1">View History</button>
+      </div>
       
       <!-- Chat messages -->
       <div 
@@ -175,12 +178,49 @@
          <p v-if="uploadError" class="text-xs text-red-500 mt-1 pl-2">{{ uploadError }}</p>
       </div>
     </div>
+
+    <!-- History Modal -->
+    <div v-if="showHistoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white dark:bg-secondary-800 rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[80vh] flex flex-col">
+        <div class="flex justify-between items-center border-b pb-3 mb-4">
+          <h3 class="text-xl font-semibold text-secondary-900 dark:text-white">Chat History</h3>
+          <button @click="showHistoryModal = false" class="text-secondary-500 hover:text-secondary-700 dark:hover:text-secondary-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        
+        <div v-if="loadingHistory" class="text-center py-8 text-secondary-600 dark:text-secondary-400">Loading history...</div>
+        <div v-else-if="historyError" class="text-center py-8 text-red-500">Error loading history: {{ historyError.message }}</div>
+        <div v-else-if="groupedHistory.length === 0" class="text-center py-8 text-secondary-600 dark:text-secondary-400">No chat history found.</div>
+        
+        <div v-else class="flex-grow overflow-y-auto space-y-4 pr-2">
+          <div v-for="(session, date) in groupedHistory" :key="date" class="border rounded-lg p-3 bg-secondary-50 dark:bg-secondary-700/50">
+            <h4 class="font-semibold text-secondary-800 dark:text-secondary-200 mb-2">{{ date }}</h4>
+            <ul class="space-y-2">
+              <li v-for="entry in session" :key="entry.id" class="flex justify-between items-center p-2 rounded-md hover:bg-secondary-100 dark:hover:bg-secondary-700 cursor-pointer" @click="loadSession(entry.messages, entry.id)">
+                <div class="flex-1 overflow-hidden">
+                  <p class="text-sm text-secondary-900 dark:text-white truncate font-medium">
+                    {{ entry.title }}
+                  </p>
+                  <p class="text-xs text-secondary-500 dark:text-secondary-400 mt-1">{{ entry.time }} ({{ entry.messageCount }} messages)</p>
+                </div>
+                <button @click.stop="loadSession(entry.messages, entry.id)" class="ml-4 btn-primary px-3 py-1 text-sm">Load</button>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="flex justify-end pt-4 border-t mt-4">
+          <button @click="showHistoryModal = false" class="btn-secondary">Close</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useChat } from '~/composables/useChat';
-import { onMounted, onUnmounted, ref, watch, nextTick } from 'vue';
+import { onMounted, onUnmounted, ref, watch, nextTick, computed } from 'vue';
 
 // Props
 interface Props {
@@ -202,32 +242,43 @@ const {
   isTTSEnabled: composableTTSEnabled,
   startRecording: originalStartRecording,
   stopRecording: originalStopRecording,
-  toggleTTS: toggleComposableTTS
+  toggleTTS: toggleComposableTTS,
+  loadSession: loadComposableSession, // Add loadSession to the composable
+  getInitialMessage: getComposableInitialMessage // Add getInitialMessage to the composable
 } = useChat();
 
-// Our own TTS state (separate from composable)
-const isTTSEnabled = ref(false);
+// TTS state - use composable's TTS instead of custom implementation
+// const isTTSEnabled = ref(true);
+// const isPlayingTTS = ref(false);  
+// const currentAudio = ref<HTMLAudioElement | null>(null);
+
+// Use composable's TTS system
+const isTTSEnabled = composableTTSEnabled;
+const isPlayingTTS = ref(false); // Keep for compatibility
 
 // State to track if initial message has been sent
 const hasInitialized = ref(false);
 
-// Our own TTS toggle function
+// Disable composable's TTS to prevent conflicts
+watch(composableTTSEnabled, (newVal) => {
+  console.log('Chat: Composable TTS enabled changed to:', newVal);
+  // Don't disable - let it work naturally
+}, { immediate: true });
+
+// Clean up audio - using composable's TTS now
+const cleanupAudio = () => {
+  // No-op since we're using composable's TTS
+  console.log('Chat: cleanupAudio called - using composable TTS');
+};
+
+// Our own TTS toggle function - now just toggles the composable's TTS
 const toggleTTS = () => {
-  // Mark user as having interacted
-  hasUserInteracted.value = true;
-  isTTSEnabled.value = !isTTSEnabled.value;
-  
-  // Stop current audio if disabling TTS
-  if (!isTTSEnabled.value) {
-    cleanupAudio();
-  }
+  console.log('Chat: Toggling composable TTS');
+  toggleComposableTTS();
 };
 
 const inputValue = ref('');
 const chatContainer = ref<HTMLElement | null>(null);
-const currentAudio = ref<HTMLAudioElement | null>(null);
-const isPlayingAudio = ref(false);
-const hasUserInteracted = ref(false); // Track user interaction for audio autoplay
 
 // File upload state
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -242,10 +293,102 @@ const audioChunks = ref<Blob[]>([]);
 const recordingTime = ref(0);
 const recordingTimer = ref<NodeJS.Timeout | null>(null);
 
+// History Modal State
+interface ChatSession {
+  id: string;
+  title: string;
+  createdAt: string;
+  chatMessages: {
+    id: string;
+    role: string;
+    content: string;
+    createdAt: string;
+  }[];
+}
+
+const showHistoryModal = ref(false);
+const chatHistory = ref<ChatSession[]>([]);
+const loadingHistory = ref(false);
+const historyError = ref<Error | null>(null);
+
+// Group history by date and show session titles
+const groupedHistory = computed(() => {
+  const groups: { [key: string]: { id: string; title: string; time: string; messageCount: number; messages: { role: string; content: string }[] }[] } = {};
+  
+  chatHistory.value.forEach(session => {
+    const sessionDate = new Date(session.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const sessionTime = new Date(session.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    if (!groups[sessionDate]) {
+      groups[sessionDate] = [];
+    }
+    
+    groups[sessionDate].push({
+      id: session.id,
+      title: session.title || 'Untitled Chat', // Use session title
+      time: sessionTime,
+      messageCount: session.chatMessages.length,
+      messages: session.chatMessages.map(msg => ({ role: msg.role, content: msg.content }))
+    });
+  });
+  
+  // Sort dates descending
+  const sortedDates = Object.keys(groups).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  const sortedGroups: typeof groups = {};
+  sortedDates.forEach(date => {
+    sortedGroups[date] = groups[date].sort((a, b) => { // Sort sessions within a day by time (descending)
+      const timeA = new Date(`1/1/2000 ${a.time}`).getTime();
+      const timeB = new Date(`1/1/2000 ${b.time}`).getTime();
+      return timeB - timeA;
+    });
+  });
+
+  return sortedGroups;
+});
+
+const fetchChatHistory = async () => {
+  loadingHistory.value = true;
+  historyError.value = null;
+  try {
+    // Fetch all chat sessions with their messages
+    const data = await $fetch<ChatSession[]>('/api/chat/history');
+    chatHistory.value = data;
+  } catch (e: any) {
+    historyError.value = e;
+    console.error('Failed to fetch chat history:', e);
+  } finally {
+    loadingHistory.value = false;
+  }
+};
+
+const loadSession = async (sessionMessages: { role: string; content: string }[], sessionId: string) => {
+  // Stop any ongoing audio playback first
+  cleanupAudio();
+  // Clear current messages and load selected session using the composable's loadSession
+  loadComposableSession(sessionMessages, sessionId); // Call the composable's loadSession
+  hasInitialized.value = true; // Mark as initialized to prevent initial message on load
+  showHistoryModal.value = false; // Close modal
+  await nextTick();
+  scrollToBottom();
+};
+
+watch(showHistoryModal, (newVal) => {
+  if (newVal) {
+    fetchChatHistory();
+  }
+});
+
 const startRecording = async () => {
   try {
-    // Mark user as having interacted
-    hasUserInteracted.value = true;
+    // Check if user is authenticated
+    const user = useSupabaseUser();
+    if (!user.value) {
+      console.error('Cannot start recording: User not authenticated');
+      error.value = { message: 'Please log in to use voice features' };
+      return;
+    }
+
+    // User interaction is implicit when using voice
     
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     
@@ -307,7 +450,8 @@ const formatTime = (seconds: number): string => {
 const addRecordingMessage = () => {
   messages.value.push({
     role: 'recording',
-    content: `Recording... ${formatTime(recordingTime.value)}\nPress ⏹ to stop`
+    content: `Recording... ${formatTime(recordingTime.value)}
+Press ⏹ to stop`
   });
   scrollToBottom();
 };
@@ -316,7 +460,8 @@ const updateRecordingMessage = () => {
   const lastMessage = messages.value[messages.value.length - 1];
   if (lastMessage && lastMessage.role === 'recording') {
     // Keep the instruction text but update the time
-    lastMessage.content = `Recording... ${formatTime(recordingTime.value)}\nPress ⏹ to stop`;
+    lastMessage.content = `Recording... ${formatTime(recordingTime.value)}
+Press ⏹ to stop`;
   }
 };
 
@@ -345,7 +490,7 @@ const updateRecordingToTranscription = (transcription: string) => {
 // Process AI response using current messages (for voice input after transcription is already added)
 const processAIResponse = async () => {
   // Wait for any previous audio to finish before starting new message
-  while (isPlayingAudio.value) {
+  while (isPlayingTTS.value) {
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   
@@ -360,7 +505,7 @@ const processAIResponse = async () => {
     
     if (response.content) {
       // Process the response with TTS and typing animation
-      await processResponseWithTTS(response.content);
+      await processResponseSimple(response.content);
     }
   } catch (e) {
     console.error('Error processing AI response:', e);
@@ -425,6 +570,15 @@ const handleProactiveFileUpload = async (event: Event) => {
 
     isUploadingFile.value = true;
     uploadError.value = null;
+    
+    // Safety timeout to reset upload state if it gets stuck
+    const uploadTimeout = setTimeout(() => {
+        if (isUploadingFile.value) {
+            console.warn('Upload timeout - resetting upload state');
+            isUploadingFile.value = false;
+            uploadError.value = 'Upload timed out. Please try again.';
+        }
+    }, 120000); // 2 minute safety timeout
 
     const formData = new FormData();
     formData.append('file', file);
@@ -433,20 +587,56 @@ const handleProactiveFileUpload = async (event: Event) => {
         const response = await $fetch<{ url: string }>('/api/upload/temp', {
             method: 'POST',
             body: formData,
+            timeout: 30000, // 30 second timeout
         });
         
-        // Use the returned temporary URL to start the conversation
-        const message = `I have just uploaded a file. You can find it at this URL: ${response.url}. Please ask me for any context you need to categorize it.`;
+        // Add a user message showing the file was uploaded
+        messages.value.push({
+            role: 'user',
+            content: `📎 Uploaded: ${file.name}`
+        });
+        scrollToBottom();
         
-        // Handle the message but don't let any errors in message handling affect upload state
+        // Process the file in the background
         try {
-            await handleMessage(message);
+            console.log('Processing uploaded file:', response.url);
+            // Call the AI to process the file
+            const aiResponse = await $fetch('/api/chat/message', {
+                method: 'POST',
+                body: { 
+                    messages: [
+                        {
+                            role: 'user',
+                            content: `Please use the documentProcessing tool to analyze this uploaded file: ${response.url}`
+                        }
+                    ]
+                },
+                timeout: 60000, // 60 second timeout for AI processing
+            });
+            
+            console.log('AI response received:', aiResponse);
+            
+            // Add the AI response to the chat
+            if (aiResponse && aiResponse.content) {
+                messages.value.push({
+                    role: 'assistant',
+                    content: aiResponse.content
+                });
+                scrollToBottom();
+            } else {
+                // Fallback if no response content
+                messages.value.push({
+                    role: 'assistant',
+                    content: `I've received your file "${file.name}". What would you like to know about it?`
+                });
+                scrollToBottom();
+            }
         } catch (messageError) {
-            console.error('Error handling message after upload:', messageError);
-            // Still show the message even if there's an error
+            console.error('Error processing uploaded file:', messageError);
+            // Add a message to let user know processing failed
             messages.value.push({
-                role: 'user',
-                content: message
+                role: 'assistant',
+                content: `I received your file "${file.name}" but had trouble processing it. You can still ask me questions about it or describe what it contains.`
             });
             scrollToBottom();
         }
@@ -455,6 +645,8 @@ const handleProactiveFileUpload = async (event: Event) => {
         console.error('Upload error:', e);
         uploadError.value = e.data?.message || e.message || 'The file could not be uploaded. Please try again.';
     } finally {
+        // Clear the safety timeout
+        clearTimeout(uploadTimeout);
         // Ensure the upload indicator is always cleared
         isUploadingFile.value = false;
         // Reset file input so the user can upload the same file again
@@ -464,162 +656,7 @@ const handleProactiveFileUpload = async (event: Event) => {
 
 
 
-// Clean up audio
-const cleanupAudio = () => {
-    if (currentAudio.value) {
-        currentAudio.value.pause();
-        currentAudio.value.currentTime = 0;
-        // Only revoke if it's a blob URL
-        if (currentAudio.value.src && currentAudio.value.src.startsWith('blob:')) {
-            URL.revokeObjectURL(currentAudio.value.src);
-        }
-        currentAudio.value = null;
-    }
-    isPlayingAudio.value = false;
-};
-
-// Play audio blob and return a promise that resolves when audio finishes
-const playAudio = async (audioBlob: Blob): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        cleanupAudio();
-        
-        const audioUrl = URL.createObjectURL(audioBlob);
-        currentAudio.value = new Audio(audioUrl);
-        isPlayingAudio.value = true;
-        
-        currentAudio.value.addEventListener('ended', () => {
-            cleanupAudio();
-            resolve();
-        });
-
-        currentAudio.value.addEventListener('error', (e) => {
-            // Only log meaningful errors, not blob URL errors or expected autoplay errors
-            if (e.target?.error?.code !== 4) {
-                console.error('Audio playback error:', e);
-            }
-            cleanupAudio();
-            reject(e);
-        });
-
-        currentAudio.value.play().then(() => {
-            // Audio started successfully
-        }).catch(error => {
-            // Don't log autoplay errors - they're expected until user interaction
-            const isAutoplayError = error.name === 'NotAllowedError';
-            
-            if (!isAutoplayError) {
-                console.error('Failed to play audio:', error);
-            }
-            
-            cleanupAudio();
-            reject(error);
-        });
-    });
-};
-
-// Process text with TTS and typing animation sentence by sentence with proper synchronization
-const processResponseWithTTS = async (text: string, isFirstMessage: boolean = false) => {
-    // Split into sentences and clean up whitespace
-    const rawSentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-    
-    // Filter out empty sentences after trimming
-    const sentences = rawSentences
-        .map(sentence => sentence.trim())
-        .filter(sentence => sentence.length > 0);
-    
-    // If no valid sentences, return early
-    if (sentences.length === 0) {
-        return;
-    }
-
-    // Create ONE message bubble for the entire response
-    messages.value.push({
-        role: 'assistant',
-        content: ''
-    });
-    
-    await nextTick();
-    scrollToBottom();
-    
-    const currentMessage = messages.value[messages.value.length - 1];
-    let displayedText = '';
-
-    for (let i = 0; i < sentences.length; i++) {
-        const sentence = sentences[i];
-        
-        try {
-            // Wait for any previous audio to finish
-            while (isPlayingAudio.value) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-            
-            let audioPromise = null;
-            
-            // Start TTS audio if enabled and (user has interacted OR this is first message)
-            if (isTTSEnabled.value && (hasUserInteracted.value || isFirstMessage)) {
-                try {
-                    const audioResponse = await fetch('/api/voice/tts', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ 
-                            text: sentence,
-                            speed: 1.2,
-                            voice: 'shimmer'
-                        })
-                    });
-
-                    if (audioResponse.ok) {
-                        // The TTS endpoint returns a Uint8Array, so we need to convert it to a blob
-                        const audioBuffer = await audioResponse.arrayBuffer();
-                        const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
-                        // Start playing audio (don't wait for it to finish)
-                        audioPromise = playAudio(audioBlob);
-                    }
-                } catch (ttsError) {
-                    // Don't log autoplay errors for first message - they're expected
-                    const isAutoplayError = ttsError.name === 'NotAllowedError';
-                    
-                    if (!isFirstMessage || !isAutoplayError) {
-                        console.error('TTS Error:', ttsError);
-                    }
-                    // Continue with typing even if TTS fails
-                }
-            }
-            
-            // Add sentence to displayed text with proper spacing
-            if (i > 0) {
-                displayedText += ' ';
-            }
-            
-            // Typing animation for this sentence
-            for (const char of sentence) {
-                displayedText += char;
-                currentMessage.content = displayedText;
-                scrollToBottom();
-                await new Promise(resolve => setTimeout(resolve, 20));
-            }
-            
-            // Wait for audio to finish before moving to next sentence
-            if (audioPromise) {
-                await audioPromise;
-            }
-            
-        } catch (error) {
-            console.error('Error processing sentence:', error);
-            // Fallback: just add the sentence to the current message
-            if (i > 0) {
-                displayedText += ' ';
-            }
-            displayedText += sentence;
-            currentMessage.content = displayedText;
-            scrollToBottom();
-        }
-    }
-};
-
-// Simple response processing without sentence-by-sentence complexity
+// Simple response processing with unified TTS
 const processResponseSimple = async (text: string, isFirstMessage: boolean = false) => {
     // Create ONE message bubble for the entire response
     messages.value.push({
@@ -630,38 +667,8 @@ const processResponseSimple = async (text: string, isFirstMessage: boolean = fal
     await nextTick();
     scrollToBottom();
     
-    // Only handle TTS if enabled and (user has interacted OR this is first message)
-    if (isTTSEnabled.value && (hasUserInteracted.value || isFirstMessage)) {
-        try {
-            const audioResponse = await fetch('/api/voice/tts', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ 
-                    text: text,
-                    speed: 1.2,
-                    voice: 'shimmer'
-                })
-            });
-
-            if (audioResponse.ok) {
-                // The TTS endpoint returns a Uint8Array, so we need to convert it to a blob
-                const audioBuffer = await audioResponse.arrayBuffer();
-                const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
-                await playAudio(audioBlob);
-            } else {
-                console.error('TTS request failed:', audioResponse.status, audioResponse.statusText);
-            }
-        } catch (ttsError) {
-            // Don't log autoplay errors for first message - they're expected
-            const isAutoplayError = ttsError.name === 'NotAllowedError';
-            
-            if (!isFirstMessage || !isAutoplayError) {
-                console.error('TTS Error:', ttsError);
-            }
-        }
-    }
+    // The composable's TTS will handle audio playback automatically if enabled
+    console.log('Chat: Message displayed, composable TTS will handle audio if enabled');
 };
 
 // Auto-scroll to bottom function
@@ -678,114 +685,41 @@ const handleSubmitWithScroll = async (e: Event) => {
   e.preventDefault();
   if (!inputValue.value.trim()) return;
   
-  // Mark user as having interacted
-  hasUserInteracted.value = true;
+  // User interaction is implicit when submitting text
   
   const userMessage = inputValue.value;
   inputValue.value = '';
   
-  // Use the composable's handleSubmit which properly handles voice input
-  await handleMessage(userMessage);
+  // Use the composable's handleSubmit which properly handles voice input and session ID
+  originalHandleSubmit(userMessage);
 };
 
-// Handle message processing (used by both text and voice input)
-const handleMessage = async (message: string) => {
-  // Wait for any previous audio to finish before starting new message
-  while (isPlayingAudio.value) {
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-  
-  // Add user message directly to our messages array
-  messages.value.push({
-    role: 'user',
-    content: message
-  });
-  
-  scrollToBottom();
-  
-  try {
-    isLoading.value = true;
-    
-    // Call the API directly to get the response
-    const response = await $fetch('/api/chat/message', {
-      method: 'POST',
-      body: { messages: messages.value }
-    });
-    
-    if (response.content) {
-      // Process the response with TTS and typing animation
-      await processResponseSimple(response.content, false);
-    }
-  } catch (e) {
-    console.error('Error processing message:', e);
-    error.value = e;
-    // Add error message
-    messages.value.push({
-      role: 'assistant',
-      content: 'Sorry, I ran into an error.'
-    });
-  } finally {
-    isLoading.value = false;
-  }
-};
+// Removed handleMessage function as its logic is now handled by useChat's handleSubmit
 
 // Custom getInitialMessage function that uses our new approach
 const getInitialMessageWithTTS = async () => {
   // Wait for any previous audio to finish before starting
-  while (isPlayingAudio.value) {
+  while (isPlayingTTS.value) {
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   
-  messages.value = []; // Reset messages for a new chat
+  // Reset messages for a new chat and let useChat composable handle the initial prompt
+  messages.value = []; 
+  // Call the getInitialMessage from useChat composable
+  await getComposableInitialMessage();
   
-      try {
-        isLoading.value = true;
-        
-        const initialPrompt = [
-            { 
-                role: 'user', 
-                content: 'This is the user\'s first message in a new chat session. CRITICAL: You MUST first call getPreviousQuestionsAsked tool to check what questions you have already asked this user and what they have already answered. DO NOT ask any questions they have already answered. After checking their previous responses, start your response with a personalized welcome using their name and determine their next training step using getNextQuestion tool. Reference their previous conversations and build on what they have already shared. Never repeat questions - always check first! IMPORTANT: Use plain text only - no markdown formatting like **bold** or *italics*. MANDATORY WORKFLOW: When user responds to any question, save it IMMEDIATELY using saveMonologueTextResponse before asking next question.' 
-            }
-        ];
-        
-        // Call the API directly to get the initial response
-        const response = await $fetch('/api/chat/message', {
-            method: 'POST',
-            body: { messages: initialPrompt }
-        });
-        
-        if (response.content) {
-            // Process the response with TTS and typing animation
-            await processResponseSimple(response.content, true); // Mark as first message
-        }
-  } catch (e) {
-    console.error('Error getting initial message:', e);
-    error.value = e;
-    // Add fallback message
-    messages.value.push({
-      role: 'assistant',
-      content: 'Welcome back! How can I help you with your training today?'
-    });
-  } finally {
-    isLoading.value = false;
-  }
+  scrollToBottom();
 };
 
 // Watch for changes that should trigger scrolling
 watch(messages, () => scrollToBottom(), { deep: true });
 
-// Ensure composable TTS stays disabled
-watch(composableTTSEnabled, (newVal) => {
-  if (newVal) {
-    composableTTSEnabled.value = false;
-  }
-});
-
 // Function to initialize chat when it becomes visible
 const initializeChat = () => {
-  if (!hasInitialized.value) {
+  // Only initialize if not already initialized and no messages are present (fresh start)
+  if (!hasInitialized.value && messages.value.length === 0) {
     hasInitialized.value = true;
-    getInitialMessageWithTTS();
+    getComposableInitialMessage(); // Call the composable's initial message function
     scrollToBottom();
   }
 };
@@ -794,11 +728,9 @@ const initializeChat = () => {
 const chatObserver = ref<IntersectionObserver | null>(null);
 
 onMounted(async () => {
-  // Completely disable composable's TTS to prevent double audio
+  // Disable composable's TTS by default for Chat
   composableTTSEnabled.value = false;
-  
-  // Enable our own TTS by default, but don't auto-play until user interaction
-  isTTSEnabled.value = true;
+  console.log('Chat: Composable TTS disabled by default');
   
   // Wait for DOM to be ready
   await nextTick();

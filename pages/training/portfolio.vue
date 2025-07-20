@@ -9,79 +9,67 @@
     </div>
 
     <!-- Existing Items -->
-    <div v-if="portfolioItems && portfolioItems.length > 0" class="card dark:bg-secondary-800 dark:border-secondary-700 mb-8">
-      <div class="card-header dark:border-secondary-700">
-        <h2 class="text-xl font-semibold text-secondary-900 dark:text-white">Your Portfolio</h2>
-      </div>
-      <div class="card-body">
-        <ul class="space-y-3">
-          <li v-for="item in portfolioItems" :key="item.id" class="flex items-center justify-between p-3 bg-secondary-100 dark:bg-secondary-700/50 rounded-md">
-            <div>
-              <p class="font-medium text-secondary-800 dark:text-secondary-200">{{ item.description }}</p>
-              <a v-if="item.link" :href="item.link" target="_blank" class="text-sm text-primary-600 dark:text-primary-400 hover:underline break-all">{{ item.link }}</a>
-              <p v-if="item.filePath" class="text-sm text-secondary-600 dark:text-secondary-400">{{ getFileName(item.filePath) }}</p>
-            </div>
-            <button
-              @click="deleteItem(item)"
-              :disabled="deletingItemId === item.id"
-              class="p-2 text-error-600 hover:text-error-700 hover:bg-error-50 dark:hover:bg-error-900/50 rounded-full transition-colors"
-              aria-label="Delete item"
-            >
-              <span v-if="deletingItemId === item.id" class="loading-spinner-small"></span>
-              <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-              </svg>
-            </button>
-          </li>
-        </ul>
-      </div>
+    <div v-if="portfolioItems && portfolioItems.length > 0" class="mb-8">
+      <h2 class="text-xl font-semibold text-secondary-900 dark:text-white mb-4">Your Portfolio</h2>
+      <ul class="space-y-3">
+        <li v-for="item in portfolioItems" :key="item.id" class="flex items-center justify-between p-3 bg-secondary-100 dark:bg-secondary-700/50 rounded-md">
+          <div>
+            <p class="font-medium text-secondary-800 dark:text-secondary-200">{{ item.description }}</p>
+            <a v-if="item.link" :href="item.link" target="_blank" class="text-sm text-primary-600 dark:text-primary-400 hover:underline break-all">{{ item.link }}</a>
+            <p v-if="item.filePath" class="text-sm text-secondary-600 dark:text-secondary-400">{{ getFileName(item.filePath) }}</p>
+          </div>
+          <button
+            @click="deleteItem(item)"
+            :disabled="deletingItemId === item.id"
+            class="p-2 text-error-600 hover:text-error-700 hover:bg-error-50 dark:hover:bg-error-900/50 rounded-full transition-colors"
+            aria-label="Delete item"
+          >
+            <span v-if="deletingItemId === item.id" class="loading-spinner-small"></span>
+            <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+          </button>
+        </li>
+      </ul>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Add Link section -->
-      <div class="card dark:bg-secondary-800 dark:border-secondary-700">
-        <div class="card-header dark:border-secondary-700">
-          <h2 class="text-xl font-semibold text-secondary-900 dark:text-white">Add Portfolio Link</h2>
-        </div>
-        <div class="card-body">
-          <form @submit.prevent="handleAddLink" class="space-y-4">
-            <div>
-              <label for="link-url" class="form-label">Link URL</label>
-              <input v-model="newLink.url" id="link-url" type="url" required class="form-input w-full mt-1" placeholder="https://example.com">
-            </div>
-            <div>
-              <label for="link-description" class="form-label">Description</label>
-              <input v-model="newLink.description" id="link-description" type="text" required class="form-input w-full mt-1" placeholder="e.g., My personal portfolio website">
-            </div>
-            <button type="submit" :disabled="isAddingLink" class="btn-primary w-full">
-              <span v-if="isAddingLink" class="loading-spinner mr-2"></span>
-              {{ isAddingLink ? 'Adding...' : 'Add Link' }}
-            </button>
-          </form>
-        </div>
+      <div>
+        <h2 class="text-xl font-semibold text-secondary-900 dark:text-white mb-4">Add Portfolio Link</h2>
+        <form @submit.prevent="handleAddLink" class="space-y-4">
+          <div>
+            <label for="link-url" class="form-label">Link URL</label>
+            <input v-model="newLink.url" id="link-url" type="url" required class="form-input w-full mt-1" placeholder="https://example.com">
+          </div>
+          <div>
+            <label for="link-description" class="form-label">Description</label>
+            <input v-model="newLink.description" id="link-description" type="text" required class="form-input w-full mt-1" placeholder="e.g., My personal portfolio website">
+          </div>
+          <button type="submit" :disabled="isAddingLink" class="btn-primary w-full">
+            <span v-if="isAddingLink" class="loading-spinner mr-2"></span>
+            {{ isAddingLink ? 'Adding...' : 'Add Link' }}
+          </button>
+        </form>
       </div>
 
       <!-- PDF Upload section -->
-      <div class="card dark:bg-secondary-800 dark:border-secondary-700">
-        <div class="card-header dark:border-secondary-700">
-          <h2 class="text-xl font-semibold text-secondary-900 dark:text-white">Upload File</h2>
-        </div>
-        <div class="card-body">
-          <form @submit.prevent="handleFileUpload" class="space-y-4">
-             <div>
-              <label for="file-description" class="form-label">Description</label>
-              <input v-model="newFile.description" id="file-description" type="text" required class="form-input w-full mt-1" placeholder="e.g., My latest design case study">
-            </div>
-            <div>
-              <label for="file-upload" class="form-label">File (max 10MB)</label>
-              <input id="file-upload" type="file" @change="handleFileChange" required class="form-input mt-1">
-            </div>
-            <button type="submit" class="btn-primary w-full" :disabled="!newFile.file || !newFile.description || isUploadingFile">
-              <span v-if="isUploadingFile" class="loading-spinner mr-2"></span>
-              {{ isUploadingFile ? 'Uploading...' : 'Upload File' }}
-            </button>
-          </form>
-        </div>
+      <div>
+        <h2 class="text-xl font-semibold text-secondary-900 dark:text-white mb-4">Upload File</h2>
+        <form @submit.prevent="handleFileUpload" class="space-y-4">
+           <div>
+            <label for="file-description" class="form-label">Description</label>
+            <input v-model="newFile.description" id="file-description" type="text" required class="form-input w-full mt-1" placeholder="e.g., My latest design case study">
+          </div>
+          <div>
+            <label for="file-upload" class="form-label">File (max 10MB)</label>
+            <input id="file-upload" type="file" @change="handleFileChange" required class="form-input mt-1">
+          </div>
+          <button type="submit" class="btn-primary w-full" :disabled="!newFile.file || !newFile.description || isUploadingFile">
+            <span v-if="isUploadingFile" class="loading-spinner mr-2"></span>
+            {{ isUploadingFile ? 'Uploading...' : 'Upload File' }}
+          </button>
+        </form>
       </div>
     </div>
 

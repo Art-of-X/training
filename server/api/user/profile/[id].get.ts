@@ -11,6 +11,12 @@ export default defineEventHandler(async (event) => {
   try {
     let userProfile = await prisma.userProfile.findUnique({
       where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true
+      }
     })
 
     // If profile doesn't exist, try to create it

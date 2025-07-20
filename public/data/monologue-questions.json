@@ -3,542 +3,542 @@
     {
       "id": 1,
       "category": "Daily Life",
-      "text": "How do you define your gender and are you comfortable with it?"
+      "text": "Tell me about your relationship with gender and how it shapes your identity."
     },
     {
       "id": 2,
       "category": "Daily Life",
-      "text": "Do you make a daily to-do list?"
+      "text": "Describe your approach to organizing your day and what motivates you to structure your time."
     },
     {
       "id": 3,
       "category": "Daily Life",
-      "text": "How many hours of screen time do you have on average per day?"
+      "text": "Share your thoughts on technology and how it influences your daily rhythm and relationships."
     },
     {
       "id": 4,
       "category": "Daily Life",
-      "text": "How many hours of sleep do you typically get per day?"
+      "text": "Tell me about your relationship with sleep and what it means to you."
     },
     {
       "id": 5,
       "category": "Daily Life",
-      "text": "What do you do before going to sleep?"
+      "text": "Describe your evening rituals and what they reveal about your inner world."
     },
     {
       "id": 6,
       "category": "Daily Life",
-      "text": "How often do you feel rushed or short on time?"
+      "text": "How do you experience time? Tell me about moments when you feel rushed and when you feel spacious."
     },
     {
       "id": 7,
       "category": "Daily Life",
-      "text": "Do you take time for leisure activities each day?"
+      "text": "What brings you joy in your daily life? Describe your relationship with leisure and play."
     },
     {
       "id": 8,
       "category": "Daily Life",
-      "text": "How satisfied are you with your living situation?"
+      "text": "Tell me about your living space and how it reflects who you are."
     },
     {
       "id": 9,
       "category": "Daily Life",
-      "text": "Do you recycle regularly?"
+      "text": "Describe your relationship with the environment and how you think about your impact on the world."
     },
     {
       "id": 10,
       "category": "Daily Life",
-      "text": "What is your relationship with plants?"
+      "text": "Tell me about your connection to nature and what plants or natural elements mean to you."
     },
     {
       "id": 11,
       "category": "Daily Life",
-      "text": "How do you typically manage household repairs?"
+      "text": "How do you approach problems in your living space? What does this reveal about your character?"
     },
     {
       "id": 12,
       "category": "Daily Life",
-      "text": "What would you change in your neighbourhood that you feel safer?"
+      "text": "Describe your ideal community and what safety means to you beyond physical security."
     },
     {
       "id": 13,
       "category": "Daily Life",
-      "text": "Are you satisfied to be an artist? Why or why not?"
+      "text": "What does being an artist mean to you? Share your journey and relationship with this identity."
     },
     {
       "id": 14,
       "category": "Daily Life",
-      "text": "How do you manage your monthly budget?"
+      "text": "Tell me about your relationship with money and how it shapes your choices and values."
     },
     {
       "id": 15,
       "category": "Daily Life",
-      "text": "Do you save money regularly?"
+      "text": "Describe your philosophy about saving and what you're building toward in your life."
     },
     {
       "id": 16,
       "category": "Daily Life",
-      "text": "How often do you check your bank account?"
+      "text": "How do you think about financial awareness and what role does money play in your sense of security?"
     },
     {
       "id": 17,
       "category": "Daily Life",
-      "text": "If you socialize with friends and family, how and how often do you do it?"
+      "text": "Tell me about your relationships with friends and family, and what these connections mean to you."
     },
     {
       "id": 18,
       "category": "Daily Life",
-      "text": "Do you participate in any community activities?"
+      "text": "Describe your involvement in community and what draws you to or keeps you from participating."
     },
     {
       "id": 19,
       "category": "Daily Life",
-      "text": "What do you think about social media and how do you use it?"
+      "text": "Share your thoughts on social media and how it affects your relationships and sense of self."
     },
     {
       "id": 20,
       "category": "Daily Life",
-      "text": "How do you connect to your community?"
+      "text": "How do you define community and where do you feel most connected?"
     },
     {
       "id": 21,
       "category": "Daily Life",
-      "text": "Do you volunteer your time? If so, how and how often?"
+      "text": "Tell me about giving back and what motivates you to help others or contribute to causes."
     },
     {
       "id": 22,
       "category": "Daily Life",
-      "text": "Do you know your neighbors?"
+      "text": "Describe your relationship with your neighbors and what proximity means to you."
     },
     {
       "id": 23,
       "category": "Daily Life",
-      "text": "How often do you have meaningful conversations? Tell us your most recent one."
+      "text": "Share a recent meaningful conversation and what made it significant to you."
     },
     {
       "id": 24,
       "category": "Daily Life",
-      "text": "Do you feel supported by your social network? If so, how?"
+      "text": "Tell me about your support network and how you experience being held by others."
     },
     {
       "id": 25,
       "category": "Daily Life",
-      "text": "What are the advantages and disadvantages of online versus in-person social interactions?"
+      "text": "Compare your online and in-person interactions and what you've learned about human connection."
     },
     {
       "id": 26,
       "category": "Daily Life",
-      "text": "How often do you meet new people? How do you do it?"
+      "text": "Describe how you meet new people and what draws you to certain individuals."
     },
     {
       "id": 27,
       "category": "Daily Life",
-      "text": "How would you rate your overall health?"
+      "text": "How do you think about health and what does being healthy mean to you?"
     },
     {
       "id": 28,
       "category": "Daily Life",
-      "text": "How do you manage stress?"
+      "text": "Tell me about your relationship with stress and how you navigate challenging moments."
     },
     {
       "id": 29,
       "category": "Daily Life",
-      "text": "Do you take any drugs (alcohol, drugs, etc.)? Which ones? Why?"
+      "text": "Describe your relationship with substances and what role they play in your life."
     },
     {
       "id": 30,
       "category": "Daily Life",
-      "text": "How do you care about what you eat? Give us some examples?"
+      "text": "Tell me about your relationship with food and what eating means to you beyond nutrition."
     },
     {
       "id": 31,
       "category": "Daily Life",
-      "text": "Do you feel mentally and emotionally well?"
+      "text": "How do you experience emotional and mental wellbeing? Describe your inner landscape."
     },
     {
       "id": 32,
       "category": "Daily Life",
-      "text": "How often do you use the internet?"
+      "text": "Describe your relationship with the internet and how it shapes your worldview."
     },
     {
       "id": 33,
       "category": "Daily Life",
-      "text": "What devices do you use most frequently (smartphone, computer, etc.)?"
+      "text": "Tell me about your relationship with technology and how it serves or hinders your life."
     },
     {
       "id": 34,
       "category": "Daily Life",
-      "text": "How do you stay informed about current events?"
+      "text": "How do you stay informed and what sources do you trust? Describe your relationship with information."
     },
     {
       "id": 35,
       "category": "Daily Life",
-      "text": "Do you trust the information you find online?"
+      "text": "Tell me about your relationship with online information and how you evaluate what you read."
     },
     {
       "id": 36,
       "category": "Daily Life",
-      "text": "How often do you experience technical problems with devices?"
+      "text": "Describe your experiences with technology problems and how you approach troubleshooting."
     },
     {
       "id": 37,
       "category": "Daily Life",
-      "text": "How comfortable are you with new technology?"
+      "text": "How do you feel about new technology and what makes you embrace or resist change?"
     },
     {
       "id": 38,
       "category": "Daily Life",
-      "text": "Do you worry about online privacy and security?"
+      "text": "Tell me about your concerns regarding privacy and security in the digital age."
     },
     {
       "id": 39,
       "category": "Daily Life",
-      "text": "How do you learn new tech skills?"
+      "text": "Describe how you learn new skills and what motivates you to grow technologically."
     },
     {
       "id": 40,
       "category": "Daily Life",
-      "text": "Do you rely on technology for daily tasks?"
+      "text": "How dependent are you on technology and what would happen if it disappeared?"
     },
     {
       "id": 41,
       "category": "Art",
-      "text": "Which artists have fascinated you, and why?"
+      "text": "Which artists have deeply influenced you and what about their work resonates with your soul?"
     },
     {
       "id": 42,
       "category": "Art",
-      "text": "What art do you find absolutely terrible, and why?"
+      "text": "What art do you find challenging or difficult to appreciate and what does this reveal about your aesthetic values?"
     },
     {
       "id": 43,
       "category": "Art",
-      "text": "How would you experimentally determine the size of Europe?"
+      "text": "How would you approach measuring something as vast as Europe? Describe your creative problem-solving process."
     },
     {
       "id": 44,
       "category": "Art",
-      "text": "What are your favorite ice cream flavors?"
+      "text": "Tell me about your relationship with food and what flavors speak to your senses."
     },
     {
       "id": 45,
       "category": "Art",
-      "text": "What would you advise Putin right now? What should his strategy be?"
+      "text": "If you could give advice to any world leader, what would you say and why?"
     },
     {
       "id": 46,
       "category": "Art",
-      "text": "What are you most afraid of?"
+      "text": "What are your deepest fears and how do they shape your art and life?"
     },
     {
       "id": 47,
       "category": "Art",
-      "text": "What was your first artwork?"
+      "text": "Tell me about your first creative work and what it revealed about your artistic voice."
     },
     {
       "id": 48,
       "category": "Art",
-      "text": "What color is the sky?"
+      "text": "What color is the sky to you and how does it change with your mood?"
     },
     {
       "id": 49,
       "category": "Art",
-      "text": "How high is the sky?"
+      "text": "How do you think about infinity and what does the concept of endless space mean to you?"
     },
     {
       "id": 50,
       "category": "Art",
-      "text": "What do you daydream about?"
+      "text": "What do you daydream about and where do these fantasies take you?"
     },
     {
       "id": 51,
       "category": "Art",
-      "text": "What is your favorite animal and why?"
+      "text": "Tell me about your favorite animal and what qualities you share with it."
     },
     {
       "id": 52,
       "category": "Art",
-      "text": "Which color is important in your life?"
+      "text": "Which color holds special meaning in your life and how does it speak to you?"
     },
     {
       "id": 53,
       "category": "Art",
-      "text": "What distinguishes your art from that of the artist you feel closest to?"
+      "text": "What makes your art uniquely yours and how do you distinguish yourself from other artists?"
     },
     {
       "id": 54,
       "category": "Art",
-      "text": "What materials do you work with?"
+      "text": "Describe your relationship with materials and how they influence your creative process."
     },
     {
       "id": 55,
       "category": "Art",
-      "text": "How much money does it take to be happy?"
+      "text": "How much money do you think it takes to be happy and what does wealth mean to you?"
     },
     {
       "id": 56,
       "category": "Art",
-      "text": "Who is the most important person in the world to you?"
+      "text": "Who is the most important person in your world and what makes them irreplaceable?"
     },
     {
       "id": 57,
       "category": "Art",
-      "text": "What do you enjoy arguing about?"
+      "text": "What topics do you enjoy debating and what does this reveal about your values?"
     },
     {
       "id": 58,
       "category": "Art",
-      "text": "Which of your artworks would you never sell?"
+      "text": "Which of your artworks would you never sell and what makes them sacred to you?"
     },
     {
       "id": 59,
       "category": "Art",
-      "text": "What are the skilss that you posess to create art?"
+      "text": "What skills do you possess for creating art and how did you develop them?"
     },
     {
       "id": 60,
       "category": "Art",
-      "text": "How do you know that you've worked too much?"
+      "text": "How do you know when you've worked too much and what are the signs of creative exhaustion?"
     },
     {
       "id": 61,
       "category": "Art",
-      "text": "How do you know when an artwork is finished?"
+      "text": "How do you know when an artwork is finished and what does completion mean to you?"
     },
     {
       "id": 62,
       "category": "Art",
-      "text": "How do you recognize if an artwork (by you or others) is good?"
+      "text": "How do you recognize quality in art and what criteria do you use to evaluate work?"
     },
     {
       "id": 63,
       "category": "Art",
-      "text": "How do you express love to another person?"
+      "text": "How do you express love to another person and what does love mean to you?"
     },
     {
       "id": 64,
       "category": "Art",
-      "text": "Can children create art?"
+      "text": "Do you think children can create art and what does this reveal about creativity?"
     },
     {
       "id": 65,
       "category": "Art",
-      "text": "How can one recognize the artist's age from an artwork?"
+      "text": "How can you recognize an artist's age from their work and what does this tell us about artistic development?"
     },
     {
       "id": 66,
       "category": "Art",
-      "text": "What is your understanding of power?"
+      "text": "What is your understanding of power and how does it manifest in your life and art?"
     },
     {
       "id": 67,
       "category": "Art",
-      "text": "What does being rich mean to you?"
+      "text": "What does being rich mean to you beyond financial wealth?"
     },
     {
       "id": 68,
       "category": "Art",
-      "text": "What does being poor mean to you?"
+      "text": "What does being poor mean to you and how do you think about poverty?"
     },
     {
       "id": 69,
       "category": "Art",
-      "text": "What is your goal in life?"
+      "text": "What is your goal in life and what drives you forward?"
     },
     {
       "id": 70,
       "category": "Art",
-      "text": "To whom would you sell your soul, and if so, for how much?"
+      "text": "To whom would you sell your soul and what would be the price? What does this question reveal about your values?"
     },
     {
       "id": 71,
       "category": "Art",
-      "text": "How would you define \"soul\"?"
+      "text": "How would you define 'soul' and what does this concept mean to you?"
     },
     {
       "id": 72,
       "category": "Art",
-      "text": "How many identities do you have, and how would you describe them?"
+      "text": "How many identities do you have and how do you navigate between them?"
     },
     {
       "id": 73,
       "category": "Art",
-      "text": "How long does it take for you to finish an artwork?"
+      "text": "How long does it take you to finish an artwork and what factors influence this timeline?"
     },
     {
       "id": 74,
       "category": "Art",
-      "text": "Which books have influenced your thinking and how?"
+      "text": "Which books have influenced your thinking and how have they shaped your worldview?"
     },
     {
       "id": 75,
       "category": "Art",
-      "text": "What is in your will (or if you don't have one, what should be in it)?"
+      "text": "What would you include in your will and what does this reveal about what you value?"
     },
     {
       "id": 76,
       "category": "Art",
-      "text": "What is art for you?"
+      "text": "What is art for you and how do you define it?"
     },
     {
       "id": 77,
       "category": "Art",
-      "text": "What would you like to receive as a gift?"
+      "text": "What would you like to receive as a gift and what does this reveal about your desires?"
     },
     {
       "id": 78,
       "category": "Art",
-      "text": "What do you think about when you brush your teeth?"
+      "text": "What do you think about when you brush your teeth and what does this mundane moment reveal?"
     },
     {
       "id": 79,
       "category": "Art",
-      "text": "What plants do you have or would you plant in your garden?"
+      "text": "What plants do you have or would you plant in your garden and what do they mean to you?"
     },
     {
       "id": 80,
       "category": "Art",
-      "text": "Is there a legitimate reason for you to kill another person?"
+      "text": "Is there ever a legitimate reason to kill another person and how do you think about violence?"
     },
     {
       "id": 81,
       "category": "Art",
-      "text": "What would be the harshest punishment that could be imposed on you?"
+      "text": "What would be the harshest punishment that could be imposed on you and what does this reveal about your fears?"
     },
     {
       "id": 82,
       "category": "Art",
-      "text": "What are you afraid of?"
+      "text": "What are you afraid of and how do these fears shape your life and art?"
     },
     {
       "id": 83,
       "category": "Art",
-      "text": "Which law should be abolished immediately?"
+      "text": "Which law should be abolished immediately and what does this reveal about your values?"
     },
     {
       "id": 84,
       "category": "Art",
-      "text": "Which law should definitely be introduced?"
+      "text": "Which law should definitely be introduced and what would this accomplish?"
     },
     {
       "id": 85,
       "category": "Art",
-      "text": "What superpower do you wish to have?"
+      "text": "What superpower do you wish to have and how would you use it?"
     },
     {
       "id": 86,
       "category": "Art",
-      "text": "Would you like to live forever, and what would that mean to you?"
+      "text": "Would you like to live forever and what would immortality mean to you?"
     },
     {
       "id": 87,
       "category": "Art",
-      "text": "What is something a person you are just getting to know should not find out about you?"
+      "text": "What is something a person you're just getting to know should not find out about you and why?"
     },
     {
       "id": 88,
       "category": "Art",
-      "text": "What is your favorite joke?"
+      "text": "What is your favorite joke and what does it reveal about your sense of humor?"
     },
     {
       "id": 89,
       "category": "Art",
-      "text": "What do you take responsibility for?"
+      "text": "What do you take responsibility for and how do you think about accountability?"
     },
     {
       "id": 90,
       "category": "Art",
-      "text": "What five things would you take with you to a deserted island?"
+      "text": "What five things would you take to a deserted island and what do they reveal about your priorities?"
     },
     {
       "id": 91,
       "category": "Art",
-      "text": "Did you ever destroy a work of art?"
+      "text": "Have you ever destroyed a work of art and what did this experience teach you?"
     },
     {
       "id": 92,
       "category": "Art",
-      "text": "What do you do to calm down?"
+      "text": "What do you do to calm down and how do you find peace in chaos?"
     },
     {
       "id": 93,
       "category": "Art",
-      "text": "What are your forbidden thoughts questions and why?"
+      "text": "What are your forbidden thoughts and why do you consider them taboo?"
     },
     {
       "id": 94,
       "category": "Art",
-      "text": "Have you been ashamed before? When?"
+      "text": "Have you ever been ashamed and what did this experience teach you about yourself?"
     },
     {
       "id": 95,
       "category": "Art",
-      "text": "What are you proud of and why?"
+      "text": "What are you proud of and why does this matter to you?"
     },
     {
       "id": 96,
       "category": "Art",
-      "text": "What is your conceptof beauty?"
+      "text": "What is your concept of beauty and how does it influence your art?"
     },
     {
       "id": 97,
       "category": "Art",
-      "text": "Do you avoid conflicts or do you seek them? Why?"
+      "text": "Do you avoid conflicts or seek them and what does this reveal about your personality?"
     },
     {
       "id": 98,
       "category": "Art",
-      "text": "How do you deal with someone who is right-wing?"
+      "text": "How do you deal with people whose political views differ from yours?"
     },
     {
       "id": 99,
       "category": "Art",
-      "text": "Do you believe art can change society? Why or why not?"
+      "text": "Do you believe art can change society and how does your work aim to create change?"
     },
     {
       "id": 100,
       "category": "Art",
-      "text": "Do you believe there is a god/goddess? How do you get in touch with them?"
+      "text": "Do you believe in a higher power and how do you connect with the spiritual realm?"
     },
     {
       "id": 101,
       "category": "Creative Philosophy",
-      "text": "Why do you make art? What drives you to create?"
+      "text": "Why do you make art? What drives you to create and what compels you to continue?"
     },
     {
       "id": 102,
       "category": "Creative Philosophy", 
-      "text": "What distinguishes an artist from other people?"
+      "text": "What distinguishes an artist from other people and how do you define this identity?"
     },
     {
       "id": 103,
       "category": "Creative Philosophy",
-      "text": "Do you consider yourself creative? What does creativity mean to you?"
+      "text": "Do you consider yourself creative and what does creativity mean to you?"
     },
     {
       "id": 104,
       "category": "Creative Philosophy",
-      "text": "Can art change the world? How does your art aim to change something?"
+      "text": "Can art change the world and how does your art aim to create change?"
     },
     {
       "id": 105,
       "category": "Creative Philosophy",
-      "text": "Does art need to have a purpose, or is it valuable for its own sake?"
+      "text": "Does art need to have a purpose or is it valuable for its own sake?"
     },
     {
       "id": 106,
       "category": "Creative Philosophy",
-      "text": "Is it important for you to make money from your art? How does financial pressure affect your creativity?"
+      "text": "Is it important for you to make money from your art and how does financial pressure affect your creativity?"
     },
     {
       "id": 107,
       "category": "Creative Philosophy",
-      "text": "What role does failure play in your creative process?"
+      "text": "What role does failure play in your creative process and how do you learn from it?"
     },
     {
       "id": 108,
       "category": "Creative Philosophy",
-      "text": "Do you think art should be accessible to everyone, or is there value in exclusivity?"
+      "text": "Do you think art should be accessible to everyone or is there value in exclusivity?"
     },
     {
       "id": 109,
@@ -578,7 +578,7 @@
     {
       "id": 116,
       "category": "Creative Impact",
-      "text": "Who is your ideal audience? How do you imagine your work affecting them?"
+      "text": "Who is your ideal audience and how do you imagine your work affecting them?"
     },
     {
       "id": 117,
@@ -598,7 +598,7 @@
     {
       "id": 120,
       "category": "Creative Impact",
-      "text": "How has your art evolved since you started, and where do you see it going?"
+      "text": "How has your art evolved since you started and where do you see it going?"
     }
   ]
 } 

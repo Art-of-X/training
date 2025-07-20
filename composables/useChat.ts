@@ -5,6 +5,15 @@ export const useChat = () => {
   const messages = ref<CoreMessage[]>([]);
   const isLoading = ref(false);
   const error = ref<any>(null);
+  const currentSessionId = ref<string | undefined>(undefined); // New: Store current session ID
+  let abortController = new AbortController();
+
+  const stop = () => {
+    abortController.abort();
+    if (isLoading.value) {
+      isLoading.value = false;
+    }
+  };
   
   // Voice-related state
   const isRecording = ref(false);
@@ -13,6 +22,10 @@ export const useChat = () => {
   const mediaRecorder = ref<MediaRecorder | null>(null);
   const audioChunks = ref<Blob[]>([]);
   const currentAudio = ref<HTMLAudioElement | null>(null);
+  
+  // Audio events for precise timing
+  const audioStarted = ref(false);
+  const audioPlaybackListeners = ref<(() => void)[]>([]);
 
   const sendMessage = async (newMessages: CoreMessage[]) => {
     isLoading.value = true;
@@ -33,19 +46,31 @@ export const useChat = () => {
         return true;
       });
 
+      const payload: { messages: CoreMessage[]; sessionId?: string } = {
+        messages: messagesToSend,
+      };
+
+      if (currentSessionId.value) {
+        payload.sessionId = currentSessionId.value;
+      }
+
       const response = await fetch('/api/chat/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: messagesToSend,
-        }),
+        body: JSON.stringify(payload),
+        signal: abortController.signal,
       });
 
       if (!response.ok) {
         throw new Error(await response.text());
       }
 
-      const { content } = await response.json();
+      const { content, sessionId: returnedSessionId } = await response.json();
+      
+      // Always update the currentSessionId if a new one is returned
+      if (returnedSessionId) {
+          currentSessionId.value = returnedSessionId;
+      }
       
       // Update the last assistant message with the actual content
       const lastMessage = messages.value[messages.value.length - 1];
@@ -66,7 +91,16 @@ export const useChat = () => {
         }
       }
 
-    } catch (e) {
+    } catch (e: any) {
+      if (e.name === 'AbortError') {
+        console.log('Fetch aborted.');
+        // Remove the placeholder message if the request was aborted
+        const lastMessage = messages.value[messages.value.length - 1];
+        if (lastMessage && lastMessage.role === 'assistant' && lastMessage.content === '') {
+          messages.value.pop();
+        }
+        return; // Stop further processing
+      }
       error.value = e;
       const lastMessage = messages.value[messages.value.length - 1];
       if (lastMessage && lastMessage.role === 'assistant') {
@@ -78,15 +112,66 @@ export const useChat = () => {
   };
 
   const getInitialMessage = async () => {
-     messages.value = []; // Reset messages for a new chat
-     const initialPrompt: CoreMessage[] = [
-      { 
-        role: 'user', 
-        content: 'Welcome the user back. Your main goal is to guide them through their training. Determine the next single most important question they should answer from any module. Ask them this question directly and concisely. Do not start with a progress summary. Just ask the question.' 
+    isLoading.value = true;
+    error.value = null;
+    messages.value = []; // Reset messages for a new chat
+    currentSessionId.value = undefined; // Reset session ID for a new chat
+    abortController = new AbortController();
+
+    const initialPrompt: CoreMessage[] = [{
+      role: 'user',
+      content: '__INITIAL_PROMPT__'
+    }];
+
+    try {
+      const response = await fetch('/api/chat/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: initialPrompt, sessionId: currentSessionId.value }),
+        signal: abortController.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(await response.text());
       }
-    ];
-    // We don't push the user message to the history here, just send it.
-    await sendMessage(initialPrompt);
+
+      const { content, sessionId: returnedSessionId } = await response.json();
+
+      // Set the session ID from the response
+      if (returnedSessionId) {
+        currentSessionId.value = returnedSessionId;
+      }
+
+      // Only push the AI's actual response to messages.value
+      if (content) {
+        messages.value.push({ role: 'assistant', content });
+      }
+
+      // Play TTS if enabled and content exists
+      if (isTTSEnabled.value && content && typeof content === 'string') {
+        await playTTS(content);
+      }
+
+    } catch (e: any) {
+      if (e.name === 'AbortError') {
+        console.log('Fetch aborted.');
+        // Remove the placeholder message if the request was aborted
+        const lastMessage = messages.value[messages.value.length - 1];
+        if (lastMessage && lastMessage.role === 'assistant' && lastMessage.content === '') {
+          messages.value.pop();
+        }
+        return; // Stop further processing
+      }
+      error.value = e;
+      console.error('Error getting initial message:', e);
+      // Provide a fallback message if API fails
+      messages.value.push({
+        role: 'assistant',
+        content: 'Welcome back! How can I help you with your training today?'
+      });
+    } finally {
+      isLoading.value = false;
+    }
   };
   
   const handleSubmit = async (userInput: string) => {
@@ -96,6 +181,15 @@ export const useChat = () => {
     messages.value.push(userMessage);
 
     await sendMessage(messages.value);
+  };
+
+  // Function to set session ID and load messages for a historical session
+  const loadSession = (sessionMessages: CoreMessage[], sessionId: string) => {
+    stop(); // Abort any ongoing fetch requests
+    messages.value = sessionMessages; // Load all messages from the selected session
+    currentSessionId.value = sessionId; // Set the current session ID
+    abortController = new AbortController(); // Re-create the controller for future requests
+    // Do NOT trigger getInitialMessage here, as we are continuing an existing session.
   };
 
   // Voice functionality
@@ -172,6 +266,7 @@ export const useChat = () => {
     
     try {
       isPlayingTTS.value = true;
+      audioStarted.value = false; // Reset audio started state
       
       // Stop any currently playing audio
       if (currentAudio.value) {
@@ -195,14 +290,24 @@ export const useChat = () => {
       
       currentAudio.value = new Audio(audioUrl);
       
+      // Set audioStarted when audio actually begins playing
+      currentAudio.value.onplay = () => {
+        console.log('Composable: Audio playback started');
+        audioStarted.value = true;
+      };
+      
       currentAudio.value.onended = () => {
+        console.log('Composable: Audio playback ended');
         isPlayingTTS.value = false;
+        audioStarted.value = false;
         URL.revokeObjectURL(audioUrl);
         currentAudio.value = null;
       };
       
       currentAudio.value.onerror = () => {
+        console.log('Composable: Audio playback error');
         isPlayingTTS.value = false;
+        audioStarted.value = false;
         URL.revokeObjectURL(audioUrl);
         currentAudio.value = null;
       };
@@ -210,6 +315,7 @@ export const useChat = () => {
       await currentAudio.value.play();
     } catch (e) {
       isPlayingTTS.value = false;
+      audioStarted.value = false;
       console.error('Error playing TTS:', e);
     }
   };
@@ -237,13 +343,17 @@ export const useChat = () => {
     isLoading,
     error,
     getInitialMessage,
+    loadSession, // New: Expose loadSession
+    currentSessionId, // Expose currentSessionId
     // Voice functionality
     isRecording,
     isPlayingTTS,
+    audioStarted, // Expose for precise audio timing
     isTTSEnabled,
     startRecording,
     stopRecording,
     toggleTTS,
-    stopTTS
+    stopTTS,
+    stop, // Expose stop function
   };
 }; 

@@ -1,55 +1,72 @@
 import { serverSupabaseUser } from '#supabase/server';
+import { prisma } from '~/server/utils/prisma';
 
 export default defineEventHandler(async (event) => {
     try {
         const user = await serverSupabaseUser(event);
         if (!user) {
-            throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
+            console.error('TTS: No authenticated user found');
+            throw createError({ statusCode: 401, statusMessage: 'Authentication required for TTS' });
         }
 
-        const { text, voice = 'alloy', speed = 1.2 } = await readBody(event);
-        
-        if (!text || typeof text !== 'string' || text.trim().length === 0) {
+        const body = await readBody(event);
+        const { text } = body;
+
+        if (!text) {
             throw createError({ statusCode: 400, statusMessage: 'Text is required' });
         }
 
-        const response = await fetch('https://api.openai.com/v1/audio/speech', {
+        // Check for required environment variable
+        if (!process.env.ELEVENLABS_API_KEY) {
+            console.error('TTS: ELEVENLABS_API_KEY not configured');
+            throw createError({ statusCode: 500, statusMessage: 'TTS service not configured' });
+        }
+
+        // Use a good fallback voice for all users
+        const voiceId = 'rd0yPwDNh4pfbdvKbdrT'; // Fallback voice
+
+        console.log(`TTS: Processing request for user ${user.id}, text length: ${text.length}`);
+
+        // Call ElevenLabs API for text-to-speech
+        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                'xi-api-key': process.env.ELEVENLABS_API_KEY!
             },
             body: JSON.stringify({
-                model: 'tts-1',
-                input: text.trim(),
-                voice: voice,
-                response_format: 'mp3',
-                speed: speed
-            }),
+                text,
+                model_id: 'eleven_multilingual_v2', // Or 'eleven_multilingual_v2' 'eleven_flash_v2_5'
+                voice_settings: {
+                    stability: 0.5,
+                    similarity_boost: 0.5
+                }
+            })
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('OpenAI TTS API error:', errorText);
-            throw createError({ 
-                statusCode: response.status, 
-                statusMessage: `Failed to generate speech: ${errorText}` 
+            console.error('TTS: ElevenLabs API error:', response.status, errorText);
+            throw createError({
+                statusCode: response.status,
+                statusMessage: 'Failed to generate speech'
             });
         }
 
+        // Get the audio data as buffer
         const audioBuffer = await response.arrayBuffer();
         
-        // Set appropriate headers for audio response
+        // Set response headers for audio
         setHeader(event, 'Content-Type', 'audio/mpeg');
-        setHeader(event, 'Content-Length', audioBuffer.byteLength);
         
+        console.log(`TTS: Successfully generated audio, size: ${audioBuffer.byteLength} bytes`);
         return new Uint8Array(audioBuffer);
 
-    } catch (e: any) {
-        console.error('TTS Error:', e);
+    } catch (error: any) {
+        console.error('TTS error:', error);
         throw createError({
-            statusCode: e.statusCode || 500,
-            statusMessage: e.statusMessage || e.message || 'Failed to generate speech'
+            statusCode: error.statusCode || 500,
+            statusMessage: error.statusMessage || 'Internal server error'
         });
     }
 }); 

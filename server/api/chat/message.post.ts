@@ -1,227 +1,180 @@
-import { createOpenAI } from '@ai-sdk/openai';
-import { generateText, type CoreMessage } from 'ai';
-import {
-    createDatabaseQueryTool,
-    createAddPortfolioLinkTool,
-    createGetUnansweredQuestionsTool,
-    createGetOverallProgressTool,
-    createGetMonologueProgressTool,
-    createFinalizeFileUploadTool,
-    createGetNextQuestionTool,
-    createIntelligentDataTool,
-    createDocumentProcessingTool,
-    createAddSupplementaryContentTool,
-    createAnalyzeLinkTool,
-    createGetPreviousQuestionsAskedTool,
-    createCheckUserContextTool
-} from '~/server/utils/ai-tools';
+import { type CoreMessage, type CoreUserMessage, type CoreAssistantMessage } from 'ai';
 import { serverSupabaseUser } from '#supabase/server';
 import { prisma } from '~/server/utils/prisma';
+import { generateAICoreResponse, generateChatSessionTitle } from '~/server/utils/ai-core';
+import { PrismaClient } from '@prisma/client'; // Explicitly import PrismaClient
 
 export default defineEventHandler(async (event) => {
-    try {
-        const user = await serverSupabaseUser(event);
-        if (!user) {
-            throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
-        }
-
-        // Get user profile for personalization
-        const userProfile = await prisma.userProfile.findUnique({
-            where: { id: user.id },
-            select: { name: true }
-        });
-        const userName = userProfile?.name || 'Artist';
-
-        let { messages }: { messages: CoreMessage[] } = await readBody(event);
-
-        // Save the user's message
-        const userMessage = messages.findLast(m => m.role === 'user');
-        if (userMessage && userMessage.content) {
-             await prisma.chatMessage.create({
-                data: {
-                    userId: user.id,
-                    role: 'user',
-                    content: typeof userMessage.content === 'string' ? userMessage.content : JSON.stringify(userMessage.content),
-                }
-            });
-        }
-
-        const openai = createOpenAI({
-            apiKey: process.env.OPENAI_API_KEY,
-        });
-
-        const { text } = await generateText({
-            model: openai('gpt-4o-mini'),
-            system: `
-            
-            You are the proactive, conversational training partner of the Artx training platform. 
-            Artˣ is building the first foundation model for creativity - powered by the largest proprietary dataset created by the world's most renowned artists and creatives. For this, they get access to this platform, which you are gatekeeping. 
-            
-            Your goal is to have natural, flowing conversations with creatives about their work and creative thinking process. You are genuinely curious about HOW they think, not just what they create. Every response is an opportunity to understand their creative mind deeper. You can ask ANY questions about creativity, art, their work, their philosophy, or their creative process. The more detailed question-answer pairs you collect about their thought processes, the better.
-
-            **User Information:**
-            The user you're speaking with is named: ${userName}
-            Always address them by their name when appropriate to create a personal connection.
-
-            **CRITICAL RULE - NEVER ASK DUPLICATE QUESTIONS:**
-            🚨 BEFORE asking ANY question, you MUST ALWAYS call 'getPreviousQuestionsAsked' to check what you've already asked this user
-            🚨 This is MANDATORY - not optional. Never ask a question without checking first
-            🚨 If you've already asked a question, DO NOT ask it again - build on their previous answer instead
-            🚨 Reference their previous responses to show you remember and are building on the conversation
-            🚨 Always acknowledge what they've already shared before asking new questions
-
-            **Core Directives:**
-            1. **CRITICAL: Save Every Response IMMEDIATELY**:
-               - The MOMENT a user answers ANY question, save it using 'saveMonologueTextResponse'
-               - This is the MOST IMPORTANT rule - never skip saving responses
-               - Even short answers like "I hate to-do lists" are valuable data
-               - Save first, then explore deeper
-            
-            2. **Be an Investigative Conversationalist**:
-               - Your goal is to understand HOW creatives think, not just WHAT they think
-               - Every response is a doorway to deeper understanding - walk through it
-               - Be like a curious friend who genuinely wants to understand their creative mind
-               - When someone says "I hate X" - explore WHY they hate it and what that reveals about their process
-               - When someone says "It's complicated" - that's your cue to explore the complexity
-               - The best data comes from understanding the reasoning behind preferences, choices, and creative decisions
-            
-            3. **Always Check Previous Responses FIRST**: 
-               - MANDATORY: Call 'getPreviousQuestionsAsked' before asking ANY question
-               - Review what they've already answered to avoid repetition
-               - Build on their existing responses instead of asking the same things
-               - Reference their previous answers to show continuity
-            
-            2. **PRIORITIZE PREDEFINED QUESTIONS**: 
-               - Use 'getNextQuestion' to get specific questions from our curated database
-               - We have 120+ monologue questions, 5 AUT questions, 5 RAT questions, and 12 demographics questions
-               - ALWAYS use predefined questions when available - they are carefully designed for optimal data collection
-               - Only create custom questions when you've exhausted the predefined ones or need specific follow-ups
-               - When you get a predefined question from getNextQuestion, ask it EXACTLY as provided
-            
-            3. **Natural Conversation Flow**: Create engaging, natural conversations that mix:
-               - Using predefined questions from the database (PRIORITY)
-               - Asking about their creative work and portfolio
-               - Deep philosophical questions about creativity and art
-               - Questions about their creative process and thinking
-               - Personal questions about their artistic journey
-               
-            4. **MANDATORY: Save Every Question-Answer Pair**: 
-               🚨 **CRITICAL WORKFLOW**: Question → User Response → SAVE IMMEDIATELY → Explore Deeper → Next Question
-               - The INSTANT a user responds to ANY question, you MUST save it using 'intelligentData'
-               - Use natural language to describe what you're doing: "save user response about screen time"
-               - Save ALL responses, even short ones like "I don't know" or "No" - they are valuable data
-               - Include the exact question you asked and their complete response
-               - For predefined questions from the JSON files, include the questionId
-               - For your own questions, leave questionId empty (custom questions)
-               - NEVER ask a new question before saving the previous response
-               - If users mention links or want to share supplementary content, include those in the save
-               - Encourage users to share links, files, or additional context to enrich their answers
-               - **IMPORTANT**: When calling tools, ensure JSON is properly formatted with correct syntax (key: value, not key: value)
-               
-            5. **Portfolio Management**: 
-               - When users share work, use 'addPortfolioLink' to save it
-               - Always ask for context and description
-               - Portfolio items can be shared at any time during the conversation
-               
-            6. **Conversation Flow**:
-               - Start with 'getPreviousQuestionsAsked' to understand their conversation history
-               - Use 'getNextQuestion' to get the next specific predefined question to ask
-               - If getNextQuestion provides a predefined question, ask it EXACTLY as specified
-               - Ask questions in plain text without markdown formatting (no **bold** or *italics*)
-               - Keep conversations natural and engaging
-               - Mix portfolio requests with predefined questions organically
-               - Only ask custom questions when no predefined questions are available or for specific follow-ups
-               
-            7. **Response Handling & Deep Exploration**:
-               - **SAVE FIRST, THEN EXPLORE**: The MOMENT a user answers ANY question, save it immediately using 'intelligentData'
-               - Use natural language: "save user response about to-do lists" or "save user response about screen time"
-               - Short answers like "I hate lists" or "No" are valuable - save them immediately
-               - **BE GENUINELY CURIOUS**: After saving, explore interesting responses thoroughly
-               - Ask follow-up questions to understand their THOUGHT PROCESS and reasoning
-               - Examples: "I hate to-do lists" → "What is it about to-do lists that you find frustrating? How do you organize your creative work instead?"
-               - "I don't know" → "What makes this question challenging for you? What comes to mind when you think about it?"
-               - "It's complicated" → "I'd love to hear about those complications - what makes it complex for you?"
-               - Save each follow-up response separately - these deep insights are extremely valuable
-               - Only move to new predefined questions after you've explored interesting responses thoroughly
-               - NEVER re-ask the same question - move on to new topics
-               - Always reference and build on their previous responses  
-               - Show that you remember what they've shared before
-               
-            8. **Natural Language**: 
-               - Don't mention tool names or internal processes
-               - Avoid terms like "monologue" - use "reflection", "question", or "conversation"
-               - Be encouraging, personal, and genuine
-               - Create a safe space for creative expression
-               - NEVER use markdown formatting like **bold** or *italics* - use plain text only
-               - Ask questions naturally without special formatting or emphasis markers
-               
-            9. **File Uploads & Document Processing**: 
-               - When users upload files, ALWAYS use 'documentProcessing' first to understand what the file contains
-               - **INTELLIGENT FILE ASSOCIATION**: If the uploaded file directly relates to the current question being discussed, use 'intelligentData' to connect it to that question
-               - Use natural language: "associate uploaded file with current question about screen time"
-               - Examples: User asks about screen time → uploads screen time document → process document → associate with screen time question
-               - If the file is general portfolio content, use 'intelligentData' with "add portfolio item"
-               - **DOCUMENT INSIGHTS**: Use the document analysis to ask follow-up questions about the content
-               - Continue the natural conversation flow based on document insights
-               
-            10. **Supplementary Content**: 
-               - When asking questions, encourage users to share links, files, or additional context
-               - Offer options like: "Feel free to share a link to examples of your work" or "You can upload images or documents if they help explain your process"
-               - Use 'addSupplementaryContent' if they want to add more context to a previous answer
-               - Save links and descriptions with their text responses using 'saveMonologueTextResponse'
-               
-            11. **Link Analysis**: 
-               - When users share any URL/link, ALWAYS use 'analyzeLink' first to understand what it contains
-               - The tool extracts full content: text, headings, images, links, and metadata
-               - After analyzing, respond contextually based on the actual content, not just the URL
-               - Reference specific content you found: headings, project names, techniques mentioned, etc.
-               - Ask detailed follow-up questions based on the actual content extracted
-               - Examples: "I see you mentioned [specific technique] in your project description - how did you develop that skill?" or "The heading '[Project Name]' caught my attention - what was your inspiration for this piece?"
-               
-            **Remember**: Every question-answer pair is valuable data that MUST be saved. The goal is to collect as many authentic question-answer pairs about creativity and artistic thinking as possible. MANDATORY WORKFLOW: Ask question → User responds → Save immediately → Explore deeper → Continue conversation. Be genuinely curious and create meaningful dialogue. But NEVER ask the same question twice - always check first!
-            
-            **CRITICAL JSON FORMATTING**: When calling tools, ensure all JSON parameters are properly formatted:
-            - Use correct syntax: "parameterName": "value" (not "parameterName:": "value")
-            - All string values must be properly quoted
-            - All parameter names must be properly quoted
-            - No trailing colons in parameter names
-            
-            **CONVERSATION FLOW**: Focus on ONE topic at a time. When a user shares something interesting (like "I hate to-do lists"), explore that thoroughly before moving to new topics. Don't jump between unrelated questions.
-            `,
-            messages,
-            tools: {
-                intelligentData: createIntelligentDataTool(user.id),
-                documentProcessing: createDocumentProcessingTool(user.id),
-                getNextQuestion: createGetNextQuestionTool(user.id),
-                getUnansweredQuestions: createGetUnansweredQuestionsTool(user.id),
-                queryDatabase: createDatabaseQueryTool(user.id),
-                getOverallProgress: createGetOverallProgressTool(user.id),
-                getMonologueProgress: createGetMonologueProgressTool(user.id),
-                addPortfolioLink: createAddPortfolioLinkTool(user.id),
-                finalizeFileUpload: createFinalizeFileUploadTool(user.id, event),
-                addSupplementaryContent: createAddSupplementaryContentTool(user.id),
-                analyzeLink: createAnalyzeLinkTool(user.id),
-                getPreviousQuestionsAsked: createGetPreviousQuestionsAskedTool(user.id),
-                checkUserContext: createCheckUserContextTool(user.id),
-            },
-            maxSteps: 10,
-        });
-
-        // Save the assistant's response
-        await prisma.chatMessage.create({
-            data: {
-                userId: user.id,
-                role: 'assistant',
-                content: text,
-            }
-        });
-
-        return { content: text };
-    } catch (e: any) {
-        console.error(e);
-        throw createError({
-            statusCode: 500,
-            statusMessage: e.message
-        });
+  try {
+    const user = await serverSupabaseUser(event);
+    if (!user) {
+      throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
     }
+
+    const userProfile = await prisma.userProfile.findUnique({
+      where: { id: user.id },
+      select: { name: true },
+    });
+    const userName = userProfile?.name || 'Artist';
+
+    const { messages, sessionId: clientSessionId }: { messages: CoreMessage[]; sessionId?: string } = await readBody(event);
+
+    // Validate messages
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Bad Request: `messages` is required and must be a non-empty array.'
+      });
+    }
+
+    let currentSessionId = clientSessionId;
+
+    // If no sessionId is provided, it's a new session, create a ChatSession entry
+    if (!currentSessionId) {
+      const newSession = await (prisma as PrismaClient).chatSession.create({
+        data: {
+          userId: user.id,
+          title: "New Chat", // Temporary title, will be updated after first AI response
+        },
+      });
+      currentSessionId = newSession.id; // Use the ID of the newly created session
+    }
+
+    // Fetch existing messages for the session if sessionId is provided
+    let existingMessages: (CoreUserMessage | CoreAssistantMessage)[] = []; 
+    if (currentSessionId) { // Use currentSessionId for fetching
+      const history = await prisma.chatMessage.findMany({
+        where: {
+          userId: user.id,
+          sessionId: currentSessionId,
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+        select: {
+          role: true,
+          content: true,
+        },
+      });
+      existingMessages = history.map(msg => {
+        const contentString = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content); // Ensure content is string
+        if (msg.role === 'user') {
+          return { role: 'user', content: [{ type: 'text', text: contentString }] } as CoreUserMessage; // Use structured content for CoreUserMessage
+        } else if (msg.role === 'assistant') {
+          return { role: 'assistant', content: contentString } as CoreAssistantMessage; 
+        } else {
+          // Fallback for unexpected roles, though our schema typically only has user/assistant
+          return { role: 'user', content: [{ type: 'text', text: contentString }] } as CoreUserMessage; 
+        }
+      });
+    }
+
+    const userMessage = messages.filter(m => m.role === 'user').pop();
+    
+    // Save user message to the database if it's not the initial prompt placeholder
+    if (userMessage && userMessage.content) {
+      const isInitialPrompt = typeof userMessage.content === 'string' && userMessage.content.includes('__INITIAL_PROMPT__');
+      if (!isInitialPrompt) {
+        const messageData: any = {
+          userId: user.id,
+          role: 'user',
+          content: typeof userMessage.content === 'string' ? userMessage.content : JSON.stringify(userMessage.content),
+          sessionId: currentSessionId, // Ensure sessionId is always set
+        };
+
+        await prisma.chatMessage.create({
+            data: messageData,
+        });
+      }
+    }
+
+    // Construct messagesForAI with full history + current message
+    let messagesForAI: CoreMessage[] = [];
+
+    // Include existing messages from the session
+    messagesForAI = [...existingMessages]; 
+
+    // Append the latest user message from the current request, unless it's the initial prompt placeholder
+    if (userMessage && userMessage.content) {
+      const isInitialPrompt = typeof userMessage.content === 'string' && userMessage.content.includes('__INITIAL_PROMPT__');
+      if (!isInitialPrompt) {
+        // Ensure userMessage.content is converted to the expected structured format for CoreUserMessage
+        const userContentFormatted = typeof userMessage.content === 'string' 
+          ? [{ type: 'text', text: userMessage.content }]
+          : (Array.isArray(userMessage.content) ? userMessage.content : [{ type: 'text', text: JSON.stringify(userMessage.content) }]);
+
+        messagesForAI.push({ role: 'user', content: userContentFormatted } as CoreUserMessage);
+      } else {
+        // If it's the initial prompt placeholder, replace it with the full detailed prompt for the AI
+        messagesForAI.push({
+          role: 'user',
+          content: [{ type: 'text', text: 'This is the user\'s first message in a new chat session. CRITICAL: You MUST first call checkUserContext tool to understand the user\'s portfolio and conversation history. Then use queryChatSessions to find relevant previous discussions. DO NOT repeat topics or questions you have already covered. After checking their context, start your response with a personalized welcome using their name and focus on their creative work. Ask specific, thought-provoking questions about their portfolio items, techniques, or creative decisions. Use generateThoughtProvokingQuestion tool to create deeply analytical questions based on their work. IMPORTANT: Use plain text only - no markdown formatting like **bold** or *italics*. MANDATORY WORKFLOW: When user shares work or responds to questions, save it IMMEDIATELY using the intelligentData tool before asking the next question.' }]
+        } as CoreUserMessage);
+      }
+    }
+
+    const { text, toolCalls, finishReason, usage } = await generateAICoreResponse(user.id, userName, messagesForAI, event);
+
+    // Save AI response to the database
+    if (text && currentSessionId) { // Ensure sessionId exists before saving assistant message
+        const assistantMessageData: any = {
+          userId: user.id,
+          role: 'assistant',
+          content: text,
+          sessionId: currentSessionId, // Use the determined session ID
+        };
+
+        await prisma.chatMessage.create({
+          data: assistantMessageData,
+        });
+
+        // Generate and update session title after AI responds, but only if it's the first actual user message
+        const rawUserContent = typeof userMessage.content === 'string' ? userMessage.content : JSON.stringify(userMessage.content);
+
+        if (existingMessages.length === 0 && userMessage && !userMessage.content.includes('__INITIAL_PROMPT__')) {
+          const titleGenerationMessages: { role: string; content: string }[] = [
+              { role: 'user', content: rawUserContent },
+              { role: 'assistant', content: text }
+          ];
+  
+          const newTitle = await generateChatSessionTitle({
+            messages: titleGenerationMessages,
+            userProfileName: userName,
+          });
+  
+          await (prisma as PrismaClient).chatSession.update({
+            where: { id: currentSessionId },
+            data: { title: newTitle },
+          });
+        } else if (existingMessages.length > 0) {
+          // For ongoing conversations, update the title based on the latest interaction
+          const titleGenerationMessages: { role: string; content: string }[] = [
+            // Map existingMessages back to string content for title generation
+            ...existingMessages.map(msg => ({ 
+                role: msg.role, 
+                content: typeof msg.content === 'string' ? msg.content : 
+                         (Array.isArray(msg.content) && msg.content[0]?.type === 'text' ? msg.content[0].text : '') 
+            })),
+            { role: 'user', content: rawUserContent },
+            { role: 'assistant', content: text }
+          ];
+          const newTitle = await generateChatSessionTitle({
+            messages: titleGenerationMessages,
+            userProfileName: userName,
+          });
+          await (prisma as PrismaClient).chatSession.update({
+            where: { id: currentSessionId },
+            data: { title: newTitle },
+          });
+        }
+    }
+
+    return { content: text, toolCalls, sessionId: currentSessionId };
+  } catch (e: any) {
+    console.error(e);
+    throw createError({
+      statusCode: 500,
+      statusMessage: e.message
+    });
+  }
 }); 

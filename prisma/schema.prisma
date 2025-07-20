@@ -28,6 +28,7 @@ model UserProfile {
   demographicsAnswers      DemographicsAnswer[]
   chatMessages             ChatMessage[]
   preferences              UserPreferences?
+  chatSessions             ChatSession[]
 
   @@map("user_profiles") // Map to the public.user_profiles table
 }
@@ -37,6 +38,7 @@ model UserPreferences {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @unique @map("user_id") @db.Uuid
   ttsEnabled Boolean @default(true) @map("tts_enabled")
+  preferredLanguage String @default("en") @map("preferred_language") // Language code (en, de, fr, etc.)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -168,16 +170,33 @@ model DemographicsAnswer {
   @@map("demographics_answers")
 }
 
+model ChatSession {
+  id        String   @id @default(cuid()) @map("id")
+  userId    String   @map("user_id") @db.Uuid
+  title     String   @default("Untitled Chat")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user         UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatMessages ChatMessage[]
+
+  @@map("chat_sessions")
+}
+
 model ChatMessage {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   role      String // "user" or "assistant"
   content   String   @db.Text
+  sessionId String   @map("session_id")
+  userId    String?  @map("user_id") @db.Uuid // userId is optional
 
   // Relations
-  user   UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String      @db.Uuid
-
+  user        UserProfile? @relation(fields: [userId], references: [id], onDelete: Cascade) // user relation is now optional
+  chatSession ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
   @@index([userId, createdAt])
+  @@index([sessionId])
   @@map("chat_messages")
 } 

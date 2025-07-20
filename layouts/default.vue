@@ -86,6 +86,13 @@
                       >
                         AI Chat
                       </NuxtLink>
+                      <NuxtLink
+                        to="/training/voice"
+                        class="dropdown-item"
+                        @click="closeUserMenu"
+                      >
+                        Voice Agent
+                      </NuxtLink>
                       <button
                         @click="handleSignOut"
                         class="dropdown-item w-full text-left"
@@ -174,6 +181,13 @@
                   @click="closeMobileMenu"
                 >
                   AI Chat
+                </NuxtLink>
+                <NuxtLink
+                  to="/training/voice"
+                  class="mobile-nav-link"
+                  @click="closeMobileMenu"
+                >
+                  Voice Agent
                 </NuxtLink>
               </div>
             </div>
