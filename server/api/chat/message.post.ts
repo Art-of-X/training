@@ -58,7 +58,6 @@ export default defineEventHandler(async (event) => {
 
     // Fetch existing messages for the session if sessionId is provided
     let existingMessages: (CoreUserMessage | CoreAssistantMessage)[] = []; 
-    // Always fetch existing messages if we have a session ID
     if (currentSessionId) { 
       const history = await prisma.chatMessage.findMany({
         where: {
@@ -71,124 +70,88 @@ export default defineEventHandler(async (event) => {
       });
 
       existingMessages = history.map(msg => {
-        // Convert stored content (JSON string) to the expected format
         let content: ChatMessageContent;
         try {
           const parsedContent = JSON.parse(msg.content as string);
-          // Ensure content is always an array of parts, even if stored as a single string
           content = Array.isArray(parsedContent) ? parsedContent : [{ type: 'text' as const, text: String(parsedContent) }];
         } catch (parseError) {
           console.error("Error parsing chat message content from DB:", parseError, msg.content);
-          content = [{ type: 'text' as const, text: String(msg.content) }]; // Fallback to raw string
+          content = [{ type: 'text' as const, text: String(msg.content) }];
         }
-
-        // Create the message object
         const message: any = { role: msg.role, content };
-        
-        // Add metadata if present (metadata is a Json field in Prisma and is also stringified)
         const msgAny = msg as any;
         if (msgAny.metadata) {
           try {
-            message.metadata = JSON.parse(msgAny.metadata as string); // Parse metadata back to object
+            message.metadata = JSON.parse(msgAny.metadata as string);
           } catch (parseError) {
             console.error("Error parsing chat message metadata from DB:", parseError, msgAny.metadata);
-            message.metadata = {}; // Fallback to empty object
+            message.metadata = {};
           }
         }
-
         return message as CoreUserMessage | CoreAssistantMessage;
       });
     }
 
     const userMessage = messages.filter(m => m.role === 'user').pop();
-    
-    // Save user message to the database
-    if (userMessage && userMessage.content) {
-      // The __INITIAL_PROMPT__ is now handled client-side in useChat.ts
-      // so we no longer need to check for it here and can save all user messages.
-      // const isInitialPrompt = typeof userMessage.content === 'string' 
-      //   ? userMessage.content.includes('__INITIAL_PROMPT__')
-      //   : Array.isArray(userMessage.content) 
-      //     ? userMessage.content.some(part => part.type === 'text' && 'text' in part && part.text.includes('__INITIAL_PROMPT__'))
-      //     : false;
 
-      // if (!isInitialPrompt) {
-        // Prepare content for saving
-        const content = Array.isArray(userMessage.content) 
-          ? userMessage.content 
-          : typeof userMessage.content === 'string'
-            ? [{ type: 'text' as const, text: userMessage.content }]
-            : [{ type: 'text' as const, text: JSON.stringify(userMessage.content) }];
+    // Detect if this is the initial prompt
+    const isInitialPrompt = userMessage && userMessage.content && (
+      (typeof userMessage.content === 'string' && userMessage.content.includes('__INITIAL_PROMPT__')) ||
+      (Array.isArray(userMessage.content) && userMessage.content.some(part => part.type === 'text' && 'text' in part && part.text.includes('__INITIAL_PROMPT__')))
+    );
 
-        // Determine message type based on content
-        const hasFile = content.some(part => part.type === 'file' || part.type === 'image');
-        const messageType = hasFile ? 'file_upload' : 'text';
-
-        // Extract any metadata (e.g., file info)
-        const metadata = {
-          parts: content.map(part => {
-            const basePart = { type: part.type };
-            if (part.type === 'file') {
-              const filePart = part as FilePart;
-              return {
-                ...basePart,
-                url: (filePart as any).url,
-                mimeType: filePart.mimeType
-              };
-            } else if (part.type === 'image') {
-              const imagePart = part as ImagePart;
-              return {
-                ...basePart,
-                url: imagePart.image,
-                mimeType: imagePart.mimeType
-              };
-            }
-            return basePart;
-          })
-        };
-
-        // Save the message with structured content
-        await prisma.chatMessage.create({
-          data: {
-            userId: user.id,
-            role: 'user',
-            type: messageType, // Keep type field as per schema
-            content: JSON.stringify(content) as any, // Stringify and cast to any for Json field
-            metadata: JSON.stringify(metadata) as any, // Stringify and cast to any for Json field
-            sessionId: currentSessionId!,
-          },
-        });
-      // }
+    // Only save user message if it's not the initial prompt
+    if (userMessage && userMessage.content && !isInitialPrompt) {
+      const content = Array.isArray(userMessage.content) 
+        ? userMessage.content 
+        : typeof userMessage.content === 'string'
+          ? [{ type: 'text' as const, text: userMessage.content }]
+          : [{ type: 'text' as const, text: JSON.stringify(userMessage.content) }];
+      await prisma.chatMessage.create({
+        data: {
+          userId: user.id,
+          role: 'user',
+          content: JSON.stringify(content) as any,
+          sessionId: currentSessionId!,
+        },
+      });
     }
 
     // Construct messagesForAI with full history + current message
-    // Always ensure we include all existing messages from the session
     let messagesForAI: CoreMessage[] = [...existingMessages];
 
-    // Append the latest user message from the current request
-    if (userMessage && userMessage.content) {
-      // Format user message content consistently
+    // If this is the initial prompt, do not append a user message, just return the assistant greeting
+    if (isInitialPrompt) {
+      const assistantGreeting = [{
+        type: 'text' as const,
+        text: "Hello! I'm your AI assistant. I'm here to help you with your creative training, portfolio development, and any questions you might have. How can I assist you today?"
+      }];
+      // Save the assistant greeting as the first assistant message
+      await prisma.chatMessage.create({
+        data: {
+          userId: user.id,
+          role: 'assistant',
+          content: JSON.stringify(assistantGreeting) as any,
+          sessionId: currentSessionId!,
+        },
+      });
+      // Update the chat session title
+      await prisma.chatSession.update({
+        where: { id: currentSessionId! },
+        data: { title: 'New Chat' },
+      });
+      return {
+        content: assistantGreeting,
+        sessionId: currentSessionId,
+      };
+    }
+
+    // Append the latest user message from the current request (if not initial prompt)
+    if (userMessage && userMessage.content && !isInitialPrompt) {
       const contentForAI = typeof userMessage.content === 'string'
           ? [{ type: 'text' as const, text: userMessage.content }]
           : userMessage.content;
-      
-      let lastUserMessageContent = contentForAI;
-      
-      // Handle initial prompt - replace with actual initial message
-      if (typeof userMessage.content === 'string' && userMessage.content.includes('__INITIAL_PROMPT__')) {
-        lastUserMessageContent = [{ 
-          type: 'text' as const, 
-          text: 'Hello! I\'m your AI assistant. I\'m here to help you with your creative training, portfolio development, and any questions you might have. How can I assist you today?' 
-        }];
-      }
-
-      // Check if the current user message is the programmatic file upload instruction
-      const programmaticFileUploadPromptStart = 'I have uploaded a file. Please use the documentProcessing tool to analyze this file:';
-      if (typeof userMessage.content === 'string' && userMessage.content.startsWith(programmaticFileUploadPromptStart)) {
-          lastUserMessageContent = [{ type: 'text' as const, text: userMessage.content }];
-      }
-
-      messagesForAI.push({ role: 'user', content: lastUserMessageContent });
+      messagesForAI.push({ role: 'user', content: contentForAI });
     }
 
     // Generate AI response with proper error handling
@@ -227,7 +190,6 @@ export default defineEventHandler(async (event) => {
         data: {
           userId: user.id,
           role: 'assistant',
-          type: messageType, // Keep type field as per schema
           content: JSON.stringify(assistantMessageContent) as any, // Stringify and cast to any for Json field
           ...(metadata && { metadata: JSON.stringify(metadata) as any }), // Stringify and cast to any for Json field
           sessionId: currentSessionId,

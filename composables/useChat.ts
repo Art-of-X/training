@@ -204,29 +204,94 @@ export const useChat = () => {
 
     // Process messages to ensure proper formatting and preserve document context
     const processedMessages: CoreMessage[] = sessionMessages.map(msg => {
-      let content: string | (TextPart | ImagePart | FilePart)[];
+      let content: string | (TextPart | FilePart)[];
       let metadata: any = undefined; // Initialize metadata as undefined
 
       // Handle content parsing based on message role
-      if (msg.role === 'user' || msg.role === 'assistant') {
+      if (msg.role === 'user') {
         try {
           const parsedContent = typeof msg.content === 'string' ? JSON.parse(msg.content) : msg.content;
-          // Ensure content is always an array of parts for user/assistant messages
-          content = Array.isArray(parsedContent) ? parsedContent : [{ type: 'text' as const, text: String(parsedContent) }];
+          // User messages: convert ImagePart to a text placeholder for type safety
+          content = Array.isArray(parsedContent)
+            ? (parsedContent.map(part => {
+                if (part.type === 'image') {
+                  return { type: 'text', text: '[image]' };
+                }
+                if (part.type === 'text' || part.type === 'file') {
+                  return part;
+                }
+                return { type: 'text', text: '[unsupported]' };
+              }) as (TextPart | FilePart)[])
+            : ([{ type: 'text' as const, text: String(parsedContent) }] as (TextPart | FilePart)[]);
         } catch (e) {
-          console.error('Error parsing user/assistant message content from history:', e, msg.content);
-          content = [{ type: 'text' as const, text: String(msg.content) }]; // Fallback
+          console.error('Error parsing user message content from history:', e, msg.content);
+          content = [{ type: 'text' as const, text: String(msg.content) }] as (TextPart | FilePart)[]; // Fallback
         }
-
-        // If metadata is present and a string, attempt to parse it
         if ((msg as any).metadata && typeof (msg as any).metadata === 'string') {
           try {
             metadata = JSON.parse((msg as any).metadata);
           } catch (e) {
             console.error('Error parsing message metadata from history:', e, (msg as any).metadata);
-            metadata = undefined; // Fallback
+            metadata = undefined;
           }
         }
+        return {
+          ...msg,
+          content: content as (TextPart | FilePart)[],
+          metadata,
+        };
+      } else if (msg.role === 'assistant') {
+        try {
+          const parsedContent = typeof msg.content === 'string' ? JSON.parse(msg.content) : msg.content;
+          // Assistant messages: only allow valid assistant content types
+          content = Array.isArray(parsedContent)
+            ? (parsedContent.map(part => {
+                if (part.type === 'image') {
+                  return { type: 'text', text: '[image]' };
+                }
+                if (part.type === 'text' || part.type === 'file') {
+                  return part;
+                }
+                return { type: 'text', text: '[unsupported]' };
+              }) as (TextPart | FilePart)[])
+            : ([{ type: 'text' as const, text: String(parsedContent) }] as (TextPart | FilePart)[]);
+        } catch (e) {
+          console.error('Error parsing assistant message content from history:', e, msg.content);
+          content = [{ type: 'text' as const, text: String(msg.content) }] as (TextPart | FilePart)[];
+        }
+        if ((msg as any).metadata && typeof (msg as any).metadata === 'string') {
+          try {
+            metadata = JSON.parse((msg as any).metadata);
+          } catch (e) {
+            console.error('Error parsing message metadata from history:', e, (msg as any).metadata);
+            metadata = undefined;
+          }
+        }
+        return {
+          ...msg,
+          content: content as (TextPart | FilePart)[],
+          metadata,
+        };
+      } else if (msg.role === 'tool') {
+        // Tool messages: content should always be a string
+        let toolContent: string;
+        try {
+          toolContent = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
+        } catch (e) {
+          toolContent = String(msg.content);
+        }
+        if ((msg as any).metadata && typeof (msg as any).metadata === 'string') {
+          try {
+            metadata = JSON.parse((msg as any).metadata);
+          } catch (e) {
+            metadata = undefined;
+          }
+        }
+        return {
+          ...msg,
+          content: toolContent,
+          metadata,
+        };
       } else {
         // For system messages, content should always be a string.
         // If it's an array from the DB, convert it to a single string representation.
@@ -240,15 +305,12 @@ export const useChat = () => {
           console.error('Error parsing system message content from history:', e, msg.content);
           systemContentString = String(msg.content); // Fallback to raw string
         }
-        content = systemContentString;
-        metadata = undefined; // System messages do not have metadata in this context
+        return {
+          ...msg,
+          content: systemContentString,
+          metadata: undefined,
+        };
       }
-
-      return {
-        ...msg,
-        content,
-        metadata,
-      };
     });
     
     // Set messages to the loaded history
@@ -263,15 +325,16 @@ export const useChat = () => {
       messageRoles: processedMessages.map(m => m.role)
     });
 
-    // After loading, ensure the AI has the full context by sending the last user message again
-    // or trigger an initial message if the session is empty.
-    const lastUserMessage = processedMessages.findLast(m => m.role === 'user');
-    if (lastUserMessage) {
-      // Send the entire loaded history to the backend with the last user message
-      await sendMessage(processedMessages, sessionId); 
-    } else if (processedMessages.length === 0) {
+    // After loading, only send a message if the last message is from the user (i.e., waiting for an assistant reply)
+    if (processedMessages.length === 0) {
       // If an empty session is loaded, trigger the initial message
       await getInitialMessage();
+    } else {
+      const lastMsg = processedMessages[processedMessages.length - 1];
+      if (lastMsg.role === 'user') {
+        await sendMessage(processedMessages, sessionId);
+      }
+      // Otherwise, do nothing: the session is fully loaded and up to date
     }
   };
 
