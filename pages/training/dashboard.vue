@@ -66,14 +66,10 @@
             </div>
 
             <!-- Chat Component -->
-            <div v-show="activeTab === 'chat'" class="h-[60vh] flex flex-col">
-              <ChatComponent :embedded="true" />
-            </div>
+            <ChatComponent ref="chatRef" :embedded="true" v-show="activeTab === 'chat'" class="h-[60vh] flex flex-col" />
 
             <!-- Voice Agent Component -->
-            <div v-show="activeTab === 'voice'" class="h-[60vh] flex flex-col">
-              <VoiceAgent :key="voiceAgentKey" />
-            </div>
+            <VoiceAgent ref="voiceAgentRef" :key="voiceAgentKey" v-show="activeTab === 'voice'" class="h-[60vh] flex flex-col" />
 
           </div>
         </div>
@@ -83,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 import ProgressBar from '~/components/ProgressBar.vue';
 import ChatComponent from '~/components/Chat.vue';
 import VoiceAgent from '~/components/VoiceAgent.vue';
@@ -178,11 +174,20 @@ watch(user, () => {
 // Key to force VoiceAgent recreation when switching to voice tab
 const voiceAgentKey = ref(0);
 
+const chatRef = ref();
+const voiceAgentRef = ref();
+
 watch(activeTab, (newTab, oldTab) => {
-  if (newTab === 'voice' && oldTab !== 'voice') {
-    // Force VoiceAgent to recreate when switching to voice tab
-    voiceAgentKey.value += 1;
+  if (oldTab === 'chat' && chatRef.value?.cleanup) {
+    chatRef.value.cleanup();
   }
+  if (oldTab === 'voice' && voiceAgentRef.value?.cleanup) {
+    voiceAgentRef.value.cleanup();
+  }
+  if (newTab === 'voice' && oldTab !== 'voice') {
+    voiceAgentKey.value += 1; // Already present, forces re-mount
+  }
+  // Optionally, force re-mount for Chat as well if you want a fresh session
 });
 </script>
 

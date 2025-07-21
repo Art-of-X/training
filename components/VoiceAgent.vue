@@ -127,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, computed, watch, defineExpose } from 'vue';
 import { useChat } from '~/composables/useChat';
 
 // Session management to prevent audio overlap (This is a local counter for media stream session, not chat session)
@@ -830,6 +830,25 @@ onUnmounted(() => {
   // Reset initialization state
   hasInitialized.value = false;
 });
+
+// Cleanup function to stop TTS, message generation, voice streaming, and reset state
+function cleanup() {
+  // Stop TTS if playing (composable should provide stopTTS if needed)
+  if (typeof isPlayingTTS !== 'undefined') isPlayingTTS.value = false;
+  if (typeof isLoading !== 'undefined') isLoading.value = false;
+  // If composable provides stopTTS, call it
+  if (typeof composableStopTTS === 'function') {
+    composableStopTTS();
+  }
+  // Stop voice stream and audio context
+  stopVoiceStream();
+  // Optionally clear messages for a fresh session
+  // messages.value = [];
+  // Reset upload state
+  isUploadingFile.value = false;
+  uploadError.value = null;
+}
+defineExpose({ cleanup });
 </script>
 
 <style scoped>

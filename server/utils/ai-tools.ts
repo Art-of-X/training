@@ -362,7 +362,7 @@ export const createGenerateThoughtProvokingQuestionTool = (userId: string) => to
             });
 
             const { text } = await generateText({
-                model: openai('gpt-4-turbo-preview'),
+                model: openai('gpt-4o-mini'),
                 prompt: `You are an expert art critic and mentor. Based on the following context, generate one thought-provoking question for the user. Context: ${context}. Focus: ${focus}. Specific Work: ${specificWork || 'N/A'}.`,
             });
 
@@ -395,7 +395,7 @@ export const createAnalyzeLinkTool = (userId: string) => tool({
             });
 
             const { text: analysis } = await generateText({
-                model: openai('gpt-4-turbo-preview'),
+                model: openai('gpt-4o-mini'),
                 prompt: `Analyze the following web page content and provide a summary. URL: ${url}. Title: ${title}. Content: ${html.substring(0, 4000)}`,
             });
 
@@ -623,7 +623,7 @@ export const createDocumentProcessingTool = (userId: string) => tool({
                     
                     // Use OpenAI to summarize or analyze the extracted text if it's too long
                     const { text: analysis } = await generateText({
-                        model: openai('gpt-4o'),
+                        model: openai('gpt-4o-mini'),
                         messages: [
                             {
                                 role: 'user',
@@ -657,7 +657,7 @@ Note: This PDF has been uploaded and is available for reference. Since PDF text 
                 try {
                     const textContent = new TextDecoder().decode(fileBuffer);
                     const { text: analysis } = await generateText({
-                        model: openai('gpt-4o'),
+                        model: openai('gpt-4o-mini'),
                         messages: [
                             {
                                 role: 'user',
@@ -683,7 +683,7 @@ Insights: The user has uploaded a text file that could contain various informati
                 const imageUrl = `data:${mimeType};base64,${base64Image}`;
 
                 const { text: analysis } = await generateText({
-                    model: openai('gpt-4o'),
+                    model: openai('gpt-4o-mini'),
                     messages: [
                         {
                             role: 'user',

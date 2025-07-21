@@ -245,7 +245,7 @@
 
 <script setup lang="ts">
 import { useChat } from '~/composables/useChat';
-import { onMounted, onUnmounted, ref, watch, nextTick, computed } from 'vue';
+import { onMounted, onUnmounted, ref, watch, nextTick, computed, defineExpose } from 'vue';
 import DashboardX from '~/components/DashboardX.vue';
 
 // Props
@@ -767,6 +767,28 @@ const initializeChat = () => {
 
 // Observer to detect when chat becomes visible
 const chatObserver = ref<IntersectionObserver | null>(null);
+
+// Cleanup function to stop TTS, message generation, and reset state
+function cleanup() {
+  // Stop TTS if playing (composable should provide stopTTS if needed)
+  if (typeof isPlayingTTS !== 'undefined') isPlayingTTS.value = false;
+  if (typeof isLoading !== 'undefined') isLoading.value = false;
+  // If composable provides stopTTS or cancelMessageGen, call them
+  if (typeof toggleComposableTTS === 'function' && isTTSEnabled.value) {
+    toggleComposableTTS(); // Ensure TTS is off
+  }
+  // Clear recording timer
+  if (recordingTimer.value) {
+    clearInterval(recordingTimer.value);
+    recordingTimer.value = null;
+  }
+  // Optionally clear messages for a fresh session
+  // messages.value = [];
+  // Reset upload state
+  isUploadingFile.value = false;
+  uploadError.value = null;
+}
+defineExpose({ cleanup });
 
 onMounted(async () => {
   // Disable composable's TTS by default for Chat
