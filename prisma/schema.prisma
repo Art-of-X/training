@@ -34,6 +34,7 @@ model UserPreferences {
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
   preferredLanguage String      @default("en") @map("preferred_language")
+  memory            String?     @db.Text
   user              UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_preferences")
@@ -151,19 +152,17 @@ model ChatSession {
 }
 
 model ChatMessage {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  role      String   // "user" or "assistant"
-  type      String   @default("text") // "text", "file_upload", "tool_call", etc.
-  content   Json     // Structured content as JSON
-  metadata  Json?    // Additional metadata (e.g., file info, tool call details)
-  sessionId String   @map("session_id")
-  userId    String?  @map("user_id") @db.Uuid // userId is optional
-
-  // Relations
-  user        UserProfile? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String       @id @default(cuid())
+  role        String
+  sessionId   String       @map("session_id")
+  createdAt   DateTime     @default(now())
+  userId      String?      @map("user_id") @db.Uuid
+  content     Json
+  metadata    Json?
+  type        String       @default("text")
+  updatedAt   DateTime     @updatedAt
   chatSession ChatSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user        UserProfile? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([sessionId])

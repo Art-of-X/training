@@ -13,6 +13,7 @@ import {
     createGetPortfolioItemDetailsTool,
     createGenerateThoughtProvokingQuestionTool,
     createGetPredefinedQuestionTool,
+    createSaveUserMemoryTool,
     // Removed language detection tools
     // createDetectAndSetLanguageTool,
     // createGetLanguagePreferenceTool,
@@ -71,9 +72,18 @@ export async function generateAICoreResponse(
         apiKey: process.env.OPENAI_API_KEY,
     });
 
+    // Fetch user memory from preferences
+    const userContext = await createCheckUserContextTool(userId).execute({}, { toolCallId: '', messages: [] });
+    const userMemory = userContext.userMemory;
+
+    let fullSystemPrompt = `${systemPrompt}\n${developerPrompt}`;
+    if (userMemory) {
+        fullSystemPrompt += `\n\n[User Memory]\n${userMemory}`;
+    }
+
     const { text, toolCalls, finishReason, usage } = await generateText({
         model: openai('gpt-4o-mini'),
-        system: `${systemPrompt}\n${developerPrompt}`,
+        system: fullSystemPrompt,
         messages,
         tools: {
             webSearch: createWebSearchTool(),
@@ -88,7 +98,7 @@ export async function generateAICoreResponse(
             analyzeLink: createAnalyzeLinkTool(userId),
             checkUserContext: createCheckUserContextTool(userId),
             getPredefinedQuestion: createGetPredefinedQuestionTool(userId),
-
+            saveUserMemory: createSaveUserMemoryTool(userId),
         },
         maxSteps: 10,
     });

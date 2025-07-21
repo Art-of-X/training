@@ -411,6 +411,34 @@ export const createAnalyzeLinkTool = (userId: string) => tool({
     }
 });
 
+export const createSaveUserMemoryTool = (userId: string) => tool({
+    description: 'Save essential user information, preferences, or recurring details into the user\'s memory for future sessions. This helps the AI recall important facts about the user without needing to be explicitly reminded.',
+    parameters: z.object({
+        content: z.string().describe('The essential information to save about the user. This should be a concise summary of their preferences, key skills, artistic style, or any other recurring details that are important for personalizing future interactions.'),
+    }),
+    execute: async ({ content }) => {
+        try {
+            await prisma.userPreferences.upsert({
+                where: { userId },
+                update: {
+                    memory: content,
+                    updatedAt: new Date()
+                },
+                create: {
+                    userId,
+                    preferredLanguage: 'en', // Default if not set
+                    ttsEnabled: true,
+                    memory: content,
+                },
+            });
+            return { success: true, message: 'User memory updated successfully.' };
+        } catch (error: any) {
+            console.error('Error in saveUserMemoryTool:', error);
+            return { success: false, error: `Failed to save user memory: ${error.message}` };
+        }
+    }
+});
+
 export const createCheckUserContextTool = (userId: string) => tool({
     description: 'Check the user\'s internal context on our platform: portfolio, recent conversations, etc. This is the **first step** in any interaction. Based on the output, decide if you need to perform external research using the `webSearch` tool before asking a question.',
     parameters: z.object({}),
@@ -457,6 +485,13 @@ export const createCheckUserContextTool = (userId: string) => tool({
                 ) : false;
             const userHasResponded = lastUserMessage && lastAssistantMessage ? lastUserMessage.createdAt > lastAssistantMessage.createdAt : false;
 
+            // Fetch user preferences including memory
+            const userPreferences = await prisma.userPreferences.findUnique({
+                where: { userId },
+                select: { memory: true }
+            });
+            const userMemory = userPreferences?.memory || null;
+
             return {
                 success: true,
                 userProfile,
@@ -470,11 +505,7 @@ export const createCheckUserContextTool = (userId: string) => tool({
                 recentMessages: recentMessages.map(m => ({ role: m.role, content: m.content, createdAt: m.createdAt })),
                 hasAskedQuestion,
                 userHasResponded,
-                // Removed language fields
-                // language: {
-                //     preferredLanguage: 'en', // Will be updated after migration
-                //     needsLanguageDetection: true
-                // },
+                userMemory, // Pass user memory to the AI
                 context: {
                     isNewUser: portfolioItems.length === 0 && recentSessions.length === 0,
                     needsMorePortfolioItems: portfolioItems.length < 3,

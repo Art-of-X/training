@@ -564,22 +564,21 @@ const processVoiceInput = async (audioBlob: Blob) => {
     
     const { text } = await response.json();
     
+    // Always update the recording message, even if text is empty
     if (text && text.trim()) {
-      // Update the recording message with transcription
       updateRecordingToTranscription(text.trim());
-      scrollToBottom();
-      
-      // Process the message with AI without adding another user message
       await processAIResponse();
     } else {
-      // Remove the message if no transcription
-      removeRecordingMessage();
+      // If no text, inform the user
+      updateRecordingToTranscription('No speech detected.');
     }
+    scrollToBottom(); // Ensure scroll happens after message update
+
   } catch (e) {
     error.value = e;
     console.error('Error processing voice input:', e);
-    // Remove the message on error
-    removeRecordingMessage();
+    // Remove the message on error, or change to an error message
+    removeRecordingMessage(); // Or update with 'Error processing voice input.'
   } finally {
     isLoading.value = false;
   }

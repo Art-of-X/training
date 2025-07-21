@@ -85,6 +85,29 @@
                       >
                         Sign Out
                       </button>
+                      <div class="border-t border-secondary-100 dark:border-secondary-700 my-2"></div>
+                      <div class="flex flex-col space-y-1 px-4 pb-2">
+                        <template v-for="link in versionConfig.footerLinks" :key="link.to">
+                          <NuxtLink
+                            v-if="!link.external"
+                            :to="link.to"
+                            class="dropdown-item px-0 text-xs"
+                            @click="closeUserMenu"
+                          >
+                            {{ link.text }}
+                          </NuxtLink>
+                          <a
+                            v-else
+                            :href="link.to"
+                            class="dropdown-item px-0 text-xs"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            @click="closeUserMenu"
+                          >
+                            {{ link.text }}
+                          </a>
+                        </template>
+                      </div>
                     </div>
                   </div>
                 </transition>

@@ -2,19 +2,13 @@
   <div class="h-full">
     <div class="container-wide flex flex-col flex-grow min-h-0">
       <!-- Header -->
-      <div class="text-left py-8">
-        <h1 class="text-3xl font-bold text-secondary-900 dark:text-white mb-2">Welcome, <span class="text-primary-500">{{ userProfile?.name || 'Artist' }}</span>. Let's train your <span class="text-primary-500 italic">spark</span>.</h1>
-        <p class="text-2xl text-secondary-600 dark:text-secondary-300">
-          Start adding your portfolio and answer questions to train your personal model.
-        </p>
-      </div>
   
-      <div class="flex-grow items-start pb-8 overflow-hidden min-h-0">
+      <div class="flex-grow items-start overflow-hidden min-h-0 py-8">
         
         <!-- Left Column: Training Modules -->
         <div class="h-full flex flex-col">
           <div class="sticky top-0 z-10 flex items-center justify-between border-b pb-2 pt-1 bg-white dark:bg-secondary-900 mb-4 flex-shrink-0">
-            <h2 class="text-2xl font-semibold text-secondary-900 dark:text-white">Training your spark</h2>
+        <h1 class="text-2xl font-bold text-secondary-900 dark:text-white mb-2">Welcome, <span class="text-primary-500">{{ userProfile?.name || 'Artist' }}</span>. Let's train your <span class="text-primary-500 italic">spark</span>.</h1>
             
             <!-- Switcher -->
             <div class="flex bg-secondary-100 dark:bg-secondary-800 rounded-lg p-1">
@@ -151,25 +145,7 @@ const trainingModules = computed(() => [
   }
 ]);
 
-const loadProgress = async () => {
-  try {
-    const data = await $fetch<ProgressData>('/api/user/progress');
-    progressData.value = data;
-  } catch (error) {
-    console.error('Failed to load progress data:', error);
-  }
-};
-
-// Load progress on mount
-onMounted(() => {
-  loadProgress();
-})
-
-// If you have a user watcher for progress, you can keep it
-const user = useSupabaseUser()
-watch(user, () => {
-  loadProgress();
-})
+// Remove any code that fetches or uses /api/user/progress, including error handling and data usage.
 
 // Key to force VoiceAgent recreation when switching to voice tab
 const voiceAgentKey = ref(0);
