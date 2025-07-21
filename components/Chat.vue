@@ -6,15 +6,16 @@
       </header>
       <div class="flex-1 overflow-y-auto p-4 space-y-4">
         <div v-for="(message, index) in messages" :key="index" :class="message.role === 'user' ? 'flex justify-end' : 'flex'">
+          <div v-if="message.role !== 'user'" class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
+            <DashboardX class="w-full h-full" />
+          </div>
           <div
             class="p-3 rounded-lg max-w-lg"
             :class="message.role === 'user' ? 'bg-primary-500 text-white' : 'bg-secondary-200 dark:bg-secondary-700'"
           >
             <p v-if="message.content" class="whitespace-pre-wrap">{{ message.content }}</p>
-            <div v-else class="typing-indicator">
-              <span></span>
-              <span></span>
-              <span></span>
+            <div v-else class="flex items-center space-x-1 text-secondary-900 dark:text-white">
+              <span>Thinking</span><span>.</span><span>.</span><span>.</span>
             </div>
           </div>
         </div>
@@ -40,7 +41,7 @@
     </div>
     
     <!-- Embedded Chat (playground style) -->
-    <div v-else class="flex flex-col h-full max-w-4xl mx-auto w-full">
+    <div v-else class="flex flex-col h-full w-full">
       <div class="flex justify-end mb-2">
         <button @click="showHistoryModal = true" class="btn-secondary text-sm px-3 py-1">View History</button>
       </div>
@@ -52,7 +53,10 @@
         style="scroll-behavior: smooth;"
       >
         <div v-for="(message, index) in messages" :key="index" 
-             :class="['mb-4', message.role === 'user' || message.role === 'recording' ? 'text-right' : 'text-left']">
+             :class="['mb-4 flex', message.role === 'user' || message.role === 'recording' ? 'justify-end' : 'justify-start']">
+          <div v-if="message.role !== 'user' && message.role !== 'recording'" class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
+            <DashboardX class="w-full h-full" />
+          </div>
           <div :class="['inline-block py-2 px-3 rounded-lg max-w-[80%]', 
                         message.role === 'user' 
                           ? 'bg-secondary-500 text-white' 
@@ -62,21 +66,20 @@
              <div v-if="message.role === 'recording'" class="whitespace-pre-wrap">{{ message.content }}</div>
              <p v-else-if="message.content" class="whitespace-pre-wrap">{{ message.content }}</p>
              <!-- This is the "thinking" indicator -->
-             <div v-else class="typing-indicator">
-              <span></span>
-              <span></span>
-              <span></span>
+             <div v-else class="flex items-center space-x-1 text-white">
+              <span>Thinking</span><span>.</span><span>.</span><span>.</span>
             </div>
           </div>
         </div>
         
         <!-- Loading animation for the very first message -->
-        <div v-if="isLoading && messages.length === 0" class="mb-4 text-left">
+        <div v-if="isLoading && messages.length === 0" class="mb-4 flex justify-start">
+          <div class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
+            <DashboardX class="w-full h-full" />
+          </div>
           <div class="inline-block py-2 px-3 rounded-lg max-w-[80%] bg-primary-500 text-white">
-            <div class="typing-indicator">
-              <span></span>
-              <span></span>
-              <span></span>
+            <div class="flex items-center space-x-1">
+              <span>Thinking</span><span>.</span><span>.</span><span>.</span>
             </div>
           </div>
         </div>
@@ -86,11 +89,13 @@
           {{ error.message }}
         </div>
          <!-- Upload Progress Indicator -->
-        <div v-if="isUploadingFile" class="mb-4 text-left">
+        <div v-if="isUploadingFile" class="mb-4 flex justify-start">
+           <div class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
+            <DashboardX class="w-full h-full" />
+          </div>
            <div class="inline-block py-2 px-3 rounded-lg max-w-[80%] bg-secondary-200 dark:bg-secondary-700">
-             <div class="flex items-center space-x-2 text-sm">
-                <div class="loading-spinner-sm"></div>
-                <span>Uploading file...</span>
+             <div class="flex items-center space-x-1 text-sm text-secondary-900 dark:text-white">
+                <span>Thinking</span><span>.</span><span>.</span><span>.</span>
              </div>
           </div>
         </div>
@@ -221,6 +226,7 @@
 <script setup lang="ts">
 import { useChat } from '~/composables/useChat';
 import { onMounted, onUnmounted, ref, watch, nextTick, computed } from 'vue';
+import DashboardX from '~/components/DashboardX.vue';
 
 // Props
 interface Props {
@@ -600,16 +606,23 @@ const handleProactiveFileUpload = async (event: Event) => {
         // Process the file in the background
         try {
             console.log('Processing uploaded file:', response.url);
-            // Call the AI to process the file
+            // Create a system message to ensure the AI processes the document
+            const systemMessage = {
+                role: 'system' as const,
+                content: 'The user has uploaded a document. Please analyze it thoroughly and be prepared to answer questions about it.'
+            };
+
+            // Create the user message with document upload
+            const userMessage = {
+                role: 'user' as const,
+                content: `I have uploaded a file. Please use the documentProcessing tool to analyze this file: ${response.url}. The context is: user uploaded creative work or portfolio materials.`
+            };
+
+            // Call the AI to process the file with both system and user messages
             const aiResponse = await $fetch('/api/chat/message', {
                 method: 'POST',
                 body: { 
-                    messages: [
-                        {
-                            role: 'user',
-                            content: `Please use the documentProcessing tool to analyze this uploaded file: ${response.url}`
-                        }
-                    ]
+                    messages: [systemMessage, userMessage]
                 },
                 timeout: 60000, // 60 second timeout for AI processing
             });
@@ -618,6 +631,11 @@ const handleProactiveFileUpload = async (event: Event) => {
             
             // Add the AI response to the chat
             if (aiResponse && aiResponse.content) {
+                // Add the system message first (won't be displayed)
+                messages.value.push(systemMessage);
+                // Then add the user's upload message
+                messages.value.push(userMessage);
+                // Then add the assistant's response
                 messages.value.push({
                     role: 'assistant',
                     content: aiResponse.content

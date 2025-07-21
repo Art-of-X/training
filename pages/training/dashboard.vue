@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full flex flex-col">
+  <div class="h-full">
     <div class="container-wide flex flex-col flex-grow min-h-0">
       <!-- Header -->
       <div class="text-left py-8">
@@ -9,10 +9,10 @@
         </p>
       </div>
   
-      <div class="flex-grow grid grid-cols-1 md:grid-cols-3 gap-8 items-start pb-8 overflow-hidden min-h-0">
+      <div class="flex-grow items-start pb-8 overflow-hidden min-h-0">
         
         <!-- Left Column: Training Modules -->
-        <div class="h-full flex flex-col md:col-span-2">
+        <div class="h-full flex flex-col">
           <div class="sticky top-0 z-10 flex items-center justify-between border-b pb-2 pt-1 bg-white dark:bg-secondary-900 mb-4 flex-shrink-0">
             <h2 class="text-2xl font-semibold text-secondary-900 dark:text-white">Training your spark</h2>
             
@@ -77,62 +77,6 @@
 
           </div>
         </div>
-
-        <!-- Right Column: Thinking insights and Using your AI -->
-        <div class="h-full overflow-y-auto space-y-8">
-          <!-- Thinking insights section -->
-          <div>
-            <h2 class="sticky top-0 z-10 text-2xl font-semibold text-secondary-900 dark:text-white mb-4 border-b pb-2 pt-1 bg-white dark:bg-secondary-900">Thinking insights</h2>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <!-- Mental Model Card -->
-              <div class="block cursor-not-allowed opacity-60">
-                <div class="h-full">
-                  <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-secondary-900 dark:text-white">Mental Model</h3>
-                    <span class="text-xs font-semibold bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300 px-2 py-1">SOON</span>
-                  </div>
-                  <p class="text-sm text-secondary-600 dark:text-secondary-300 mt-1">
-                    Explore how your AI thinks and makes creative decisions.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Using your AI section -->
-          <div>
-            <h2 class="sticky top-0 z-10 text-2xl font-semibold text-secondary-900 dark:text-white mb-4 border-b pb-2 pt-1 bg-white dark:bg-secondary-900">Using your AI</h2>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <!-- API Card -->
-              <div class="block cursor-not-allowed opacity-60">
-                <div class="h-full">
-                  <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-secondary-900 dark:text-white">API</h3>
-                    <span class="text-xs font-semibold bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300 px-2 py-1">SOON</span>
-                  </div>
-                  <p class="text-sm text-secondary-600 dark:text-secondary-300 mt-1">
-                    Integrate your model into your own applications.
-                  </p>
-                </div>
-              </div>
-
-              <!-- Share your AI Card -->
-              <div class="block cursor-not-allowed opacity-60">
-                <div class="h-full">
-                  <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-secondary-900 dark:text-white">Share your AI</h3>
-                    <span class="text-xs font-semibold bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300 px-2 py-1">SOON</span>
-                  </div>
-                  <p class="text-sm text-secondary-600 dark:text-secondary-300 mt-1">
-                    Make your AI publicly available for others to interact with.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -155,7 +99,7 @@ const { userProfile } = useUserProfile();
 const tabs = [
   { id: 'static', label: 'Modules' },
   { id: 'chat', label: 'Chat' },
-  { id: 'voice', label: 'Voice Agent' },
+  { id: 'voice', label: 'Voice' },
 ];
 const activeTab = ref<'static' | 'chat' | 'voice'>('voice');
 

@@ -1,5 +1,10 @@
 <template>
   <div class="flex flex-col items-center space-y-4">
+    <!-- View History Button (Moved to top right) -->
+    <div v-if="isConnected" class="flex justify-end w-full max-w-md mb-2">
+      <button @click="showHistoryModal = true" class="btn-secondary text-sm px-3 py-1">View History</button>
+    </div>
+    
     <VoiceAgentX :audioLevel="currentAudioLevel" :mode="currentMode" :forceReinit="forceReinitCounter" />
     
     <!-- Start Button (when not connected) -->
@@ -18,9 +23,9 @@
     </div>
 
     <!-- Input Form (when connected) -->
-    <div v-if="isConnected" class="flex flex-col items-center space-y-4">
+    <div v-if="isConnected" class="flex flex-col items-center space-y-4 w-full max-w-md"> <!-- Added w-full max-w-md here -->
       <!-- Text Input Bar with Attach Button and Pause -->
-      <form @submit.prevent="handleTextInput" class="flex items-center space-x-2 w-full max-w-md mt-2">
+      <form @submit.prevent="handleTextInput" class="flex items-center space-x-2 w-full mt-2">
         <input 
           type="file" 
           ref="fileInput" 
@@ -63,8 +68,7 @@
         </button>
       </form>
 
-      <!-- View History Button -->
-      <button @click="showHistoryModal = true" class="btn-secondary text-sm px-3 py-1 mt-2">View History</button>
+      <!-- View History Button - REMOVED from here -->
 
     </div>
 

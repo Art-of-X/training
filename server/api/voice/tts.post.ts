@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
         }
 
         // Use a good fallback voice for all users
-        const voiceId = 'rd0yPwDNh4pfbdvKbdrT'; // Fallback voice
+        const voiceId = 's3TPKV1kjDlVtZbl4Ksh'; // Fallback voice
 
         console.log(`TTS: Processing request for user ${user.id}, text length: ${text.length}`);
 
@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
             },
             body: JSON.stringify({
                 text,
-                model_id: 'eleven_multilingual_v2', // Or 'eleven_multilingual_v2' 'eleven_flash_v2_5'
+                model_id: 'eleven_turbo_v2_5', // Or 'eleven_multilingual_v2' 'eleven_flash_v2_5'
                 voice_settings: {
                     stability: 0.5,
                     similarity_boost: 0.5

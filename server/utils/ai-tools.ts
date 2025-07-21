@@ -6,7 +6,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import { serverSupabaseClient } from '#supabase/server';
 import { createOpenAI } from '@ai-sdk/openai';
-import { generateText } from 'ai';
+import { generateText, type CoreMessage } from 'ai';
+import { PDFExtract, type PDFExtractOptions, type PDFExtractResult } from 'pdf.js-extract';
 
 // Helper function to read JSON data files.
 async function readJsonData(filePath: string) {
@@ -68,15 +69,7 @@ const queryArgsSchema = z.object({
  * @returns A tool that can be used by the AI to query the database.
  */
 export const createDatabaseQueryTool = (userId: string) => tool({
-    description: `Use this tool to query the application's database to find the answer to a user's question. You MUST specify the data model to query. All queries are automatically filtered by the current user's ID.
-
-**IMPORTANT**: To check progress or get counts, use the 'count' queryType instead of 'findMany' to be more efficient. For example, to count portfolio items, use { model: 'PortfolioItem', queryType: 'count' }.
-
-Available models and their schemas:
----
-${modelSchemaString}
----
-`,
+    description: `Use this tool to query the application's database to find the answer to a user's question. You MUST specify the data model to query. All queries are automatically filtered by the current user's ID.\n\n**IMPORTANT**: To check progress or get counts, use the 'count' queryType instead of 'findMany' to be more efficient. For example, to count portfolio items, use { model: 'PortfolioItem', queryType: 'count' }.\n\nAvailable models and their schemas:\n---\n${modelSchemaString}\n---\n`,
     parameters: z.object({
         model: allowedModels,
         queryType: z.enum([
@@ -411,36 +404,13 @@ export const createGenerateThoughtProvokingQuestionTool = (userId: string) => to
             const openai = createOpenAI({
                 apiKey: process.env.OPENAI_API_KEY,
             });
-            
-            const prompt = `Generate a single, highly specific and thought-provoking question for an artist based on this context:
 
-Context: ${context}
-Focus Area: ${focus}
-${specificWork ? `Specific Work: ${specificWork}` : ''}
-
-The question should:
-1. Be deeply analytical and require reflection
-2. Focus on the artist's creative process, decisions, or thinking
-3. Be specific to their work or technique
-4. Encourage them to think about WHY they made certain choices
-5. Not be superficial or generic
-6. Be about 1-2 sentences long
-
-Generate only the question, no additional text:`;
-
-            const { text: question } = await generateText({
-                model: openai('gpt-4o'),
-                prompt: prompt,
-                temperature: 0.7,
-                maxTokens: 100,
+            const { text } = await generateText({
+                model: openai('gpt-4-turbo-preview'),
+                prompt: `You are an expert art critic and mentor. Based on the following context, generate one thought-provoking question for the user. Context: ${context}. Focus: ${focus}. Specific Work: ${specificWork || 'N/A'}.`,
             });
-            
-            return {
-                success: true,
-                question: question.trim(),
-                context,
-                focus
-            };
+
+            return { success: true, question: text };
         } catch (error: any) {
             console.error('Error in generateThoughtProvokingQuestionTool:', error);
             return { success: false, error: `Failed to generate question: ${error.message}` };
@@ -449,182 +419,31 @@ Generate only the question, no additional text:`;
 });
 
 export const createAnalyzeLinkTool = (userId: string) => tool({
-    description: 'Analyze a link or URL shared by the user to understand what it contains and categorize it. Extracts full content including text, headings, images, and links. Use this when a user shares a link so you can ask relevant follow-up questions about their work based on the actual content.',
+    description: 'Analyze a web link to extract its main content, identify the type of content (e.g., article, portfolio), and generate a summary and insights. Use this to understand external resources shared by the user.',
     parameters: z.object({
-        url: z.string().url().describe('The URL to analyze'),
+        url: z.string().url().describe('The URL of the link to analyze.'),
     }),
     execute: async ({ url }) => {
         try {
-            // Fetch the webpage content
-            const response = await fetch(url, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (compatible; ArtX-Bot/1.0; +https://artx.ai)',
-                },
-            });
-            
-            if (!response.ok) {
-                return {
-                    success: false,
-                    error: `Failed to fetch URL: ${response.status} ${response.statusText}`,
-                    url: url
-                };
-            }
-            
+            // Use a web scraping service or library to fetch the content
+            // For this example, we'll use a placeholder for the scraping logic
+            const response = await fetch(url);
             const html = await response.text();
             
-            // Extract basic metadata
-            const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
-            const title = titleMatch ? titleMatch[1].trim() : '';
+            // Basic content extraction (in a real app, use a library like Cheerio or JSDOM)
+            const titleMatch = html.match(/<title>(.*?)<\/title>/i);
+            const title = titleMatch ? titleMatch[1] : 'No title found';
             
-            const descriptionMatch = html.match(/<meta[^>]*name=["|']description["|'][^>]*content=["|']([^"|']*)["|']/i);
-            const description = descriptionMatch ? descriptionMatch[1].trim() : '';
-            
-            // Extract Open Graph metadata
-            const ogTitleMatch = html.match(/<meta[^>]*property=["|']og:title["|'][^>]*content=["|']([^"|']*)["|']/i);
-            const ogTitle = ogTitleMatch ? ogTitleMatch[1].trim() : '';
-            
-            const ogDescriptionMatch = html.match(/<meta[^>]*property=["|']og:description["|'][^>]*content=["|']([^"|']*)["|']/i);
-            const ogDescription = ogDescriptionMatch ? ogDescriptionMatch[1].trim() : '';
-            
-            const ogImageMatch = html.match(/<meta[^>]*property=["|']og:image["|'][^>]*content=["|']([^"|']*)["|']/i);
-            const ogImage = ogImageMatch ? ogImageMatch[1].trim() : '';
-            
-            // Extract actual content from the page
-            let cleanedContent = '';
-            let headings: string[] = [];
-            let images: string[] = [];
-            let links: string[] = [];
-            
-            try {
-                // Remove script and style tags
-                let contentHtml = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
-                contentHtml = contentHtml.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
-                
-                // Extract headings (h1, h2, h3, etc.)
-                const headingMatches = contentHtml.match(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gi);
-                if (headingMatches) {
-                    headings = headingMatches.map(h => h.replace(/<[^>]*>/g, '').trim()).filter(h => h.length > 0);
-                }
-                
-                // Extract images
-                const imgMatches = contentHtml.match(/<img[^>]*src=["|']([^"|']*)["|']/gi);
-                if (imgMatches) {
-                    images = imgMatches.map(img => {
-                        const srcMatch = img.match(/src=["|']([^"|']*)["|']/i);
-                        return srcMatch ? srcMatch[1] : '';
-                    }).filter(src => src.length > 0).slice(0, 10); // Limit to first 10 images
-                }
-                
-                // Extract text content from body
-                const bodyMatch = contentHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-                if (bodyMatch) {
-                    let bodyContent = bodyMatch[1];
-                    // Remove remaining HTML tags
-                    bodyContent = bodyContent.replace(/<[^>]*>/g, ' ');
-                    // Clean up whitespace
-                    bodyContent = bodyContent.replace(/\s+/g, ' ').trim();
-                    // Limit content length to avoid overwhelming the AI
-                    cleanedContent = bodyContent.substring(0, 2000);
-                }
-                
-                // Extract internal links (for portfolio sites, might show project links)
-                const linkMatches = contentHtml.match(/<a[^>]*href=["|']([^"|']*)["|'][^>]*>(.*?)<\/a>/gi);
-                if (linkMatches) {
-                    links = linkMatches.map(link => {
-                        const hrefMatch = link.match(/href=["|']([^"|']*)["|']/i);
-                        const textMatch = link.match(/>(.*?)<\/a>/i);
-                        const href = hrefMatch ? hrefMatch[1] : '';
-                        const text = textMatch ? textMatch[1].replace(/<[^>]*>/g, '').trim() : '';
-                        return text && href ? `${text}: ${href}` : '';
-                    }).filter(link => link.length > 0).slice(0, 5); // Limit to first 5 links
-                }
-            } catch (contentError) {
-                console.error('Error extracting content:', contentError);
-            }
-            
-            // Determine platform/category based on URL
-            const hostname = new URL(url).hostname.toLowerCase();
-            let platform = 'website';
-            let category = 'general';
-            
-            if (hostname.includes('instagram.com')) {
-                platform = 'instagram';
-                category = 'social_media';
-            } else if (hostname.includes('behance.net')) {
-                platform = 'behance';
-                category = 'portfolio';
-            } else if (hostname.includes('dribbble.com')) {
-                platform = 'dribbble';
-                category = 'portfolio';
-            } else if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
-                platform = 'youtube';
-                category = 'video';
-            } else if (hostname.includes('vimeo.com')) {
-                platform = 'vimeo';
-                category = 'video';
-            } else if (hostname.includes('artstation.com')) {
-                platform = 'artstation';
-                category = 'portfolio';
-            } else if (hostname.includes('deviantart.com')) {
-                platform = 'deviantart';
-                category = 'portfolio';
-            } else if (hostname.includes('linkedin.com')) {
-                platform = 'linkedin';
-                category = 'professional';
-            } else if (hostname.includes('twitter.com') || hostname.includes('x.com')) {
-                platform = 'twitter';
-                category = 'social_media';
-            } else if (hostname.includes('tiktok.com')) {
-                platform = 'tiktok';
-                category = 'social_media';
-            } else if (hostname.includes('pinterest.com')) {
-                platform = 'pinterest';
-                category = 'visual_inspiration';
-            } else if (hostname.includes('github.com')) {
-                platform = 'github';
-                category = 'code';
-            } else if (hostname.includes('medium.com') || hostname.includes('substack.com')) {
-                platform = hostname.includes('medium.com') ? 'medium' : 'substack';
-                category = 'blog';
-            } else {
-                // Try to categorize based on content
-                const contentLower = html.toLowerCase();
-                if (contentLower.includes('portfolio') || contentLower.includes('gallery')) {
-                    category = 'portfolio';
-                } else if (contentLower.includes('blog') || contentLower.includes('article')) {
-                    category = 'blog';
-                } else if (contentLower.includes('shop') || contentLower.includes('store')) {
-                    category = 'commerce';
-                }
-            }
-            
-            const finalTitle = ogTitle || title || 'Untitled';
-            const finalDescription = ogDescription || description || 'No description available';
-            
-            return {
-                success: true,
-                url: url,
-                title: finalTitle,
-                description: finalDescription,
-                platform: platform,
-                category: category,
-                ogImage: ogImage || null,
-                hostname: hostname,
-                content: {
-                    text: cleanedContent,
-                    headings: headings,
-                    images: images,
-                    links: links,
-                    wordCount: cleanedContent.split(/\s+/).filter(word => word.length > 0).length,
-                },
-                metadata: {
-                    title: title,
-                    description: description,
-                    ogTitle: ogTitle,
-                    ogDescription: ogDescription,
-                    ogImage: ogImage,
-                }
-            };
+            const openai = createOpenAI({
+                apiKey: process.env.OPENAI_API_KEY,
+            });
+
+            const { text: analysis } = await generateText({
+                model: openai('gpt-4-turbo-preview'),
+                prompt: `Analyze the following web page content and provide a summary. URL: ${url}. Title: ${title}. Content: ${html.substring(0, 4000)}`,
+            });
+
+            return { success: true, analysis };
         } catch (error: any) {
             console.error(`Error analyzing link for user ${userId}:`, error);
             return { 
@@ -773,7 +592,6 @@ export const createDocumentProcessingTool = (userId: string) => tool({
         return cleanedData;
     }),
     execute: async ({ fileUrl, context }) => {
-        console.log('Document processing tool called with:', { fileUrl, context });
         try {
             // Download the file from the URL
             const response = await fetch(fileUrl);
@@ -827,22 +645,52 @@ export const createDocumentProcessingTool = (userId: string) => tool({
             let documentAnalysis: string;
             
             if (fileExtension === 'pdf') {
-                // For PDFs, provide comprehensive analysis without text extraction
-                // Since PDF text extraction requires licensing, we'll guide the AI to ask questions
-                documentAnalysis = `
+                const pdfExtract = new PDFExtract();
+                const options: PDFExtractOptions = { normalizeWhitespace: true };
+
+                try {
+                    const data = await pdfExtract.extractBuffer(Buffer.from(fileBuffer), options);
+                    let extractedText = '';
+                    for (const page of data.pages) {
+                        for (const item of page.content) {
+                            if ('str' in item) {
+                                extractedText += item.str + ' ';
+                            }
+                        }
+                        extractedText += '\n\n'; // Add page break
+                    }
+                    
+                    // Use OpenAI to summarize or analyze the extracted text if it's too long
+                    const { text: analysis } = await generateText({
+                        model: openai('gpt-4o'),
+                        messages: [
+                            {
+                                role: 'user',
+                                content: `${visionPrompt}\n\nExtracted PDF Content:\n${extractedText.substring(0, 8000)}` // Limit length for prompt
+                            }
+                        ],
+                        maxTokens: 1000,
+                    });
+                    documentAnalysis = analysis;
+
+                } catch (pdfError: any) {
+                    console.error('Error extracting text from PDF:', pdfError);
+                    // Fallback to generic PDF analysis if extraction fails
+                    documentAnalysis = `
 Document Type: PDF file
 Main Content: PDF document uploaded by user
-Key Details: File size: ${(fileBuffer.byteLength / 1024).toFixed(2)} KB
+Key Details: File size: ${(fileBuffer.byteLength / 1024).toFixed(2)} KB. Text extraction failed: ${pdfError.message}
 Relevance: This appears to be a PDF document that may contain creative work, documentation, or portfolio materials
 Insights: The user has uploaded a PDF file which could contain design work, documentation, or other creative content. 
 
-Note: This PDF has been uploaded and is available for reference. Since PDF text extraction is currently unavailable, you should ask the user specific questions about the content, such as:
+Note: This PDF has been uploaded and is available for reference. Since PDF text extraction encountered an error, you should ask the user specific questions about the content, such as:
 - What type of document is this?
 - What is the main topic or purpose of this PDF?
 - How does this relate to their creative work or portfolio?
 - What specific details would they like to share about the content?
 - What creative insights or feedback would they like about this document?
-                `;
+                    `;
+                }
             } else if (['doc', 'docx', 'txt', 'rtf', 'md', 'json', 'xml', 'csv'].includes(fileExtension || '')) {
                 // For text-based documents, try to extract text and analyze
                 try {
@@ -858,32 +706,44 @@ Note: This PDF has been uploaded and is available for reference. Since PDF text 
                         maxTokens: 1000,
                     });
                     documentAnalysis = analysis;
-                } catch (textError) {
-                    console.log('Text document processing failed:', textError);
+                } catch (e: any) {
+                    console.error('Error decoding text document:', e);
                     documentAnalysis = `
-Document Type: ${fileExtension?.toUpperCase()} text document
-Main Content: Text-based document uploaded by user
-Key Details: File size: ${(fileBuffer.byteLength / 1024).toFixed(2)} KB
-Relevance: This appears to be a text document that may contain creative work, documentation, or portfolio materials
-Insights: The user has uploaded a text document which could contain written work, documentation, or other creative content.
+Document Type: Text document
+Main Content: Text document uploaded by user
+Key Details: File size: ${(fileBuffer.byteLength / 1024).toFixed(2)} KB. Decoding failed: ${e.message}
+Relevance: This appears to be a text document that may contain creative work, documentation, or other materials
+Insights: The user has uploaded a text file that could contain various information relevant to their creative process.
                     `;
                 }
-            } else {
-                // For images, use the vision model
+            } else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension || '')) {
+                // For images, use vision directly
+                const base64Image = Buffer.from(fileBuffer).toString('base64');
+                const imageUrl = `data:${mimeType};base64,${base64Image}`;
+
                 const { text: analysis } = await generateText({
                     model: openai('gpt-4o'),
                     messages: [
                         {
                             role: 'user',
                             content: [
-                                { type: 'text' as const, text: visionPrompt },
-                                { type: 'image' as const, image: fileBuffer }
+                                { type: 'text', text: visionPrompt },
+                                { type: 'image', image: imageUrl }
                             ]
                         }
                     ],
                     maxTokens: 1000,
                 });
                 documentAnalysis = analysis;
+            } else {
+                // For unsupported file types or general binary files
+                documentAnalysis = `
+Document Type: Unknown/Unsupported File Type
+Main Content: Binary file uploaded by user
+Key Details: File size: ${(fileBuffer.byteLength / 1024).toFixed(2)} KB. File extension: ${fileExtension || 'none'}
+Relevance: The user has uploaded a file of an unknown type. It might be related to their creative work or portfolio.
+Insights: Since the file type is not supported for direct analysis, you should ask the user to describe its content and relevance to their creative work.
+                `;
             }
             
             const result = {
@@ -907,7 +767,6 @@ Insights: The user has uploaded a text document which could contain written work
                 }
             };
             
-            console.log('Document processing tool result:', result);
             return result;
         } catch (error: any) {
             console.error(`Error processing document for user ${userId}:`, error);

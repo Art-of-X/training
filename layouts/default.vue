@@ -79,20 +79,6 @@
                       >
                         Training Dashboard
                       </NuxtLink>
-                      <NuxtLink
-                        to="/training/chat"
-                        class="dropdown-item"
-                        @click="closeUserMenu"
-                      >
-                        AI Chat
-                      </NuxtLink>
-                      <NuxtLink
-                        to="/training/voice"
-                        class="dropdown-item"
-                        @click="closeUserMenu"
-                      >
-                        Voice Agent
-                      </NuxtLink>
                       <button
                         @click="handleSignOut"
                         class="dropdown-item w-full text-left"
@@ -103,42 +89,6 @@
                   </div>
                 </transition>
               </div>
-
-              <!-- Mobile Menu Button -->
-              <button
-                @click="toggleMobileMenu"
-                class="md:hidden p-2 -mr-2 text-secondary-600 hover:text-secondary-900 dark:text-secondary-300 dark:hover:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
-              >
-                <span class="sr-only">Open main menu</span>
-                <svg
-                  v-if="!isMobileMenuOpen"
-                  class="h-6 w-6"
-                  stroke="currentColor"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-                <svg
-                  v-else
-                  class="h-6 w-6"
-                  stroke="currentColor"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
             </div>
 
             <!-- Guest Nav -->
@@ -150,49 +100,6 @@
             </nav>
           </div>
         </div>
-
-        <!-- Mobile Menu Panel -->
-        <transition
-          enter-active-class="duration-200 ease-out"
-          enter-from-class="opacity-0 scale-95"
-          enter-to-class="opacity-100 scale-100"
-          leave-active-class="duration-100 ease-in"
-          leave-from-class="opacity-100 scale-100"
-          leave-to-class="opacity-0 scale-95"
-        >
-          <div
-            v-if="isMobileMenuOpen && user"
-            class="md:hidden absolute top-16 inset-x-0 p-2 transition transform origin-top-right z-30"
-          >
-            <div
-              class="rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 bg-white dark:bg-secondary-800 divide-y-2 divide-secondary-50 dark:divide-secondary-700"
-            >
-              <div class="pt-2 pb-3 space-y-1">
-                <NuxtLink
-                  to="/training/dashboard"
-                  class="mobile-nav-link"
-                  @click="closeMobileMenu"
-                >
-                  Training
-                </NuxtLink>
-                <NuxtLink
-                  to="/training/chat"
-                  class="mobile-nav-link"
-                  @click="closeMobileMenu"
-                >
-                  AI Chat
-                </NuxtLink>
-                <NuxtLink
-                  to="/training/voice"
-                  class="mobile-nav-link"
-                  @click="closeMobileMenu"
-                >
-                  Voice Agent
-                </NuxtLink>
-              </div>
-            </div>
-          </div>
-        </transition>
       </div>
     </header>
 
@@ -238,8 +145,6 @@ useHead({
 
 // State
 const isUserMenuOpen = ref(false);
-const isMobileMenuOpen = ref(false);
-const userMenuRef = ref<HTMLElement>();
 
 // Computed
 const userInitials = computed(() => {
@@ -255,50 +160,22 @@ const userInitials = computed(() => {
 // Methods
 const toggleUserMenu = () => {
   isUserMenuOpen.value = !isUserMenuOpen.value;
-  isMobileMenuOpen.value = false;
 };
 
 const closeUserMenu = () => {
   isUserMenuOpen.value = false;
 };
 
-const toggleMobileMenu = () => {
-  isMobileMenuOpen.value = !isMobileMenuOpen.value;
-  isUserMenuOpen.value = false;
-};
-
-const closeMobileMenu = () => {
-  isMobileMenuOpen.value = false;
-};
-
 const handleSignOut = async () => {
   closeUserMenu();
-  closeMobileMenu();
   await signOut();
 };
-
-// Close menus when clicking outside
-const handleClickOutside = (event: Event) => {
-  if (userMenuRef.value && !userMenuRef.value.contains(event.target as Node)) {
-    closeUserMenu();
-  }
-};
-
-// Lifecycle
-onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
-});
-
-onUnmounted(() => {
-  document.removeEventListener("click", handleClickOutside);
-});
 
 // Close menus on route change
 watch(
   () => useRoute().path,
   () => {
     closeUserMenu();
-    closeMobileMenu();
   }
 );
 </script>
@@ -315,13 +192,6 @@ body {
 
 .nav-link.active {
   @apply text-primary-600 dark:text-primary-400;
-}
-
-.mobile-nav-link {
-  @apply block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-secondary-600 hover:bg-secondary-50 hover:border-secondary-300 hover:text-secondary-800 dark:text-secondary-300 dark:hover:bg-secondary-700 dark:hover:text-white;
-}
-.mobile-nav-link.active {
-  @apply bg-primary-50 border-primary-500 text-primary-700 dark:bg-primary-900/20 dark:border-primary-400 dark:text-primary-300;
 }
 
 .dropdown-item {

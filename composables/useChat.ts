@@ -186,10 +186,54 @@ export const useChat = () => {
   // Function to set session ID and load messages for a historical session
   const loadSession = (sessionMessages: CoreMessage[], sessionId: string) => {
     stop(); // Abort any ongoing fetch requests
-    messages.value = sessionMessages; // Load all messages from the selected session
+    
+    // Process messages to ensure proper formatting and preserve document context
+    const processedMessages: CoreMessage[] = sessionMessages.map(msg => {
+      // For system messages, ensure content is a string
+      if (msg.role === 'system') {
+        return {
+          ...msg,
+          content: typeof msg.content === 'string' 
+            ? msg.content 
+            : JSON.stringify(msg.content)
+        };
+      }
+      
+      // For user and assistant messages, ensure content is properly formatted
+      if (msg.role === 'user' || msg.role === 'assistant') {
+        // If content is already properly formatted, return as is
+        if (Array.isArray(msg.content) && msg.content.every(part => 
+          part && typeof part === 'object' && 'type' in part
+        )) {
+          return msg;
+        }
+        
+        // Convert string content to proper format
+        const content = typeof msg.content === 'string' 
+          ? [{ type: 'text' as const, text: msg.content }]
+          : [];
+          
+        return {
+          ...msg,
+          content
+        };
+      }
+      
+      // For any other message type, return as is
+      return msg;
+    });
+    
+    // Include all messages, including system messages for context
+    messages.value = processedMessages;
     currentSessionId.value = sessionId; // Set the current session ID
     abortController = new AbortController(); // Re-create the controller for future requests
-    // Do NOT trigger getInitialMessage here, as we are continuing an existing session.
+    
+    console.log('Loaded session:', {
+      sessionId,
+      messageCount: processedMessages.length,
+      hasSystemMessages: processedMessages.some(m => m.role === 'system'),
+      messageRoles: processedMessages.map(m => m.role)
+    });
   };
 
   // Voice functionality
