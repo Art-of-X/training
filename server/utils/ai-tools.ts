@@ -203,45 +203,6 @@ export const createGetPortfolioProgressTool = (userId: string) => tool({
     }
 });
 
-export const createAddPortfolioLinkTool = (userId: string) => tool({
-    description: 'Add a new portfolio item using a URL or file. Use this when the user provides a link to their work or uploads a file, along with a description. This captures their historical work and creative output.',
-    parameters: z.object({
-        link: z.string().url().describe('The URL of the portfolio item or uploaded file.'),
-        description: z.string().describe('A description of the portfolio item provided by the user.'),
-    }),
-    execute: async ({ link, description }) => {
-        if (!userId) {
-            return { success: false, error: 'User is not authenticated.' };
-        }
-        try {
-            // Check if this is a file upload or a regular link
-            const isFileUpload = link.includes('supabase') || link.includes('uploads');
-            
-            const newItem = await prisma.portfolioItem.create({
-                data: {
-                    userId,
-                    link,
-                    description,
-                    ...(isFileUpload ? { filePath: link } : {}),
-                }
-            });
-            
-            // Get updated portfolio count
-            const portfolioCount = await prisma.portfolioItem.count({ where: { userId } });
-            
-            return { 
-                success: true, 
-                data: newItem,
-                portfolioCount,
-                message: `Portfolio item added successfully! You now have ${portfolioCount} items in your portfolio.`
-            };
-        } catch (error: any) {
-            console.error(`Error creating portfolio item for user ${userId}:`, error);
-            return { success: false, error: `Failed to add portfolio item: ${error.message}` };
-        }
-    }
-});
-
 export const createFinalizeFileUploadTool = (userId: string, event: any) => tool({
     description: "Once the user has provided a temporary file URL and all necessary context (like a description), use this tool to finalize the upload. This moves the file to its permanent location and saves the metadata to the database as a portfolio item.",
     parameters: z.object({
@@ -324,11 +285,6 @@ export const createQueryChatSessionsTool = (userId: string) => tool({
                 },
                 include: {
                     chatMessages: {
-                        where: {
-                            OR: [
-                                { content: { contains: searchTerm, mode: 'insensitive' } },
-                            ]
-                        },
                         orderBy: { createdAt: 'asc' },
                         take: 10, // Limit messages per session
                         select: { role: true, content: true, createdAt: true }
@@ -345,8 +301,8 @@ export const createQueryChatSessionsTool = (userId: string) => tool({
                     title: session.title,
                     createdAt: session.createdAt,
                     updatedAt: session.updatedAt,
-                    messageCount: session.chatMessages.length,
-                    relevantMessages: session.chatMessages
+                    messageCount: session.chatMessages?.length || 0,
+                    relevantMessages: session.chatMessages || []
                 }))
             };
         } catch (error: any) {
@@ -491,7 +447,14 @@ export const createCheckUserContextTool = (userId: string) => tool({
             // Check if we're in the middle of a question flow
             const lastAssistantMessage = recentMessages.find(m => m.role === 'assistant');
             const lastUserMessage = recentMessages.find(m => m.role === 'user');
-            const hasAskedQuestion = lastAssistantMessage?.content.includes('?');
+            // Check if the assistant has asked a question in their last message
+            const hasAskedQuestion = lastAssistantMessage ? 
+                (Array.isArray(lastAssistantMessage.content) 
+                    ? lastAssistantMessage.content.some((part: any) => 
+                        part?.type === 'text' && part?.text?.includes('?')
+                      )
+                    : String(lastAssistantMessage.content).includes('?')
+                ) : false;
             const userHasResponded = lastUserMessage && lastAssistantMessage ? lastUserMessage.createdAt > lastAssistantMessage.createdAt : false;
 
             return {
@@ -507,10 +470,11 @@ export const createCheckUserContextTool = (userId: string) => tool({
                 recentMessages: recentMessages.map(m => ({ role: m.role, content: m.content, createdAt: m.createdAt })),
                 hasAskedQuestion,
                 userHasResponded,
-                language: {
-                    preferredLanguage: 'en', // Will be updated after migration
-                    needsLanguageDetection: true
-                },
+                // Removed language fields
+                // language: {
+                //     preferredLanguage: 'en', // Will be updated after migration
+                //     needsLanguageDetection: true
+                // },
                 context: {
                     isNewUser: portfolioItems.length === 0 && recentSessions.length === 0,
                     needsMorePortfolioItems: portfolioItems.length < 3,
@@ -533,8 +497,6 @@ export const createIntelligentDataTool = (userId: string) => tool({
         data: z.object({
             portfolioDescription: z.string().optional().describe("Portfolio item description"),
             portfolioLink: z.string().url().optional().describe("Portfolio item link"),
-            fileUrl: z.string().url().optional().describe("File URL if user uploaded something"),
-            fileDescription: z.string().optional().describe("Description of uploaded file"),
             workDetails: z.string().optional().describe("Detailed information about the work"),
             technique: z.string().optional().describe("Technique or method used"),
             inspiration: z.string().optional().describe("Inspiration or concept behind the work"),
@@ -551,20 +513,19 @@ export const createIntelligentDataTool = (userId: string) => tool({
     execute: async ({ action, context, data }) => {
         try {
             // Handle portfolio items
-            if (data.portfolioDescription || data.portfolioLink || data.fileUrl) {
+            if (data.portfolioDescription || data.portfolioLink) {
                 const newItem = await prisma.portfolioItem.create({
                     data: {
                         userId,
-                        description: data.portfolioDescription || data.fileDescription || 'Portfolio item',
+                        description: data.portfolioDescription || 'Portfolio item',
                         link: data.portfolioLink || null,
-                        filePath: data.fileUrl || null,
                     }
                 });
                 
-                return { 
-                    success: true, 
+                return {
+                    success: true,
                     action: 'portfolio_added',
-                    message: `Added to portfolio: "${data.portfolioDescription || data.fileDescription}"`,
+                    message: `Added to portfolio: "${data.portfolioDescription}"`, // Assuming description is always present if this path is taken
                     portfolioItemId: newItem.id
                 };
             }
@@ -775,69 +736,98 @@ Insights: Since the file type is not supported for direct analysis, you should a
     }
 }); 
 
-export const createDetectAndSetLanguageTool = (userId: string) => tool({
-    description: 'Detect the language of user messages and update their language preferences. Use this to ensure the conversation continues in the user\'s preferred language.',
+// Removed language detection tools
+// export const createDetectAndSetLanguageTool = (userId: string) => tool({
+//     description: 'Detect the language of user messages and update their language preferences. Use this to ensure the conversation continues in the user\'s preferred language.',
+//     parameters: z.object({
+//         detectedLanguage: z.string().describe('The detected language code (e.g., "en", "de", "fr", "es")'),
+//         confidence: z.number().optional().describe('Confidence level of language detection (0-1)'),
+//     }),
+//     execute: async ({ detectedLanguage, confidence = 0.8 }) => {
+//         try {
+//             // Only update if confidence is high enough
+//             if (confidence < 0.7) {
+//                 return { 
+//                     success: false, 
+//                     message: 'Language detection confidence too low to update preferences',
+//                     detectedLanguage,
+//                     confidence 
+//                 };
+//             }
+
+//             // Update or create user preferences
+//             await prisma.userPreferences.upsert({
+//                 where: { userId },
+//                 update: { 
+//                     preferredLanguage: detectedLanguage,
+//                     updatedAt: new Date()
+//                 },
+//                 create: {
+//                     userId,
+//                     preferredLanguage: detectedLanguage,
+//                     ttsEnabled: true
+//                 }
+//             });
+
+//             return { 
+//                 success: true, 
+//                 message: `Language preference updated to ${detectedLanguage}`,
+//                 detectedLanguage,
+//                 confidence
+//             };
+//         } catch (error: any) {
+//             console.error('Error in detectAndSetLanguageTool:', error);
+//             return { success: false, error: `Failed to update language preference: ${error.message}` };
+//         }
+//     }
+// });
+
+// export const createGetLanguagePreferenceTool = (userId: string) => tool({
+//     description: 'Get the user\'s preferred language for conversations. Use this to ensure you respond in the correct language.',
+//     parameters: z.object({}),
+//     execute: async () => {
+//         try {
+//             const preferences = await prisma.userPreferences.findUnique({
+//                 where: { userId },
+//                 select: { preferredLanguage: true }
+//             });
+            
+//             return {
+//                 success: true,
+//                 preferredLanguage: preferences?.preferredLanguage || 'en',
+//                 hasLanguagePreference: !!preferences?.preferredLanguage
+//             };
+//         } catch (error: any) {
+//             console.error('Error in getLanguagePreferenceTool:', error);
+//             return { success: false, error: `Failed to get language preference: ${error.message}` };
+//         }
+//     }
+// }); 
+
+export const createGetPredefinedQuestionTool = (userId: string) => tool({
+    description: 'Fetch a predefined question from a JSON file to diversify the conversation or prompt new discussions. Use this tool when the conversation is slowing down, or you need to introduce a new angle to explore the user\'s creative process or general artistic philosophy. Always follow up with a natural question based on the retrieved prompt.',
     parameters: z.object({
-        detectedLanguage: z.string().describe('The detected language code (e.g., "en", "de", "fr", "es")'),
-        confidence: z.number().optional().describe('Confidence level of language detection (0-1)'),
+        category: z.string().optional().describe('Optional: A category to filter predefined questions by. If not provided, a random question from the general pool will be returned.'),
     }),
-    execute: async ({ detectedLanguage, confidence = 0.8 }) => {
+    execute: async ({ category }) => {
         try {
-            // Only update if confidence is high enough
-            if (confidence < 0.7) {
-                return { 
-                    success: false, 
-                    message: 'Language detection confidence too low to update preferences',
-                    detectedLanguage,
-                    confidence 
-                };
+            const questions = await readJsonData('general-questions.json');
+            
+            let filteredQuestions = questions;
+            if (category) {
+                filteredQuestions = questions.filter((q: any) => q.category && q.category.toLowerCase() === category.toLowerCase());
             }
 
-            // Update or create user preferences
-            await prisma.userPreferences.upsert({
-                where: { userId },
-                update: { 
-                    preferredLanguage: detectedLanguage,
-                    updatedAt: new Date()
-                },
-                create: {
-                    userId,
-                    preferredLanguage: detectedLanguage,
-                    ttsEnabled: true
-                }
-            });
+            if (filteredQuestions.length === 0) {
+                return { success: false, error: 'No questions found for the given category or no questions available.' };
+            }
 
-            return { 
-                success: true, 
-                message: `Language preference updated to ${detectedLanguage}`,
-                detectedLanguage,
-                confidence
-            };
-        } catch (error: any) {
-            console.error('Error in detectAndSetLanguageTool:', error);
-            return { success: false, error: `Failed to update language preference: ${error.message}` };
-        }
-    }
-});
-
-export const createGetLanguagePreferenceTool = (userId: string) => tool({
-    description: 'Get the user\'s preferred language for conversations. Use this to ensure you respond in the correct language.',
-    parameters: z.object({}),
-    execute: async () => {
-        try {
-            const preferences = await prisma.userPreferences.findUnique({
-                where: { userId },
-                select: { preferredLanguage: true }
-            });
+            const randomQuestion = filteredQuestions[Math.floor(Math.random() * filteredQuestions.length)];
             
-            return {
-                success: true,
-                preferredLanguage: preferences?.preferredLanguage || 'en',
-                hasLanguagePreference: !!preferences?.preferredLanguage
-            };
+            return { success: true, question: randomQuestion.question, category: randomQuestion.category || "general" };
         } catch (error: any) {
-            console.error('Error in getLanguagePreferenceTool:', error);
-            return { success: false, error: `Failed to get language preference: ${error.message}` };
+            console.error('Error in getPredefinedQuestionTool:', error);
+            return { success: false, error: `Failed to fetch predefined question: ${error.message}` };
         }
     }
 }); 

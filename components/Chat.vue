@@ -13,8 +13,18 @@
             class="p-3 rounded-lg max-w-lg"
             :class="message.role === 'user' ? 'bg-primary-500 text-white' : 'bg-secondary-200 dark:bg-secondary-700'"
           >
-            <p v-if="message.content" class="whitespace-pre-wrap">{{ message.content }}</p>
-            <div v-else class="flex items-center space-x-1 text-secondary-900 dark:text-white">
+            <div v-if="Array.isArray(message.content)">
+              <div v-for="(part, partIndex) in message.content" :key="partIndex">
+                <p v-if="part.type === 'text'" class="whitespace-pre-wrap">{{ part.text }}</p>
+                <img v-else-if="part.type === 'image'" :src="part.image" class="max-w-xs h-auto rounded-lg my-2" />
+                <a v-else-if="part.type === 'file'" :href="part.url" target="_blank" class="text-primary-300 hover:underline flex items-center">
+                  <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.123l-3.397 3.396m0 0l-3.397-3.396M11.355 14.519V3m0 11.519c-4.482 0-8.123 3.641-8.123 8.123C3.232 20.402 7.89 24 12.752 24c4.861 0 9.519-3.598 9.519-9.519 0-4.482-3.641-8.123-8.123-8.123z"></path></svg>
+                  {{ part.fileName || 'Uploaded File' }} ({{ part.mimeType }})
+                </a>
+              </div>
+            </div>
+            <p v-else-if="message.content" class="whitespace-pre-wrap">{{ message.content }}</p>
+            <div v-else class="flex items-center space-x-1">
               <span>Thinking</span><span>.</span><span>.</span><span>.</span>
             </div>
           </div>
@@ -64,6 +74,16 @@
                           ? 'bg-secondary-500 text-white'
                           : 'bg-primary-500 text-white']">
              <div v-if="message.role === 'recording'" class="whitespace-pre-wrap">{{ message.content }}</div>
+             <div v-else-if="Array.isArray(message.content)">
+              <div v-for="(part, partIndex) in message.content" :key="partIndex">
+                <p v-if="part.type === 'text'" class="whitespace-pre-wrap">{{ part.text }}</p>
+                <img v-else-if="part.type === 'image'" :src="part.image" class="max-w-xs h-auto rounded-lg my-2" />
+                <a v-else-if="part.type === 'file'" :href="part.url" target="_blank" class="text-primary-300 hover:underline flex items-center">
+                  <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.123l-3.397 3.396m0 0l-3.397-3.396M11.355 14.519V3m0 11.519c-4.482 0-8.123 3.641-8.123 8.123C3.232 20.402 7.89 24 12.752 24c4.861 0 9.519-3.598 9.519-9.519 0-4.482-3.641-8.123-8.123-8.123z"></path></svg>
+                  {{ part.fileName || 'Uploaded File' }} ({{ part.mimeType }})
+                </a>
+              </div>
+            </div>
              <p v-else-if="message.content" class="whitespace-pre-wrap">{{ message.content }}</p>
              <!-- This is the "thinking" indicator -->
              <div v-else class="flex items-center space-x-1 text-white">
@@ -90,13 +110,13 @@
         </div>
          <!-- Upload Progress Indicator -->
         <div v-if="isUploadingFile" class="mb-4 flex justify-start">
-           <div class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
+          <div class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
             <DashboardX class="w-full h-full" />
           </div>
-           <div class="inline-block py-2 px-3 rounded-lg max-w-[80%] bg-secondary-200 dark:bg-secondary-700">
-             <div class="flex items-center space-x-1 text-sm text-secondary-900 dark:text-white">
-                <span>Thinking</span><span>.</span><span>.</span><span>.</span>
-             </div>
+          <div class="inline-block py-2 px-3 rounded-lg max-w-[80%] bg-primary-500 text-white">
+            <div class="flex items-center space-x-1">
+              <span>Thinking</span><span>.</span><span>.</span><span>.</span>
+            </div>
           </div>
         </div>
       </div>
@@ -613,42 +633,45 @@ const handleProactiveFileUpload = async (event: Event) => {
             };
 
             // Create the user message with document upload
-            const userMessage = {
-                role: 'user' as const,
-                content: `I have uploaded a file. Please use the documentProcessing tool to analyze this file: ${response.url}. The context is: user uploaded creative work or portfolio materials.`
-            };
+            const userMessageForAI = `I have uploaded a file. Please use the documentProcessing tool to analyze this file: ${response.url}. The context is: user uploaded creative work or portfolio materials.`
 
-            // Call the AI to process the file with both system and user messages
-            const aiResponse = await $fetch('/api/chat/message', {
-                method: 'POST',
-                body: { 
-                    messages: [systemMessage, userMessage]
-                },
-                timeout: 60000, // 60 second timeout for AI processing
-            });
+            // Call the AI to process the file using the composable's handleSubmit
+            // Add the system message to messages.value temporarily if needed for context for the AI
+            // The actual content for the user is sent via handleSubmit which adds to messages.value
+            messages.value.push(systemMessage); // Add system message for AI to process, but it won't be displayed
+            originalHandleSubmit(userMessageForAI);
             
-            console.log('AI response received:', aiResponse);
+            // The AI response will be handled by the composable's sendMessage, so we remove this block
+            // const aiResponse = await $fetch('/api/chat/message', {
+            //     method: 'POST',
+            //     body: { 
+            //         messages: [systemMessage, userMessage]
+            //     },
+            //     timeout: 60000, // 60 second timeout for AI processing
+            // });
             
-            // Add the AI response to the chat
-            if (aiResponse && aiResponse.content) {
-                // Add the system message first (won't be displayed)
-                messages.value.push(systemMessage);
-                // Then add the user's upload message
-                messages.value.push(userMessage);
-                // Then add the assistant's response
-                messages.value.push({
-                    role: 'assistant',
-                    content: aiResponse.content
-                });
-                scrollToBottom();
-            } else {
-                // Fallback if no response content
-                messages.value.push({
-                    role: 'assistant',
-                    content: `I've received your file "${file.name}". What would you like to know about it?`
-                });
-                scrollToBottom();
-            }
+            // console.log('AI response received:', aiResponse);
+            
+            // // Add the AI response to the chat
+            // if (aiResponse && aiResponse.content) {
+            //     // Add the system message first (won't be displayed)
+            //     messages.value.push(systemMessage);
+            //     // Then add the user's upload message
+            //     messages.value.push(userMessage);
+            //     // Then add the assistant's response
+            //     messages.value.push({
+            //         role: 'assistant',
+            //         content: aiResponse.content
+            //     });
+            //     scrollToBottom();
+            // } else {
+            //     // Fallback if no response content
+            //     messages.value.push({
+            //         role: 'assistant',
+            //         content: `I've received your file "${file.name}". What would you like to know about it?`
+            //     });
+            //     scrollToBottom();
+            // }
         } catch (messageError) {
             console.error('Error processing uploaded file:', messageError);
             // Add a message to let user know processing failed

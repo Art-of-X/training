@@ -2,20 +2,23 @@ import { type CoreMessage, type CoreUserMessage, type CoreAssistantMessage, type
 import { serverSupabaseUser } from '#supabase/server';
 import { prisma } from '~/server/utils/prisma';
 import { generateAICoreResponse, generateChatSessionTitle } from '~/server/utils/ai-core';
-import { PrismaClient } from '@prisma/client'; // Explicitly import PrismaClient
+import { PrismaClient } from '@prisma/client';
+import type { H3Event } from 'h3';
+
+type ChatMessageContent = Array<TextPart | ImagePart | FilePart>;
 
 // Helper for detecting language
-const detectLanguage = (text: string): string => {
-  // Simple language detection based on common words
-  const germanWords = ['ich', 'und', 'ist', 'die', 'der', 'das', 'ein', 'eine', 'zu', 'für', 'mit', 'auf', 'habe', 'nicht', 'bitte', 'danke', 'wenn'];
-  const words = text.toLowerCase().split(/\s+/);
+// const detectLanguage = (text: string): string => {
+//   // Simple language detection based on common words
+//   const germanWords = ['ich', 'und', 'ist', 'die', 'der', 'das', 'ein', 'eine', 'zu', 'für', 'mit', 'auf', 'habe', 'nicht', 'bitte', 'danke', 'wenn'];
+//   const words = text.toLowerCase().split(/\s+/);
   
-  // Count words that match German patterns
-  const germanWordCount = words.filter(word => germanWords.includes(word)).length;
+//   // Count words that match German patterns
+//   const germanWordCount = words.filter(word => germanWords.includes(word)).length;
   
-  // If more than 2 German words are found, assume it's German
-  return germanWordCount > 1 ? 'de' : 'en';
-};
+//   // If more than 2 German words are found, assume it's German
+//   return germanWordCount > 1 ? 'de' : 'en';
+// };
 
 export default defineEventHandler(async (event) => {
   try {
@@ -65,71 +68,97 @@ export default defineEventHandler(async (event) => {
         orderBy: {
           createdAt: 'asc',
         },
-        select: {
-          role: true,
-          content: true,
-        },
       });
+
       existingMessages = history.map(msg => {
-        // Properly handle content based on its structure
-        if (msg.role === 'user') {
-          if (typeof msg.content === 'string') {
-            return { role: 'user', content: [{ type: 'text' as const, text: msg.content }] } as CoreUserMessage;
-          } else if (Array.isArray(msg.content)) {
-            // Content is already structured
-            return { role: 'user', content: msg.content } as CoreUserMessage;
-          } else {
-            // JSON object that needs to be stringified
-            return { role: 'user', content: [{ type: 'text' as const, text: JSON.stringify(msg.content) }] } as CoreUserMessage;
-          }
-        } else if (msg.role === 'assistant') {
-          if (typeof msg.content === 'string') {
-            return { role: 'assistant', content: [{ type: 'text' as const, text: msg.content }] } as CoreAssistantMessage;
-          } else if (Array.isArray(msg.content)) {
-            // Content is already structured
-            return { role: 'assistant', content: msg.content } as CoreAssistantMessage;
-          } else {
-            // JSON object that needs to be stringified
-            return { role: 'assistant', content: [{ type: 'text' as const, text: JSON.stringify(msg.content) }] } as CoreAssistantMessage;
-          }
-        } else {
-          // Fallback for unexpected roles
-          return { role: 'user', content: [{ type: 'text' as const, text: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content) }] } as CoreUserMessage;
+        // Convert stored content (JSON string) to the expected format
+        let content: ChatMessageContent;
+        try {
+          const parsedContent = JSON.parse(msg.content as string);
+          // Ensure content is always an array of parts, even if stored as a single string
+          content = Array.isArray(parsedContent) ? parsedContent : [{ type: 'text' as const, text: String(parsedContent) }];
+        } catch (parseError) {
+          console.error("Error parsing chat message content from DB:", parseError, msg.content);
+          content = [{ type: 'text' as const, text: String(msg.content) }]; // Fallback to raw string
         }
+
+        // Create the message object
+        const message: any = { role: msg.role, content };
+        
+        // Add metadata if present (metadata is a Json field in Prisma and is also stringified)
+        const msgAny = msg as any;
+        if (msgAny.metadata) {
+          try {
+            message.metadata = JSON.parse(msgAny.metadata as string); // Parse metadata back to object
+          } catch (parseError) {
+            console.error("Error parsing chat message metadata from DB:", parseError, msgAny.metadata);
+            message.metadata = {}; // Fallback to empty object
+          }
+        }
+
+        return message as CoreUserMessage | CoreAssistantMessage;
       });
     }
 
     const userMessage = messages.filter(m => m.role === 'user').pop();
     
-    // Save user message to the database if it's not the initial prompt placeholder
+    // Save user message to the database
     if (userMessage && userMessage.content) {
-      const isInitialPrompt = typeof userMessage.content === 'string' && userMessage.content.includes('__INITIAL_PROMPT__');
-      if (!isInitialPrompt) {
-        // Determine content to save to DB (must be string)
-        let contentToSave: string;
-        if (typeof userMessage.content === 'string') {
-            contentToSave = userMessage.content;
-        } else if (Array.isArray(userMessage.content)) {
-            // Concatenate text parts, ignore other types for DB saving for now
-            contentToSave = userMessage.content.map(part => {
-                if (part.type === 'text') return part.text;
-                return ''; // Ignore other parts for string content in DB
-            }).join(' ').trim();
-        } else {
-            contentToSave = JSON.stringify(userMessage.content); // Fallback for unexpected types
-        }
+      // The __INITIAL_PROMPT__ is now handled client-side in useChat.ts
+      // so we no longer need to check for it here and can save all user messages.
+      // const isInitialPrompt = typeof userMessage.content === 'string' 
+      //   ? userMessage.content.includes('__INITIAL_PROMPT__')
+      //   : Array.isArray(userMessage.content) 
+      //     ? userMessage.content.some(part => part.type === 'text' && 'text' in part && part.text.includes('__INITIAL_PROMPT__'))
+      //     : false;
 
-        const messageData: any = {
-          userId: user.id,
-          role: 'user',
-          content: contentToSave,
-          sessionId: currentSessionId, // Ensure sessionId is always set
+      // if (!isInitialPrompt) {
+        // Prepare content for saving
+        const content = Array.isArray(userMessage.content) 
+          ? userMessage.content 
+          : typeof userMessage.content === 'string'
+            ? [{ type: 'text' as const, text: userMessage.content }]
+            : [{ type: 'text' as const, text: JSON.stringify(userMessage.content) }];
+
+        // Determine message type based on content
+        const hasFile = content.some(part => part.type === 'file' || part.type === 'image');
+        const messageType = hasFile ? 'file_upload' : 'text';
+
+        // Extract any metadata (e.g., file info)
+        const metadata = {
+          parts: content.map(part => {
+            const basePart = { type: part.type };
+            if (part.type === 'file') {
+              const filePart = part as FilePart;
+              return {
+                ...basePart,
+                url: (filePart as any).url,
+                mimeType: filePart.mimeType
+              };
+            } else if (part.type === 'image') {
+              const imagePart = part as ImagePart;
+              return {
+                ...basePart,
+                url: imagePart.image,
+                mimeType: imagePart.mimeType
+              };
+            }
+            return basePart;
+          })
         };
 
+        // Save the message with structured content
         await prisma.chatMessage.create({
-            data: messageData,
+          data: {
+            userId: user.id,
+            role: 'user',
+            type: messageType, // Keep type field as per schema
+            content: JSON.stringify(content) as any, // Stringify and cast to any for Json field
+            metadata: JSON.stringify(metadata) as any, // Stringify and cast to any for Json field
+            sessionId: currentSessionId!,
+          },
         });
-      }
+      // }
     }
 
     // Construct messagesForAI with full history + current message
@@ -138,118 +167,103 @@ export default defineEventHandler(async (event) => {
 
     // Append the latest user message from the current request
     if (userMessage && userMessage.content) {
-      // Determine user language from message content
-      let userLanguage = 'en'; // Default to English
-      
-      // Convert user message content to a format we can analyze
-      const userContentText = typeof userMessage.content === 'string' 
-          ? userMessage.content
-          : Array.isArray(userMessage.content)
-            ? userMessage.content.filter(part => part.type === 'text').map(part => (part as TextPart).text).join(' ')
-            : '';
-      
-      // Detect language if we have text content
-      if (userContentText) {
-        userLanguage = detectLanguage(userContentText);
-      } else if (existingMessages.length > 0) {
-        // Try to determine language from previous messages
-        const lastUserMsg = [...existingMessages].reverse().find(msg => msg.role === 'user');
-        if (lastUserMsg && Array.isArray(lastUserMsg.content)) {
-          const lastUserText = lastUserMsg.content
-            .filter(part => part.type === 'text')
-            .map(part => (part as TextPart).text)
-            .join(' ');
-          userLanguage = detectLanguage(lastUserText);
-        }
-      }
-      
       // Format user message content consistently
       const contentForAI = typeof userMessage.content === 'string'
           ? [{ type: 'text' as const, text: userMessage.content }]
           : userMessage.content;
       
       let lastUserMessageContent = contentForAI;
+      
+      // Handle initial prompt - replace with actual initial message
+      if (typeof userMessage.content === 'string' && userMessage.content.includes('__INITIAL_PROMPT__')) {
+        lastUserMessageContent = [{ 
+          type: 'text' as const, 
+          text: 'Hello! I\'m your AI assistant. I\'m here to help you with your creative training, portfolio development, and any questions you might have. How can I assist you today?' 
+        }];
+      }
 
       // Check if the current user message is the programmatic file upload instruction
       const programmaticFileUploadPromptStart = 'I have uploaded a file. Please use the documentProcessing tool to analyze this file:';
       if (typeof userMessage.content === 'string' && userMessage.content.startsWith(programmaticFileUploadPromptStart)) {
-          // Extract the file URL and context from the original English prompt
-          const urlStart = programmaticFileUploadPromptStart.length;
-          const urlEnd = userMessage.content.indexOf('. The context is:');
-          const fileUrl = userMessage.content.substring(urlStart, urlEnd !== -1 ? urlEnd : userMessage.content.length).trim();
-          const contextPart = urlEnd !== -1 ? userMessage.content.substring(urlEnd + '. The context is:'.length).trim() : '';
-
-          let localizedPrompt = '';
-          if (userLanguage === 'de') {
-              const localizedContext = contextPart.replace('user uploaded creative work or portfolio materials.', 'der Benutzer hat kreative Arbeit oder Portfoliomaterialien hochgeladen.');
-              localizedPrompt = `Ich habe eine Datei hochgeladen. Bitte verwende das documentProcessing-Tool, um diese Datei zu analysieren: ${fileUrl}. Der Kontext ist: ${localizedContext}`;
-          } else {
-              localizedPrompt = userMessage.content; // Keep original English
-          }
-          lastUserMessageContent = [{ type: 'text' as const, text: localizedPrompt }];
+          lastUserMessageContent = [{ type: 'text' as const, text: userMessage.content }];
       }
 
       messagesForAI.push({ role: 'user', content: lastUserMessageContent });
     }
 
-    console.log(`Messages sent to AI (count: ${messagesForAI.length}):`, messagesForAI); // Enhanced debugging info
-    const { text, toolCalls, finishReason, usage } = await generateAICoreResponse(user.id, userName, messagesForAI, event);
+    // Generate AI response with proper error handling
+    console.log(`Messages sent to AI (count: ${messagesForAI.length}):`, messagesForAI);
+    
+    if (!Array.isArray(messagesForAI) || messagesForAI.length === 0) {
+      // If the messagesForAI is empty, it means the client sent an empty list or only system messages
+      // and there's no existing history to append. This is likely an error condition.
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'No valid messages provided for AI processing or chat history retrieval.',
+      });
+    }
+
+    const { text, toolCalls, finishReason, usage } = await generateAICoreResponse(
+      user.id,
+      userName,
+      messagesForAI,
+      process.env.SUPABASE_URL || ''
+    );
     
     // Save AI response to the database
-    if (text && currentSessionId) { // Ensure sessionId exists before saving assistant message
-        const assistantMessageData: any = {
+    if (text && currentSessionId) {
+      // Determine if this is a tool call response
+      const isToolCall = toolCalls && toolCalls.length > 0;
+      const messageType = isToolCall ? 'tool_call' : 'text';
+      
+      // Prepare metadata for tool calls if present
+      const metadata = isToolCall ? { toolCalls } : undefined;
+      
+      // Create the assistant message with structured content
+      const assistantMessageContent = Array.isArray(text) ? text : [{ type: 'text' as const, text }];
+      
+      // Save the assistant's response
+      await prisma.chatMessage.create({
+        data: {
           userId: user.id,
           role: 'assistant',
-          content: text, // Reverted to plain string as per Prisma schema
-          sessionId: currentSessionId, // Use the determined session ID
-        };
-
-        await prisma.chatMessage.create({
-          data: assistantMessageData,
+          type: messageType, // Keep type field as per schema
+          content: JSON.stringify(assistantMessageContent) as any, // Stringify and cast to any for Json field
+          ...(metadata && { metadata: JSON.stringify(metadata) as any }), // Stringify and cast to any for Json field
+          sessionId: currentSessionId,
+        },
+      });
+      
+      // Update the chat session title if this is the first message
+      if (existingMessages.length === 0) {
+        // Convert messages to simple string format for title generation
+        const titleMessages = messagesForAI.map(msg => ({
+          role: msg.role,
+          content: Array.isArray(msg.content) 
+            ? msg.content.filter(part => part.type === 'text').map(part => (part as any).text).join(' ')
+            : String(msg.content)
+        }));
+        
+        const title = await generateChatSessionTitle({
+          messages: titleMessages,
+          userProfileName: userName,
         });
-
-        // Generate and update session title after AI responds, but only if it's the first actual user message
-        // rawUserContent needs to be a string here
-        const rawUserContentForTitle = typeof userMessage.content === 'string' ? userMessage.content : 
-                                     (Array.isArray(userMessage.content) && userMessage.content[0]?.type === 'text' ? userMessage.content[0].text : '');
-
-        // Handle type incompatibility between ai SDK and Prisma content types
-        if (existingMessages.length === 0 && userMessage && typeof userMessage.content === 'string' && !userMessage.content.includes('__INITIAL_PROMPT__')) {
-          const titleGenerationMessages: { role: string; content: string }[] = [
-              { role: 'user', content: rawUserContentForTitle },
-              { role: 'assistant', content: text }
-          ];
-  
-          const newTitle = await generateChatSessionTitle({
-            messages: titleGenerationMessages,
-            userProfileName: userName,
-          });
-  
-          await (prisma as PrismaClient).chatSession.update({
+        if (title) {
+          await prisma.chatSession.update({
             where: { id: currentSessionId },
-            data: { title: newTitle },
-          });
-        } else if (existingMessages.length > 0) {
-          // For ongoing conversations, update the title based on the latest interaction
-          const titleGenerationMessages: { role: string; content: string }[] = [
-            // Map existingMessages back to string content for title generation
-            ...existingMessages.map(msg => ({
-                role: msg.role,
-                content: typeof msg.content === 'string' ? msg.content : 
-                         (Array.isArray(msg.content) && msg.content[0]?.type === 'text' ? msg.content[0].text : '') 
-            })),
-            { role: 'user', content: rawUserContentForTitle },
-            { role: 'assistant', content: text }
-          ];
-          const newTitle = await generateChatSessionTitle({
-            messages: titleGenerationMessages,
-            userProfileName: userName,
-          });
-          await (prisma as PrismaClient).chatSession.update({
-            where: { id: currentSessionId },
-            data: { title: newTitle },
+            data: { title },
           });
         }
+      }
+      
+      // Return the response with the session ID
+      return {
+        content: text,
+        toolCalls,
+        finishReason,
+        usage,
+        sessionId: currentSessionId,
+      };
     }
 
     return { content: text, toolCalls, sessionId: currentSessionId };

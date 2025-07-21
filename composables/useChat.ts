@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import { type CoreMessage } from 'ai';
+import { type CoreMessage, type TextPart, type ImagePart, type FilePart } from 'ai';
 
 export const useChat = () => {
   const messages = ref<CoreMessage[]>([]);
@@ -27,14 +27,14 @@ export const useChat = () => {
   const audioStarted = ref(false);
   const audioPlaybackListeners = ref<(() => void)[]>([]);
 
-  const sendMessage = async (newMessages: CoreMessage[]) => {
+  const sendMessage = async (newMessages: CoreMessage[], currentSessionIdForRequest?: string) => {
     isLoading.value = true;
     error.value = null;
 
-    // Add a placeholder for the assistant's response
-    if (newMessages.some(m => m.role === 'user')) {
-        messages.value.push({ role: 'assistant', content: '' });
-    }
+    // Remove the placeholder logic from here - it's handled by the UI now
+    // if (newMessages.some(m => m.role === 'user')) {
+    //     messages.value.push({ role: 'assistant', content: '' });
+    // }
 
     try {
       // Filter out any messages that might have empty content before sending.
@@ -50,7 +50,11 @@ export const useChat = () => {
         messages: messagesToSend,
       };
 
-      if (currentSessionId.value) {
+      if (currentSessionIdForRequest !== undefined) {
+        // Use the provided sessionId for this specific request
+        payload.sessionId = currentSessionIdForRequest;
+      } else if (currentSessionId.value) {
+        // Otherwise, use the composable's current sessionId
         payload.sessionId = currentSessionId.value;
       }
 
@@ -72,25 +76,19 @@ export const useChat = () => {
           currentSessionId.value = returnedSessionId;
       }
       
-      // Update the last assistant message with the actual content
-      const lastMessage = messages.value[messages.value.length - 1];
-      if (lastMessage && lastMessage.role === 'assistant') {
-        lastMessage.content = content;
-        
-        // Play TTS if enabled
-        if (isTTSEnabled.value && content && typeof content === 'string') {
-          await playTTS(content);
-        }
+      // Update the last assistant message with the actual content if it's a placeholder
+      const lastAssistantPlaceholder = messages.value.findLast(m => m.role === 'assistant' && m.content === '');
+      if (lastAssistantPlaceholder) {
+        lastAssistantPlaceholder.content = content;
       } else {
-        // This case handles the initial message where there's no user message yet
+        // If no placeholder, just push the new message (e.g., for initial message)
         messages.value.push({ role: 'assistant', content });
+      }
         
         // Play TTS if enabled
         if (isTTSEnabled.value && content && typeof content === 'string') {
           await playTTS(content);
         }
-      }
-
     } catch (e: any) {
       if (e.name === 'AbortError') {
         console.log('Fetch aborted.');
@@ -114,13 +112,22 @@ export const useChat = () => {
   const getInitialMessage = async () => {
     isLoading.value = true;
     error.value = null;
-    messages.value = []; // Reset messages for a new chat
-    currentSessionId.value = undefined; // Reset session ID for a new chat
+    
+    // Only reset for truly new chats (when no session exists and no messages)
+    // Don't reset on re-initialization if we already have a session
+    const isNewChat = !currentSessionId.value && messages.value.length === 0;
+    
+    if (isNewChat) {
+      messages.value = []; // Reset messages for a new chat
+      currentSessionId.value = undefined; // Reset session ID for a new chat
+    }
+    
     abortController = new AbortController();
 
     const initialPrompt: CoreMessage[] = [{
       role: 'user',
-      content: '__INITIAL_PROMPT__'
+      // This initial prompt is for the AI, not user display
+      content: 'Hello! I\'m your AI assistant. I\'m here to help you with your creative training, portfolio development, and any questions you might have. How can I assist you today?' 
     }];
 
     try {
@@ -178,54 +185,75 @@ export const useChat = () => {
     if (!userInput || !userInput.trim()) return;
 
     const userMessage: CoreMessage = { role: 'user', content: userInput };
-    messages.value.push(userMessage);
+    messages.value.push(userMessage); // Add user message to local state immediately
 
+    // Add a placeholder for the assistant's response immediately after user message
+    messages.value.push({ role: 'assistant', content: '' });
+
+    // Send all current messages (including the new user message) to the server
+    // The server will handle fetching the full history based on sessionId
     await sendMessage(messages.value);
   };
 
   // Function to set session ID and load messages for a historical session
-  const loadSession = (sessionMessages: CoreMessage[], sessionId: string) => {
+  const loadSession = async (sessionMessages: CoreMessage[], sessionId: string) => {
     stop(); // Abort any ongoing fetch requests
     
+    // Set the session ID immediately
+    currentSessionId.value = sessionId;
+
     // Process messages to ensure proper formatting and preserve document context
     const processedMessages: CoreMessage[] = sessionMessages.map(msg => {
-      // For system messages, ensure content is a string
-      if (msg.role === 'system') {
-        return {
-          ...msg,
-          content: typeof msg.content === 'string' 
-            ? msg.content 
-            : JSON.stringify(msg.content)
-        };
-      }
-      
-      // For user and assistant messages, ensure content is properly formatted
+      let content: string | (TextPart | ImagePart | FilePart)[];
+      let metadata: any = undefined; // Initialize metadata as undefined
+
+      // Handle content parsing based on message role
       if (msg.role === 'user' || msg.role === 'assistant') {
-        // If content is already properly formatted, return as is
-        if (Array.isArray(msg.content) && msg.content.every(part => 
-          part && typeof part === 'object' && 'type' in part
-        )) {
-          return msg;
+        try {
+          const parsedContent = typeof msg.content === 'string' ? JSON.parse(msg.content) : msg.content;
+          // Ensure content is always an array of parts for user/assistant messages
+          content = Array.isArray(parsedContent) ? parsedContent : [{ type: 'text' as const, text: String(parsedContent) }];
+        } catch (e) {
+          console.error('Error parsing user/assistant message content from history:', e, msg.content);
+          content = [{ type: 'text' as const, text: String(msg.content) }]; // Fallback
         }
-        
-        // Convert string content to proper format
-        const content = typeof msg.content === 'string' 
-          ? [{ type: 'text' as const, text: msg.content }]
-          : [];
-          
-        return {
-          ...msg,
-          content
-        };
+
+        // If metadata is present and a string, attempt to parse it
+        if ((msg as any).metadata && typeof (msg as any).metadata === 'string') {
+          try {
+            metadata = JSON.parse((msg as any).metadata);
+          } catch (e) {
+            console.error('Error parsing message metadata from history:', e, (msg as any).metadata);
+            metadata = undefined; // Fallback
+          }
+        }
+      } else {
+        // For system messages, content should always be a string.
+        // If it's an array from the DB, convert it to a single string representation.
+        let systemContentString: string;
+        try {
+          const parsedSystemContent = typeof msg.content === 'string' ? JSON.parse(msg.content) : msg.content;
+          systemContentString = Array.isArray(parsedSystemContent)
+            ? parsedSystemContent.map(part => (part.type === 'text' ? part.text : `[${part.type}]`)).join(' ')
+            : String(parsedSystemContent);
+        } catch (e) {
+          console.error('Error parsing system message content from history:', e, msg.content);
+          systemContentString = String(msg.content); // Fallback to raw string
+        }
+        content = systemContentString;
+        metadata = undefined; // System messages do not have metadata in this context
       }
-      
-      // For any other message type, return as is
-      return msg;
+
+      return {
+        ...msg,
+        content,
+        metadata,
+      };
     });
     
-    // Include all messages, including system messages for context
+    // Set messages to the loaded history
     messages.value = processedMessages;
-    currentSessionId.value = sessionId; // Set the current session ID
+    
     abortController = new AbortController(); // Re-create the controller for future requests
     
     console.log('Loaded session:', {
@@ -234,6 +262,17 @@ export const useChat = () => {
       hasSystemMessages: processedMessages.some(m => m.role === 'system'),
       messageRoles: processedMessages.map(m => m.role)
     });
+
+    // After loading, ensure the AI has the full context by sending the last user message again
+    // or trigger an initial message if the session is empty.
+    const lastUserMessage = processedMessages.findLast(m => m.role === 'user');
+    if (lastUserMessage) {
+      // Send the entire loaded history to the backend with the last user message
+      await sendMessage(processedMessages, sessionId); 
+    } else if (processedMessages.length === 0) {
+      // If an empty session is loaded, trigger the initial message
+      await getInitialMessage();
+    }
   };
 
   // Voice functionality
