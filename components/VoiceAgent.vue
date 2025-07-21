@@ -1,128 +1,137 @@
 <template>
   <div class="flex flex-col items-center space-y-4">
-    <!-- View History Button (Moved to top right) -->
-    <div v-if="isConnected" class="flex justify-end w-full max-w-md mb-2">
-      <button @click="showHistoryModal = true" class="btn-secondary text-sm px-3 py-1">View History</button>
-    </div>
-    
-    <VoiceAgentX :audioLevel="currentAudioLevel" :mode="currentMode" :forceReinit="forceReinitCounter" />
-    
-    <!-- Start Button (when not connected) -->
-    <div v-if="!isConnected" class="flex items-center space-x-2">
-      <button
-        @click="toggleConnection"
-        :disabled="isProcessing || isUploadingFile"
-        :class="[
-          'px-6 py-3 rounded-lg font-medium transition-all duration-200 btn-primary',
-          isProcessing || isUploadingFile ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
-        ]"
-      >
-        <span v-if="isProcessing">Connecting...</span>
-        <span v-else>Start Voice Agent</span>
-      </button>
-    </div>
-
-    <!-- Input Form (when connected) -->
-    <div v-if="isConnected" class="flex flex-col items-center space-y-4 w-full max-w-md"> <!-- Added w-full max-w-md here -->
-      <!-- Text Input Bar with Attach Button and Pause -->
-      <form @submit.prevent="handleTextInput" class="flex items-center space-x-2 w-full mt-2">
-        <input 
-          type="file" 
-          ref="fileInput" 
-          @change="handleFileUpload" 
-          class="hidden" 
-        />
-        <button
-          type="button"
-          @click="triggerFileUpload"
-          :disabled="isProcessing || isUploadingFile"
-          class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          aria-label="Upload a file"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
-          </svg>
-        </button>
-        
-        <!-- Pause Button -->
-        <button
-          type="button"
-          @click="pauseVoiceAgent"
-          class="p-2 rounded-lg text-yellow-500 hover:bg-yellow-100 dark:hover:bg-yellow-900/20 focus:outline-none transition-colors"
-          aria-label="Pause voice agent"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </button>
-        
-        <input
-          v-model="textInput"
-          type="text"
-          placeholder="Speak or type your message..."
-          class="flex-1 p-2 border rounded-lg bg-white dark:bg-secondary-800 dark:border-secondary-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
-          :disabled="isProcessing || isUploadingFile"
-        />
-        <button type="submit" class="btn-primary" :disabled="isProcessing || isUploadingFile || !textInput.trim()">
-          Send
-        </button>
-      </form>
-
-      <!-- View History Button - REMOVED from here -->
-
-    </div>
-
-    <!-- Upload Progress -->
-    <div v-if="isUploadingFile" class="text-sm text-blue-600 dark:text-blue-400 text-center">
-      Uploading file...
-    </div>
-
-    <!-- Upload Error -->
-    <div v-if="uploadError" class="text-sm text-red-500 text-center">
-      {{ uploadError }}
-    </div>
-
-    <!-- Small Status Notification -->
-    <div class="text-sm text-gray-600 dark:text-gray-400 text-center">
-      {{ voiceStatus }}
-    </div>
-
-    <!-- History Modal -->
-    <div v-if="showHistoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white dark:bg-secondary-800 rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[80vh] flex flex-col">
-        <div class="flex justify-between items-center border-b pb-3 mb-4">
-          <h3 class="text-xl font-semibold text-secondary-900 dark:text-white">Chat History</h3>
-          <button @click="showHistoryModal = false" class="text-secondary-500 hover:text-secondary-700 dark:hover:text-secondary-300">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-          </button>
-        </div>
-        
-        <div v-if="loadingHistory" class="text-center py-8 text-secondary-600 dark:text-secondary-400">Loading history...</div>
-        <div v-else-if="historyError" class="text-center py-8 text-red-500">Error loading history: {{ historyError.message }}</div>
-        <div v-else-if="groupedHistory.length === 0" class="text-center py-8 text-secondary-600 dark:text-secondary-400">No chat history found.</div>
-        
-        <div v-else class="flex-grow overflow-y-auto space-y-4 pr-2">
-          <div v-for="(session, date) in groupedHistory" :key="date" class="border rounded-lg p-3 bg-secondary-50 dark:bg-secondary-700/50">
-            <h4 class="font-semibold text-secondary-800 dark:text-secondary-200 mb-2">{{ date }}</h4>
-            <ul class="space-y-2">
-              <li v-for="entry in session" :key="entry.id" class="flex justify-between items-center p-2 rounded-md hover:bg-secondary-100 dark:hover:bg-secondary-700 cursor-pointer" @click="loadSession(entry.messages, entry.id)">
-                <div class="flex-1 overflow-hidden">
-                  <p class="text-sm text-secondary-900 dark:text-white truncate font-medium">
-                    {{ entry.title }}
-                  </p>
-                  <p class="text-xs text-secondary-500 dark:text-secondary-400 mt-1">{{ entry.time }} ({{ entry.messageCount }} messages)</p>
-                </div>
-                <button @click.stop="loadSession(entry.messages, entry.id)" class="ml-4 btn-primary px-3 py-1 text-sm">Load</button>
-              </li>
-            </ul>
-          </div>
-        </div>
-        
-        <div class="flex justify-end pt-4 border-t mt-4">
-          <button @click="showHistoryModal = false" class="btn-secondary">Close</button>
-        </div>
+    <!-- Microphone Error UI -->
+    <div v-if="micError" class="flex flex-col items-center space-y-2 w-full max-w-md mt-4">
+      <div class="text-red-500 text-center text-sm">{{ micError }}</div>
+      <button @click="retryMicAccess" class="btn-primary px-4 py-2 mt-2">Retry Microphone Access</button>
+      <div class="text-xs text-gray-500 mt-1 text-center">
+        If you don't see a browser prompt, check your browser's address bar or site settings to allow microphone access.
       </div>
     </div>
+
+    <!-- Main VoiceAgent UI -->
+    <template v-else>
+      <!-- View History Button (Moved to top right) -->
+      <div v-if="isConnected" class="flex justify-end w-full max-w-md mb-2">
+        <button @click="showHistoryModal = true" class="btn-secondary text-sm px-3 py-1">View History</button>
+      </div>
+      
+      <VoiceAgentX :audioLevel="currentAudioLevel" :mode="currentMode" :forceReinit="forceReinitCounter" />
+      
+      <!-- Start Button (when not connected) -->
+      <div v-if="!isConnected" class="flex items-center space-x-2">
+        <button
+          @click="toggleConnection"
+          :disabled="isProcessing || isUploadingFile"
+          :class="[
+            'px-6 py-3 rounded-lg font-medium transition-all duration-200 btn-primary',
+            isProcessing || isUploadingFile ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
+          ]"
+        >
+          <span v-if="isProcessing">Connecting...</span>
+          <span v-else>Start Voice Agent</span>
+        </button>
+      </div>
+
+      <!-- Input Form (when connected) -->
+      <div v-if="isConnected" class="flex flex-col items-center space-y-4 w-full max-w-md"> <!-- Added w-full max-w-md here -->
+        <!-- Text Input Bar with Attach Button and Pause -->
+        <form @submit.prevent="handleTextInput" class="flex items-center space-x-2 w-full mt-2">
+          <input 
+            type="file" 
+            ref="fileInput" 
+            @change="handleFileUpload" 
+            class="hidden" 
+          />
+          <button
+            type="button"
+            @click="triggerFileUpload"
+            :disabled="isProcessing || isUploadingFile"
+            class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            aria-label="Upload a file"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+            </svg>
+          </button>
+          
+          <!-- Pause Button -->
+          <button
+            type="button"
+            @click="pauseVoiceAgent"
+            class="p-2 rounded-lg text-yellow-500 hover:bg-yellow-100 dark:hover:bg-yellow-900/20 focus:outline-none transition-colors"
+            aria-label="Pause voice agent"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </button>
+          
+          <input
+            v-model="textInput"
+            type="text"
+            placeholder="Speak or type your message..."
+            class="flex-1 p-2 border rounded-lg bg-white dark:bg-secondary-800 dark:border-secondary-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            :disabled="isProcessing || isUploadingFile"
+          />
+          <button type="submit" class="btn-primary" :disabled="isProcessing || isUploadingFile || !textInput.trim()">
+            Send
+          </button>
+        </form>
+      </div>
+
+      <!-- Upload Progress -->
+      <div v-if="isUploadingFile" class="text-sm text-blue-600 dark:text-blue-400 text-center">
+        Uploading file...
+      </div>
+
+      <!-- Upload Error -->
+      <div v-if="uploadError" class="text-sm text-red-500 text-center">
+        {{ uploadError }}
+      </div>
+
+      <!-- Small Status Notification -->
+      <div class="text-sm text-gray-600 dark:text-gray-400 text-center">
+        {{ voiceStatus }}
+      </div>
+
+      <!-- History Modal -->
+      <div v-if="showHistoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-secondary-800 rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[80vh] flex flex-col">
+          <div class="flex justify-between items-center border-b pb-3 mb-4">
+            <h3 class="text-xl font-semibold text-secondary-900 dark:text-white">Chat History</h3>
+            <button @click="showHistoryModal = false" class="text-secondary-500 hover:text-secondary-700 dark:hover:text-secondary-300">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
+          
+          <div v-if="loadingHistory" class="text-center py-8 text-secondary-600 dark:text-secondary-400">Loading history...</div>
+          <div v-else-if="historyError" class="text-center py-8 text-red-500">Error loading history: {{ historyError.message }}</div>
+          <div v-else-if="groupedHistory.length === 0" class="text-center py-8 text-secondary-600 dark:text-secondary-400">No chat history found.</div>
+          
+          <div v-else class="flex-grow overflow-y-auto space-y-4 pr-2">
+            <div v-for="(session, date) in groupedHistory" :key="date" class="border rounded-lg p-3 bg-secondary-50 dark:bg-secondary-700/50">
+              <h4 class="font-semibold text-secondary-800 dark:text-secondary-200 mb-2">{{ date }}</h4>
+              <ul class="space-y-2">
+                <li v-for="entry in session" :key="entry.id" class="flex justify-between items-center p-2 rounded-md hover:bg-secondary-100 dark:hover:bg-secondary-700 cursor-pointer" @click="loadSession(entry.messages, entry.id)">
+                  <div class="flex-1 overflow-hidden">
+                    <p class="text-sm text-secondary-900 dark:text-white truncate font-medium">
+                      {{ entry.title }}
+                    </p>
+                    <p class="text-xs text-secondary-500 dark:text-secondary-400 mt-1">{{ entry.time }} ({{ entry.messageCount }} messages)</p>
+                  </div>
+                  <button @click.stop="loadSession(entry.messages, entry.id)" class="ml-4 btn-primary px-3 py-1 text-sm">Load</button>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="flex justify-end pt-4 border-t mt-4">
+            <button @click="showHistoryModal = false" class="btn-secondary">Close</button>
+          </div>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -141,6 +150,7 @@ const isSpeaking = ref(false);
 const audioLevel = ref(0);
 const voiceStatus = ref('Click "Start Voice Agent" to begin');
 const hasInitialized = ref(false);
+const micError = ref<string | null>(null); // Track microphone permission errors
 
 // Import messages, loadSession, getInitialMessage, and handleSubmit from useChat
 const { 
@@ -598,7 +608,7 @@ const startVoiceStream = async () => {
   try {
     isProcessing.value = true;
     voiceStatus.value = 'Requesting microphone access...';
-    
+    micError.value = null; // Clear previous error
     // Get microphone access with optimized settings for low latency
     mediaStream.value = await navigator.mediaDevices.getUserMedia({
       audio: {
@@ -671,7 +681,17 @@ const startVoiceStream = async () => {
     
   } catch (err: any) {
     console.error('Failed to start voice stream:', err);
-    voiceStatus.value = 'Failed to access microphone. Please grant permission.';
+    // Detect permission denied
+    if (err && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) {
+      micError.value = 'Microphone access was denied. Please allow access in your browser settings and try again.';
+      voiceStatus.value = 'Microphone access denied.';
+    } else if (err && err.name === 'NotFoundError') {
+      micError.value = 'No microphone was found. Please connect a microphone and try again.';
+      voiceStatus.value = 'No microphone found.';
+    } else {
+      micError.value = 'Failed to access microphone. Please check your browser settings and try again.';
+      voiceStatus.value = 'Failed to access microphone.';
+    }
     isProcessing.value = false; // Unlock on error
   }
 };
@@ -849,6 +869,12 @@ function cleanup() {
   uploadError.value = null;
 }
 defineExpose({ cleanup });
+
+// Retry microphone access
+const retryMicAccess = async () => {
+  micError.value = null;
+  await startVoiceStream();
+};
 </script>
 
 <style scoped>
