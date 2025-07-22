@@ -14,6 +14,8 @@ import {
 } from '~/server/utils/ai-tools';
 import { prisma } from '~/server/utils/prisma';
 import { fetchPromptsFromPublicSheet } from './fetchPromptsFromPublicSheet';
+import path from 'path';
+import fs from 'fs';
 
 interface GenerateTitleParams {
   messages: { role: string; content: string }[];
@@ -38,9 +40,9 @@ Title:`;
 
   try {
     const { text } = await generateText({
-        model: openai('gpt-4o-mini'),
+        model: openai('gpt-4.1-mini'),
         prompt: prompt,
-        temperature: 0.3, // Lower temperature for more consistent titles
+        temperature: 0.8, // Lower temperature for more consistent titles
     });
     const title = text.trim().replace(/["'\]]/g, '').replace(/\.$/, ''); // Clean up quotes and trailing dot
     return title || "Untitled Chat";
@@ -56,9 +58,21 @@ export async function generateAICoreResponse(
     messages: CoreMessage[],
     supabaseUrl: string
 ) {
-    const prompts = await fetchPromptsFromPublicSheet();
-    const systemPrompt = prompts['systemPrompt'];
-    const developerPrompt = prompts['developerPrompt'];
+    let systemPrompt: string;
+    let developerPrompt: string;
+
+    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'local') {
+        // Load prompts from text files in local/dev
+        const assetsDir = path.join(process.cwd(), 'assets');
+        systemPrompt = fs.readFileSync(path.join(assetsDir, 'systemPrompt.txt'), 'utf-8');
+        developerPrompt = fs.readFileSync(path.join(assetsDir, 'developerPrompt.txt'), 'utf-8');
+        // Optionally, interpolate userName if needed
+        systemPrompt = systemPrompt.replace(/\{\{userName\}\}/g, userName);
+    } else {
+        const prompts = await fetchPromptsFromPublicSheet();
+        systemPrompt = prompts['systemPrompt'];
+        developerPrompt = prompts['developerPrompt'];
+    }
     const openai = createOpenAI({
         apiKey: process.env.OPENAI_API_KEY,
     });
@@ -73,7 +87,7 @@ export async function generateAICoreResponse(
     }
 
     const { text, toolCalls, finishReason, usage } = await generateText({
-        model: openai('gpt-4o-mini'),
+        model: openai('gpt-4.1'),
         system: fullSystemPrompt,
         messages,
         tools: {
