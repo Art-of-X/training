@@ -70,18 +70,21 @@ async function convertToWav44kMono(inputPath: string): Promise<Buffer> {
   });
 }
 
-// Helper: Convert audio to 44.1kHz mono WAV and trim silence using ffmpeg-static
+// Helper: Convert audio to 44.1kHz mono WAV, trim silence, normalize, and denoise using ffmpeg-static
 async function convertToWav44kMonoTrimSilence(inputPath: string): Promise<Buffer> {
   const outputPath = path.join(os.tmpdir(), `clone44k_trim_${Date.now()}.wav`);
+  // Advanced processing: trim silence, normalize, denoise
+  // -af "silenceremove=1:0:-50dB, dynaudnorm, afftdn"
   return new Promise((resolve, reject) => {
-    exec(`${ffmpegPath} -y -i "${inputPath}" -ar 44100 -ac 1 -af silenceremove=1:0:-50dB -c:a pcm_s16le "${outputPath}"`, async (error) => {
+    exec(`${ffmpegPath} -y -i "${inputPath}" -ar 44100 -ac 1 -af silenceremove=1:0:-50dB,dynaudnorm,afftdn -c:a pcm_s16le "${outputPath}"`, async (error) => {
       if (error) {
-        console.error('ffmpeg 44kHz trim silence error:', error);
+        console.error('ffmpeg 44kHz trim/normalize/denoise error:', error);
         reject(error);
       } else {
         try {
           const buf = await fs.readFile(outputPath);
           await fs.unlink(outputPath).catch(() => {});
+          console.log('Saved advanced processed voice clone sample:', outputPath);
           resolve(buf);
         } catch (e) {
           reject(e);

@@ -112,6 +112,7 @@
 import { ref, onMounted, onUnmounted, nextTick, computed, watch, defineExpose } from 'vue';
 import { useChat } from '~/composables/useChat';
 import ChatHistoryModal from '~/components/ChatHistoryModal.vue'
+import { useWavRecorder } from '~/composables/useMediaRecorder'
 
 // Session management to prevent audio overlap (This is a local counter for media stream session, not chat session)
 const sessionCounter = ref(0);
@@ -398,6 +399,10 @@ const processAudioData = (audioData: Float32Array, level: number) => {
       });
       
       speechBuffer.value = [...vadBuffer.value]; // Include pre-speech audio
+      // --- Start high-quality WAV recording in sync with speech ---
+      if (!wavRecorder.isRecording.value && totalWavDuration < 30) {
+        wavRecorder.start()
+      }
     } else {
       // Continue speech
       speechBuffer.value.push(audioData);
@@ -422,6 +427,22 @@ const processAudioData = (audioData: Float32Array, level: number) => {
         sendAudioToServer();
         speechBuffer.value = [];
         silenceTimeout.value = null;
+        // --- Stop WAV recording when speech ends ---
+        if (wavRecorder.isRecording.value) {
+          wavRecorder.stop().then(async (blob) => {
+            if (blob && totalWavDuration < 30) {
+              // Estimate duration from blob size (44.1kHz mono 16-bit PCM)
+              const durationSec = blob.size / (44100 * 2);
+              if (totalWavDuration + durationSec <= 30) {
+                // Upload WAV to voice-clone-samples bucket
+                const formData = new FormData();
+                formData.append('audio', blob, 'voice-clone.wav');
+                await fetch('/api/voice/clone-upload', { method: 'POST', body: formData });
+                totalWavDuration += durationSec;
+              }
+            }
+          })
+        }
       }, SILENCE_DURATION);
     }
   } else {
