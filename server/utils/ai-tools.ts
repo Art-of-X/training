@@ -173,36 +173,6 @@ export const createWebSearchTool = () => tool({
     }
 });
 
-export const createGetPortfolioProgressTool = (userId: string) => tool({
-    description: 'Get the user\'s portfolio progress and understand their body of work.',
-    parameters: z.object({}),
-    execute: async () => {
-        try {
-            const portfolioItems = await prisma.portfolioItem.findMany({
-                where: { userId },
-                orderBy: { createdAt: 'desc' },
-                select: {
-                    id: true,
-                    description: true,
-                    link: true,
-                    filePath: true,
-                    createdAt: true,
-                }
-            });
-            
-            return {
-                totalItems: portfolioItems.length,
-                items: portfolioItems,
-                hasWork: portfolioItems.length > 0,
-                recentWork: portfolioItems.slice(0, 3)
-            };
-        } catch (error) {
-            console.error('Error in getPortfolioProgressTool:', error);
-            return { error: 'Failed to get portfolio progress.' };
-        }
-    }
-});
-
 export const createFinalizeFileUploadTool = (userId: string, event: any) => tool({
     description: "Once the user has provided a temporary file URL and all necessary context (like a description), use this tool to finalize the upload. This moves the file to its permanent location and saves the metadata to the database as a portfolio item.",
     parameters: z.object({
@@ -344,32 +314,6 @@ export const createGetPortfolioItemDetailsTool = (userId: string) => tool({
         } catch (error: any) {
             console.error('Error in getPortfolioItemDetailsTool:', error);
             return { success: false, error: `Failed to get portfolio item details: ${error.message}` };
-        }
-    }
-});
-
-export const createGenerateThoughtProvokingQuestionTool = (userId: string) => tool({
-    description: 'Generate a specific, thought-provoking question based on the user\'s work, portfolio items, or previous conversations. The question should be deeply analytical and encourage reflection on their creative process, techniques, or artistic decisions.',
-    parameters: z.object({
-        context: z.string().describe('The context for the question - could be a portfolio item, technique, style, or topic from conversation.'),
-        focus: z.enum(['technique', 'process', 'inspiration', 'decision', 'evolution', 'philosophy']).describe('The focus area for the question.'),
-        specificWork: z.string().optional().describe('Specific work or project to focus on, if applicable.'),
-    }),
-    execute: async ({ context, focus, specificWork }) => {
-        try {
-            const openai = createOpenAI({
-                apiKey: process.env.OPENAI_API_KEY,
-            });
-
-            const { text } = await generateText({
-                model: openai('gpt-4o-mini'),
-                prompt: `You are an expert art critic and mentor. Based on the following context, generate one thought-provoking question for the user. Context: ${context}. Focus: ${focus}. Specific Work: ${specificWork || 'N/A'}.`,
-            });
-
-            return { success: true, question: text };
-        } catch (error: any) {
-            console.error('Error in generateThoughtProvokingQuestionTool:', error);
-            return { success: false, error: `Failed to generate question: ${error.message}` };
         }
     }
 });
@@ -765,75 +709,7 @@ Insights: Since the file type is not supported for direct analysis, you should a
             return { success: false, error: `Failed to process document: ${error.message}` };
         }
     }
-}); 
-
-// Removed language detection tools
-// export const createDetectAndSetLanguageTool = (userId: string) => tool({
-//     description: 'Detect the language of user messages and update their language preferences. Use this to ensure the conversation continues in the user\'s preferred language.',
-//     parameters: z.object({
-//         detectedLanguage: z.string().describe('The detected language code (e.g., "en", "de", "fr", "es")'),
-//         confidence: z.number().optional().describe('Confidence level of language detection (0-1)'),
-//     }),
-//     execute: async ({ detectedLanguage, confidence = 0.8 }) => {
-//         try {
-//             // Only update if confidence is high enough
-//             if (confidence < 0.7) {
-//                 return { 
-//                     success: false, 
-//                     message: 'Language detection confidence too low to update preferences',
-//                     detectedLanguage,
-//                     confidence 
-//                 };
-//             }
-
-//             // Update or create user preferences
-//             await prisma.userPreferences.upsert({
-//                 where: { userId },
-//                 update: { 
-//                     preferredLanguage: detectedLanguage,
-//                     updatedAt: new Date()
-//                 },
-//                 create: {
-//                     userId,
-//                     preferredLanguage: detectedLanguage,
-//                     ttsEnabled: true
-//                 }
-//             });
-
-//             return { 
-//                 success: true, 
-//                 message: `Language preference updated to ${detectedLanguage}`,
-//                 detectedLanguage,
-//                 confidence
-//             };
-//         } catch (error: any) {
-//             console.error('Error in detectAndSetLanguageTool:', error);
-//             return { success: false, error: `Failed to update language preference: ${error.message}` };
-//         }
-//     }
-// });
-
-// export const createGetLanguagePreferenceTool = (userId: string) => tool({
-//     description: 'Get the user\'s preferred language for conversations. Use this to ensure you respond in the correct language.',
-//     parameters: z.object({}),
-//     execute: async () => {
-//         try {
-//             const preferences = await prisma.userPreferences.findUnique({
-//                 where: { userId },
-//                 select: { preferredLanguage: true }
-//             });
-            
-//             return {
-//                 success: true,
-//                 preferredLanguage: preferences?.preferredLanguage || 'en',
-//                 hasLanguagePreference: !!preferences?.preferredLanguage
-//             };
-//         } catch (error: any) {
-//             console.error('Error in getLanguagePreferenceTool:', error);
-//             return { success: false, error: `Failed to get language preference: ${error.message}` };
-//         }
-//     }
-// }); 
+});
 
 export const createGetPredefinedQuestionTool = (userId: string) => tool({
     description: 'Fetch a predefined question from a JSON file to diversify the conversation or prompt new discussions. Use this tool when the conversation is slowing down, or you need to introduce a new angle to explore the user\'s creative process or general artistic philosophy. Always follow up with a natural question based on the retrieved prompt.',

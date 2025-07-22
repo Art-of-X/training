@@ -1,28 +1,19 @@
 import { createOpenAI } from '@ai-sdk/openai';
 import { generateText, type CoreMessage } from 'ai';
 import {
-    createDatabaseQueryTool,
-    createGetPortfolioProgressTool,
-    createFinalizeFileUploadTool,
-
-    createDocumentProcessingTool,
-    createAnalyzeLinkTool,
-    createQueryChatSessionsTool,
-    createCheckUserContextTool,
-    createWebSearchTool,
-    createGetPortfolioItemDetailsTool,
-    createGenerateThoughtProvokingQuestionTool,
-    createGetPredefinedQuestionTool,
-    createSaveUserMemoryTool,
-    // Removed language detection tools
-    // createDetectAndSetLanguageTool,
-    // createGetLanguagePreferenceTool,
+    createDatabaseQueryTool, // for database queries
+    createFinalizeFileUploadTool, // for file uploads
+    createDocumentProcessingTool, // for document processing
+    createAnalyzeLinkTool, // for analyzing links
+    createQueryChatSessionsTool, // for querying chat sessions
+    createCheckUserContextTool, // for checking user context
+    createWebSearchTool, // for web searching
+    createGetPortfolioItemDetailsTool, // for getting portfolio item details
+    createGetPredefinedQuestionTool, // for getting predefined questions
+    createSaveUserMemoryTool, // for saving user memory
 } from '~/server/utils/ai-tools';
 import { prisma } from '~/server/utils/prisma';
 import { fetchPromptsFromPublicSheet } from './fetchPromptsFromPublicSheet';
-// Removed: import { GoogleGenerativeAI } from '@google/generative-ai';
-// Removed: import { AIMessage, HumanMessage } from '@langchain/core/messages';
-// Removed: import { ChatOpenAI } from '@langchain/openai';
 
 interface GenerateTitleParams {
   messages: { role: string; content: string }[];
@@ -87,13 +78,10 @@ export async function generateAICoreResponse(
         messages,
         tools: {
             webSearch: createWebSearchTool(),
-
             documentProcessing: createDocumentProcessingTool(userId),
             queryChatSessions: createQueryChatSessionsTool(userId),
             getPortfolioItemDetails: createGetPortfolioItemDetailsTool(userId),
-            generateThoughtProvokingQuestion: createGenerateThoughtProvokingQuestionTool(userId),
             queryDatabase: createDatabaseQueryTool(userId),
-            getPortfolioProgress: createGetPortfolioProgressTool(userId),
             finalizeFileUpload: createFinalizeFileUploadTool(userId, supabaseUrl),
             analyzeLink: createAnalyzeLinkTool(userId),
             checkUserContext: createCheckUserContextTool(userId),
