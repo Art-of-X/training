@@ -1,5 +1,6 @@
 import { serverSupabaseUser } from '#supabase/server';
 import { prisma } from '~/server/utils/prisma';
+import { serverSupabaseClient } from '#supabase/server';
 
 // --- Helper: getUserSpeechSample (aggregate monologue recordings) ---
 import { createWriteStream } from 'fs';
@@ -10,83 +11,49 @@ import os from 'os';
 import fs from 'fs/promises';
 import ffmpegPath from 'ffmpeg-static';
 
-async function getUserSpeechSample(userId: string): Promise<Buffer | null> {
-  // Fetch up to 30s of agent conversation audio (VoiceAgentRecording)
-  const agentRecs = await prisma.voiceAgentRecording.findMany({
-    where: { userId },
-    orderBy: { createdAt: 'asc' },
-    select: { audioPath: true, durationSec: true }
-  });
-
-  // Optionally, also fetch monologue recordings (fallback)
-  const monoRecs = await prisma.monologueRecording.findMany({
-    where: { userId, audioPath: { not: null } },
-    orderBy: { createdAt: 'asc' },
-    select: { audioPath: true, durationSeconds: true }
-  });
-
+async function getUserSpeechSample(event, userId: string): Promise<Buffer | null> {
+  // Fetch all files for the user from the voice-clone-samples bucket
+  const supabase = await serverSupabaseClient(event);
+  const { data: list, error } = await supabase.storage.from('voice-clone-samples').list(userId + '/', { limit: 100 });
+  if (error) {
+    console.error('[VOICE CLONE] Error listing files from voice-clone-samples:', error);
+    return null;
+  }
+  if (!list || list.length === 0) {
+    console.log('[VOICE CLONE] No files found in voice-clone-samples for user.');
+    return null;
+  }
   let totalDuration = 0;
   let buffers: Buffer[] = [];
   let urls: string[] = [];
-  let sources: string[] = [];
-
-  function getAgentUrl(audioPath: string): string {
-    return `${process.env.SUPABASE_URL}/storage/v1/object/public/voice-agent-recordings/${audioPath}`;
-  }
-  function getMonoUrl(audioPath: string): string {
-    return `${process.env.SUPABASE_URL}/storage/v1/object/public/monologue-recordings/${audioPath}`;
-  }
-
-  // Prioritize agent recordings
-  for (const rec of agentRecs) {
-    if (!rec.audioPath || !rec.durationSec) continue;
-    if (totalDuration >= 30) break;
+  for (const file of list) {
+    // Get public URL
+    const url = `${process.env.SUPABASE_URL}/storage/v1/object/public/voice-clone-samples/${userId}/${file.name}`;
+    urls.push(url);
+    // Download file
     try {
-      const url = getAgentUrl(rec.audioPath);
-      urls.push(url);
-      sources.push('agent');
-      const res = await fetch(url);
-      if (!res.ok) continue;
-      const buf = Buffer.from(await res.arrayBuffer());
+      const { data, error: downloadError } = await supabase.storage.from('voice-clone-samples').download(`${userId}/${file.name}`);
+      if (downloadError || !data) continue;
+      const buf = Buffer.from(await data.arrayBuffer());
       buffers.push(buf);
-      totalDuration += rec.durationSec;
+      // Estimate duration: assume 44.1kHz mono 16-bit PCM WAV
+      // duration = (file size - 44) / (44100 * 2)
+      const duration = Math.max(1, Math.round((buf.length - 44) / (44100 * 2)));
+      totalDuration += duration;
     } catch (e) {
       continue;
     }
+    if (totalDuration >= 30) break;
   }
-  // If less than 30s, supplement with monologue recordings
-  if (totalDuration < 30) {
-    for (const rec of monoRecs) {
-      if (!rec.audioPath || !rec.durationSeconds) continue;
-      if (totalDuration >= 30) break;
-      try {
-        const url = getMonoUrl(rec.audioPath);
-        urls.push(url);
-        sources.push('monologue');
-        const res = await fetch(url);
-        if (!res.ok) continue;
-        const buf = Buffer.from(await res.arrayBuffer());
-        buffers.push(buf);
-        totalDuration += rec.durationSeconds;
-      } catch (e) {
-        continue;
-      }
-    }
-  }
-
-  console.log(`[VOICE CLONE] Aggregated duration: ${totalDuration}s from ${buffers.length} files. URLs:`, urls, 'Sources:', sources);
-
+  console.log(`[VOICE CLONE] Aggregated duration: ${totalDuration}s from ${buffers.length} files. URLs:`, urls);
   if (totalDuration < 30) return null;
-
   function stripWavHeader(buffer: Buffer): Buffer {
     return buffer.slice(44);
   }
-
   let finalBuffer = Buffer.concat([
     buffers[0].slice(0, 44),
     ...buffers.map((b, i) => (i === 0 ? b.slice(44) : stripWavHeader(b)))
   ]);
-
   return finalBuffer;
 }
 
@@ -144,7 +111,7 @@ export default defineEventHandler(async (event) => {
 
         // If no voiceId, check if we have enough user speech to clone
         if (!voiceId) {
-            const speechSample = await getUserSpeechSample(user.id); // returns Buffer or null
+            const speechSample = await getUserSpeechSample(event, user.id); // pass event
             if (speechSample) {
                 // Upsample to 24kHz mono WAV for cloning
                 let upsampledSample: Buffer;

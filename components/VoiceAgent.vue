@@ -346,9 +346,9 @@ const speechBuffer = ref<Float32Array[]>([]);
 const textInput = ref('');
 
 // Voice Activity Detection parameters - Optimized for low latency
-const VAD_THRESHOLD = 0.015; // Increased from 0.005 for less sensitivity
-const SILENCE_DURATION = 1000; // Increased from 800ms for more stable detection
-const MIN_SPEECH_DURATION = 300; // Increased from 200ms for more reliable speech
+const VAD_THRESHOLD = 0.04; // Less sensitive to background noise/keyboard
+const SILENCE_DURATION = 1000; // Keep as is
+const MIN_SPEECH_DURATION = 700; // Require at least 700ms of speech
 const BUFFER_SIZE = 1024; // Smaller buffer for lower latency. Alternatively 2048
 
 // Voice Activity Detection
