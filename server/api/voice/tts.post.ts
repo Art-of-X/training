@@ -54,8 +54,8 @@ async function getUserSpeechSample(userId: string): Promise<Buffer | null> {
       continue;
     }
   }
-  // If less than 20s, supplement with monologue recordings
-  if (totalDuration < 20) {
+  // If less than 30s, supplement with monologue recordings
+  if (totalDuration < 30) {
     for (const rec of monoRecs) {
       if (!rec.audioPath || !rec.durationSeconds) continue;
       if (totalDuration >= 30) break;
@@ -76,7 +76,7 @@ async function getUserSpeechSample(userId: string): Promise<Buffer | null> {
 
   console.log(`[VOICE CLONE] Aggregated duration: ${totalDuration}s from ${buffers.length} files. URLs:`, urls, 'Sources:', sources);
 
-  if (totalDuration < 20) return null;
+  if (totalDuration < 30) return null;
 
   function stripWavHeader(buffer: Buffer): Buffer {
     return buffer.slice(44);
