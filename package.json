@@ -54,18 +54,19 @@
     "@vueuse/nuxt": "^10.11.1",
     "ai": "^4.3.16",
     "better-sqlite3": "^11.10.0",
+    "csv-parse": "^5.5.4",
     "elevenlabs": "^1.59.0",
+    "ffmpeg-static": "^5.2.0",
     "formidable": "^3.5.2",
     "groq-sdk": "^0.26.0",
     "h3": "^1.8.2",
+    "node-fetch": "^2.6.7",
     "openai": "^5.8.3",
     "pdf.js-extract": "^0.2.1",
     "pinia": "^2.1.7",
     "three": "^0.178.0",
     "ws": "^8.18.0",
-    "zod": "^3.22.4",
-    "csv-parse": "^5.5.4",
-    "node-fetch": "^2.6.7"
+    "zod": "^3.22.4"
   },
   "engines": {
     "node": ">=18.0.0"

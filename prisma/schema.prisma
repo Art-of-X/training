@@ -23,6 +23,7 @@ model UserProfile {
   portfolioItems           PortfolioItem[]
   ratAnswers               RATAnswer[]
   preferences              UserPreferences?
+  voiceAgentRecordings    VoiceAgentRecording[]
 
   @@map("user_profiles")
 }
@@ -35,6 +36,7 @@ model UserPreferences {
   updatedAt         DateTime    @updatedAt @map("updated_at")
   preferredLanguage String      @default("en") @map("preferred_language")
   memory            String?     @db.Text
+  voiceId           String?     @map("voice_id") // ElevenLabs voice clone ID
   user              UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_preferences")
@@ -167,4 +169,15 @@ model ChatMessage {
   @@index([userId, createdAt])
   @@index([sessionId])
   @@map("chat_messages")
+}
+
+model VoiceAgentRecording {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  audioPath   String
+  durationSec Float?
+  createdAt   DateTime @default(now())
+  user        UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("voice_agent_recordings")
 }

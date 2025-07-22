@@ -40,7 +40,7 @@ Title:`;
 
   try {
     const { text } = await generateText({
-        model: openai('gpt-4.1-mini'),
+        model: openai('gpt-4o-mini'),
         prompt: prompt,
         temperature: 0.8, // Lower temperature for more consistent titles
     });
@@ -87,7 +87,7 @@ export async function generateAICoreResponse(
     }
 
     const { text, toolCalls, finishReason, usage } = await generateText({
-        model: openai('gpt-4.1'),
+        model: openai('gpt-4.1-mini'),
         system: fullSystemPrompt,
         messages,
         tools: {
