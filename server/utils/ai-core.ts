@@ -10,7 +10,7 @@ import {
     createWebSearchTool, // for web searching
     createGetPortfolioItemDetailsTool, // for getting portfolio item details
     createGetPredefinedQuestionTool, // for getting predefined questions
-    createSaveUserMemoryTool, // for saving user memory
+    createUserMemoryTool, // unified memory tool
 } from '~/server/utils/ai-tools';
 import { prisma } from '~/server/utils/prisma';
 import { fetchPromptsFromPublicSheet } from './fetchPromptsFromPublicSheet';
@@ -100,7 +100,7 @@ export async function generateAICoreResponse(
             analyzeLink: createAnalyzeLinkTool(userId),
             checkUserContext: createCheckUserContextTool(userId),
             getPredefinedQuestion: createGetPredefinedQuestionTool(userId),
-            saveUserMemory: createSaveUserMemoryTool(userId),
+            userMemory: createUserMemoryTool(userId),
         },
         maxSteps: 10,
     });

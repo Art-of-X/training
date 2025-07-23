@@ -124,17 +124,14 @@ export const useChat = () => {
     
     abortController = new AbortController();
 
-    const initialPrompt: CoreMessage[] = [{
-      role: 'user',
-      // This initial prompt is for the AI, not user display
-      content: 'Hello! I\'m your AI assistant. I\'m here to help you with your creative training, portfolio development, and any questions you might have. How can I assist you today?' 
-    }];
+    // For a new chat, send an empty array to trigger the assistant greeting from the backend
+    const initialPayload = { messages: [], sessionId: currentSessionId.value };
 
     try {
       const response = await fetch('/api/chat/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: initialPrompt, sessionId: currentSessionId.value }),
+        body: JSON.stringify(initialPayload),
         signal: abortController.signal,
       });
 

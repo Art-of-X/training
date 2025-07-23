@@ -35,15 +35,51 @@ export default defineEventHandler(async (event) => {
 
     const { messages, sessionId: clientSessionId }: { messages: CoreMessage[]; sessionId?: string } = await readBody(event);
 
-    // Validate messages
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    // Allow empty messages array for new chat creation
+    if (!messages || !Array.isArray(messages) || (messages.length === 0 && clientSessionId)) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Bad Request: `messages` is required and must be a non-empty array.'
+        statusMessage: 'Bad Request: `messages` is required and must be a non-empty array (unless starting a new chat).'
       });
     }
 
     let currentSessionId = clientSessionId;
+
+    // If no sessionId and no messages, treat as new chat and generate an initial assistant message
+    if ((!clientSessionId || !currentSessionId) && messages.length === 0) {
+      // Create a new session if not already created
+      if (!currentSessionId) {
+        const newSession = await (prisma as PrismaClient).chatSession.create({
+          data: {
+            userId: user.id,
+            title: "New Chat", // Temporary title, will be updated after first AI response
+          },
+        });
+        currentSessionId = newSession.id;
+      }
+      // Generate an initial assistant message using the system/dev prompt
+      const initialSystemMessage: CoreMessage[] = [{ role: 'system' as const, content: 'Start the conversation' }];
+      const { text: initialText } = await generateAICoreResponse(
+        user.id,
+        userName,
+        initialSystemMessage,
+        process.env.SUPABASE_URL || ''
+      );
+      const assistantMessageContent = Array.isArray(initialText) ? initialText : [{ type: 'text' as const, text: initialText }];
+      // Save the assistant's response as the first message
+      await prisma.chatMessage.create({
+        data: {
+          userId: user.id,
+          role: 'assistant',
+          content: JSON.stringify(assistantMessageContent) as any,
+          sessionId: currentSessionId,
+        },
+      });
+      return {
+        content: assistantMessageContent,
+        sessionId: currentSessionId,
+      };
+    }
 
     // If no sessionId is provided, it's a new session, create a ChatSession entry
     if (!currentSessionId) {
@@ -94,14 +130,8 @@ export default defineEventHandler(async (event) => {
 
     const userMessage = messages.filter(m => m.role === 'user').pop();
 
-    // Detect if this is the initial prompt
-    const isInitialPrompt = userMessage && userMessage.content && (
-      (typeof userMessage.content === 'string' && userMessage.content.includes('__INITIAL_PROMPT__')) ||
-      (Array.isArray(userMessage.content) && userMessage.content.some(part => part.type === 'text' && 'text' in part && part.text.includes('__INITIAL_PROMPT__')))
-    );
-
-    // Only save user message if it's not the initial prompt
-    if (userMessage && userMessage.content && !isInitialPrompt) {
+    // Only save user message if it's not the initial prompt (no more initial prompt detection needed)
+    if (userMessage && userMessage.content) {
       const content = Array.isArray(userMessage.content) 
         ? userMessage.content 
         : typeof userMessage.content === 'string'
@@ -121,33 +151,34 @@ export default defineEventHandler(async (event) => {
     let messagesForAI: CoreMessage[] = [...existingMessages];
 
     // If this is the initial prompt, do not append a user message, just return the assistant greeting
-    if (isInitialPrompt) {
-      const assistantGreeting = [{
-        type: 'text' as const,
-        text: "Hello! I'm your AI assistant. I'm here to help you with your creative training, portfolio development, and any questions you might have. How can I assist you today?"
-      }];
-      // Save the assistant greeting as the first assistant message
-      await prisma.chatMessage.create({
-        data: {
-          userId: user.id,
-          role: 'assistant',
-          content: JSON.stringify(assistantGreeting) as any,
-          sessionId: currentSessionId!,
-        },
-      });
-      // Update the chat session title
-      await prisma.chatSession.update({
-        where: { id: currentSessionId! },
-        data: { title: 'New Chat' },
-      });
-      return {
-        content: assistantGreeting,
-        sessionId: currentSessionId,
-      };
-    }
+    // This block is now redundant as initial prompt detection is removed.
+    // if (isInitialPrompt) {
+    //   const assistantGreeting = [{
+    //     type: 'text' as const,
+    //     text: "Hello! I'm your AI assistant. I'm here to help you with your creative training, portfolio development, and any questions you might have. How can I assist you today?"
+    //   }];
+    //   // Save the assistant greeting as the first assistant message
+    //   await prisma.chatMessage.create({
+    //     data: {
+    //       userId: user.id,
+    //       role: 'assistant',
+    //       content: JSON.stringify(assistantGreeting) as any,
+    //       sessionId: currentSessionId!,
+    //     },
+    //   });
+    //   // Update the chat session title
+    //   await prisma.chatSession.update({
+    //     where: { id: currentSessionId! },
+    //     data: { title: 'New Chat' },
+    //   });
+    //   return {
+    //     content: assistantGreeting,
+    //     sessionId: currentSessionId,
+    //   };
+    // }
 
     // Append the latest user message from the current request (if not initial prompt)
-    if (userMessage && userMessage.content && !isInitialPrompt) {
+    if (userMessage && userMessage.content) {
       const contentForAI = typeof userMessage.content === 'string'
           ? [{ type: 'text' as const, text: userMessage.content }]
           : userMessage.content;

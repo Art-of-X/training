@@ -117,6 +117,9 @@ export default defineEventHandler(async (event) => {
             });
         });
 
+        // Read sessionId from form fields if present
+        const sessionId = fields.sessionId ? String(fields.sessionId) : undefined;
+
         const audioFile = Array.isArray(files.audio) ? files.audio[0] : files.audio;
         if (!audioFile) {
             throw createError({ statusCode: 400, statusMessage: 'No audio file provided' });
@@ -143,7 +146,7 @@ export default defineEventHandler(async (event) => {
         const audioFileForAPI = new File([audioBlob], 'audio.wav', { type: 'audio/wav' });
         formData.append('file', audioFileForAPI);
         formData.append('model_id', 'scribe_v1');
-        formData.append('language_code', 'en');
+        // formData.append('language_code', 'en');
         formData.append('tag_audio_events', 'false');
         formData.append('diarize', 'false');
         formData.append('timestamps_granularity', 'word');
@@ -254,7 +257,8 @@ export default defineEventHandler(async (event) => {
             text: transcript.trim(),
             confidence: confidence,
             language: result.language_code || 'en',
-            words: result.words || [] // Include word-level timing if needed
+            words: result.words || [], // Include word-level timing if needed
+            sessionId // propagate sessionId back to frontend
         };
 
     } catch (e: any) {

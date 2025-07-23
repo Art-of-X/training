@@ -355,30 +355,45 @@ export const createAnalyzeLinkTool = (userId: string) => tool({
     }
 });
 
-export const createSaveUserMemoryTool = (userId: string) => tool({
-    description: 'Save essential user information, preferences, or recurring details into the user\'s memory for future sessions. This helps the AI recall important facts about the user without needing to be explicitly reminded.',
+export const createUserMemoryTool = (userId: string) => tool({
+    description: `Manage the user's memory in preferences. Use 'save' to insert/update memory, or 'delete' to clear it. Use this if the user requests to update or remove their stored memory or changes their preferences.`,
     parameters: z.object({
-        content: z.string().describe('The essential information to save about the user. This should be a concise summary of their preferences, key skills, artistic style, or any other recurring details that are important for personalizing future interactions.'),
+        action: z.enum(['save', 'delete']).describe("'save' to insert/update memory, 'delete' to clear memory."),
+        content: z.string().optional().describe('The memory content to save. Required for save, ignored for delete.'),
     }),
-    execute: async ({ content }) => {
+    execute: async ({ action, content }) => {
         try {
-            await prisma.userPreferences.upsert({
-                where: { userId },
-                update: {
-                    memory: content,
-                    updatedAt: new Date()
-                },
-                create: {
-                    userId,
-                    preferredLanguage: 'en', // Default if not set
-                    ttsEnabled: true,
-                    memory: content,
-                },
-            });
-            return { success: true, message: 'User memory updated successfully.' };
+            if (action === 'save') {
+                if (!content || !content.trim()) {
+                    return { success: false, error: 'Content is required for saving memory.' };
+                }
+                await prisma.userPreferences.upsert({
+                    where: { userId },
+                    update: { memory: content, updatedAt: new Date() },
+                    create: {
+                        userId,
+                        preferredLanguage: 'en',
+                        ttsEnabled: true,
+                        memory: content,
+                    },
+                });
+                return { success: true, message: 'User memory saved/updated successfully.' };
+            } else if (action === 'delete') {
+                await prisma.userPreferences.update({
+                    where: { userId },
+                    data: { memory: null, updatedAt: new Date() },
+                });
+                return { success: true, message: 'User memory deleted successfully.' };
+            } else {
+                return { success: false, error: 'Invalid action.' };
+            }
         } catch (error: any) {
-            console.error('Error in saveUserMemoryTool:', error);
-            return { success: false, error: `Failed to save user memory: ${error.message}` };
+            // If deleting and record does not exist, treat as success
+            if (action === 'delete' && error.code === 'P2025') {
+                return { success: true, message: 'No user memory to delete.' };
+            }
+            console.error('Error in userMemoryTool:', error);
+            return { success: false, error: `Failed to process user memory: ${error.message}` };
         }
     }
 });

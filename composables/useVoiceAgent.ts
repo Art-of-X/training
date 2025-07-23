@@ -106,7 +106,7 @@ export const useVoiceAgent = () => {
   };
 
   // Process voice input through STT, LLM, and TTS pipeline
-  const processVoiceInput = async (audioBlob: Blob): Promise<string | null> => {
+  const processVoiceInput = async (audioBlob: Blob, fullMessages?: any[]): Promise<string | null> => {
     try {
       state.value.isProcessing = true;
       state.value.error = null;
@@ -120,7 +120,8 @@ export const useVoiceAgent = () => {
       state.value.transcript = transcript;
 
       // Step 2: Generate AI response using existing chat system
-      const aiResponse = await generateAIResponse(transcript);
+      // Pass the full session if provided, otherwise just the transcript
+      const aiResponse = await generateAIResponse(transcript, fullMessages);
 
       // Step 3: Text-to-Speech with user's voice clone
       await textToSpeech(aiResponse);
@@ -150,16 +151,27 @@ export const useVoiceAgent = () => {
   };
 
   // Generate AI response using existing chat message endpoint
-  const generateAIResponse = async (userMessage: string): Promise<string> => {
+  // Accepts the full messages array for proper session context
+  const generateAIResponse = async (userMessage: string, fullMessages?: any[]): Promise<string> => {
+    // If fullMessages is provided, append the new user message and send the whole session
+    let messagesToSend;
+    if (Array.isArray(fullMessages) && fullMessages.length > 0) {
+      messagesToSend = [
+        ...fullMessages,
+        { role: 'user', content: userMessage }
+      ];
+    } else {
+      messagesToSend = [
+        { role: 'user', content: userMessage }
+      ];
+    }
+    // Send the full session to the backend for context
     const response = await $fetch<{ content?: string }>('/api/chat/message', {
       method: 'POST',
       body: {
-        messages: [
-          { role: 'user', content: userMessage }
-        ]
+        messages: messagesToSend
       }
     });
-
     return response.content || 'I apologize, but I couldn\'t generate a response.';
   };
 

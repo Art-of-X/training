@@ -244,7 +244,8 @@ const {
   stopRecording: originalStopRecording,
   toggleTTS: toggleComposableTTS,
   loadSession: loadComposableSession, // Add loadSession to the composable
-  getInitialMessage: getComposableInitialMessage // Add getInitialMessage to the composable
+  getInitialMessage: getComposableInitialMessage, // Add getInitialMessage to the composable
+  currentSessionId // Add currentSessionId to the composable
 } = useChat();
 
 // TTS state - use composable's TTS instead of custom implementation
@@ -497,10 +498,10 @@ const processAIResponse = async () => {
   try {
     isLoading.value = true;
     
-    // Call the API directly to get the response using current messages
+    // Always include sessionId in the payload
     const response = await $fetch('/api/chat/message', {
       method: 'POST',
-      body: { messages: messages.value }
+      body: { messages: messages.value, sessionId: currentSessionId.value }
     });
     
     if (response.content) {
@@ -526,6 +527,10 @@ const processVoiceInput = async (audioBlob: Blob) => {
     
     const formData = new FormData();
     formData.append('audio', audioBlob, 'recording.webm');
+    // Include sessionId if available
+    if (typeof currentSessionId !== 'undefined' && currentSessionId.value) {
+      formData.append('sessionId', currentSessionId.value);
+    }
     
     const response = await fetch('/api/voice/stt', {
       method: 'POST',
