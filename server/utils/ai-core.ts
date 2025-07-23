@@ -6,11 +6,11 @@ import {
     createDocumentProcessingTool, // for document processing
     createAnalyzeLinkTool, // for analyzing links
     createQueryChatSessionsTool, // for querying chat sessions
-    createCheckUserContextTool, // for checking user context
     createWebSearchTool, // for web searching
     createGetPortfolioItemDetailsTool, // for getting portfolio item details
     createGetPredefinedQuestionTool, // for getting predefined questions
-    createUserMemoryTool, // unified memory tool
+    getUserPreferencesTool, // for getting user preferences
+    setUserPreferencesTool, // for setting user preferences
 } from '~/server/utils/ai-tools';
 import { prisma } from '~/server/utils/prisma';
 import { fetchPromptsFromPublicSheet } from './fetchPromptsFromPublicSheet';
@@ -77,13 +77,12 @@ export async function generateAICoreResponse(
         apiKey: process.env.OPENAI_API_KEY,
     });
 
-    // Fetch user memory from preferences
-    const userContext = await createCheckUserContextTool(userId).execute({}, { toolCallId: '', messages: [] });
-    const userMemory = userContext.userMemory;
-
+    // Fetch user preferences (including memory)
+    const userPreferences = await getUserPreferencesTool(userId).execute({}, { toolCallId: '', messages: [] });
     let fullSystemPrompt = `${systemPrompt}\n${developerPrompt}`;
-    if (userMemory) {
-        fullSystemPrompt += `\n\n[User Memory]\n${userMemory}`;
+    const prefs: any = userPreferences;
+    if (prefs && prefs.memory) {
+        fullSystemPrompt += `\n\n[User Memory]\n${prefs.memory}`;
     }
 
     const { text, toolCalls, finishReason, usage } = await generateText({
@@ -98,9 +97,9 @@ export async function generateAICoreResponse(
             queryDatabase: createDatabaseQueryTool(userId),
             finalizeFileUpload: createFinalizeFileUploadTool(userId, supabaseUrl),
             analyzeLink: createAnalyzeLinkTool(userId),
-            checkUserContext: createCheckUserContextTool(userId),
             getPredefinedQuestion: createGetPredefinedQuestionTool(userId),
-            userMemory: createUserMemoryTool(userId),
+            getUserPreferences: getUserPreferencesTool(userId),
+            setUserPreferences: setUserPreferencesTool(userId),
         },
         maxSteps: 10,
     });

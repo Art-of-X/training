@@ -35,30 +35,33 @@ export default defineEventHandler(async (event) => {
 
     const { messages, sessionId: clientSessionId }: { messages: CoreMessage[]; sessionId?: string } = await readBody(event);
 
-    // Allow empty messages array for new chat creation
-    if (!messages || !Array.isArray(messages) || (messages.length === 0 && clientSessionId)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Bad Request: `messages` is required and must be a non-empty array (unless starting a new chat).'
-      });
-    }
-
     let currentSessionId = clientSessionId;
 
-    // If no sessionId and no messages, treat as new chat and generate an initial assistant message
-    if ((!clientSessionId || !currentSessionId) && messages.length === 0) {
-      // Create a new session if not already created
+    // --- LANGUAGE PREFERENCE LOGIC ---
+    const preferences = await prisma.userPreferences.findUnique({ where: { userId: user.id } });
+    let preferredLanguage = preferences?.preferredLanguage;
+    let languageJustSet = false;
+
+    // If this is a new chat (no sessionId and no messages), check language preference
+    if ((!clientSessionId || !currentSessionId) && (!messages || messages.length === 0)) {
+      // If no preferred language, allow the assistant to ask for it (handled by prompt)
+      // If preferred language exists, inject it into the system prompt context
       if (!currentSessionId) {
         const newSession = await (prisma as PrismaClient).chatSession.create({
           data: {
             userId: user.id,
-            title: "New Chat", // Temporary title, will be updated after first AI response
+            title: "New Chat",
           },
         });
         currentSessionId = newSession.id;
       }
-      // Generate an initial assistant message using the system/dev prompt
-      const initialSystemMessage: CoreMessage[] = [{ role: 'system' as const, content: 'Start the conversation' }];
+      // If preferredLanguage exists, inject a system message to set the language context
+      let initialSystemMessage: CoreMessage[];
+      if (preferredLanguage) {
+        initialSystemMessage = [{ role: 'system' as const, content: `Preferred language: ${preferredLanguage}` }];
+      } else {
+        initialSystemMessage = [{ role: 'system' as const, content: 'Start the conversation' }];
+      }
       const { text: initialText } = await generateAICoreResponse(
         user.id,
         userName,
@@ -66,7 +69,6 @@ export default defineEventHandler(async (event) => {
         process.env.SUPABASE_URL || ''
       );
       const assistantMessageContent = Array.isArray(initialText) ? initialText : [{ type: 'text' as const, text: initialText }];
-      // Save the assistant's response as the first message
       await prisma.chatMessage.create({
         data: {
           userId: user.id,
@@ -78,8 +80,11 @@ export default defineEventHandler(async (event) => {
       return {
         content: assistantMessageContent,
         sessionId: currentSessionId,
+        preferredLanguage,
       };
     }
+
+    // --- END LANGUAGE PREFERENCE LOGIC ---
 
     // If no sessionId is provided, it's a new session, create a ChatSession entry
     if (!currentSessionId) {
@@ -93,7 +98,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Fetch existing messages for the session if sessionId is provided
-    let existingMessages: (CoreUserMessage | CoreAssistantMessage)[] = []; 
+    let existingMessages: (CoreUserMessage | CoreAssistantMessage)[] = [];
     if (currentSessionId) { 
       const history = await prisma.chatMessage.findMany({
         where: {
@@ -128,6 +133,32 @@ export default defineEventHandler(async (event) => {
       });
     }
 
+    // --- SET LANGUAGE IF USER ANSWERED IT ---
+    // If the user just answered the language question, update their preference
+    // (Assume: if the first user message is a language answer and no preference is set)
+    if (!preferredLanguage && messages && messages.length === 1 && messages[0].role === 'user') {
+      const userLangAnswer = String(messages[0].content).toLowerCase();
+      // Naive detection: look for common language names
+      if (userLangAnswer.includes('deutsch') || userLangAnswer.includes('german')) {
+        await prisma.userPreferences.upsert({
+          where: { userId: user.id },
+          update: { preferredLanguage: 'de', updatedAt: new Date() },
+          create: { userId: user.id, preferredLanguage: 'de', ttsEnabled: true, memory: '' },
+        });
+        preferredLanguage = 'de';
+        languageJustSet = true;
+      } else if (userLangAnswer.includes('english') || userLangAnswer.includes('englisch')) {
+        await prisma.userPreferences.upsert({
+          where: { userId: user.id },
+          update: { preferredLanguage: 'en', updatedAt: new Date() },
+          create: { userId: user.id, preferredLanguage: 'en', ttsEnabled: true, memory: '' },
+        });
+        preferredLanguage = 'en';
+        languageJustSet = true;
+      } // Add more languages as needed
+    }
+
+    // Restore userMessage definition for later use
     const userMessage = messages.filter(m => m.role === 'user').pop();
 
     // Only save user message if it's not the initial prompt (no more initial prompt detection needed)

@@ -355,130 +355,6 @@ export const createAnalyzeLinkTool = (userId: string) => tool({
     }
 });
 
-export const createUserMemoryTool = (userId: string) => tool({
-    description: `Manage the user's memory in preferences. Use 'save' to insert/update memory, or 'delete' to clear it. Use this if the user requests to update or remove their stored memory or changes their preferences.`,
-    parameters: z.object({
-        action: z.enum(['save', 'delete']).describe("'save' to insert/update memory, 'delete' to clear memory."),
-        content: z.string().optional().describe('The memory content to save. Required for save, ignored for delete.'),
-    }),
-    execute: async ({ action, content }) => {
-        try {
-            if (action === 'save') {
-                if (!content || !content.trim()) {
-                    return { success: false, error: 'Content is required for saving memory.' };
-                }
-                await prisma.userPreferences.upsert({
-                    where: { userId },
-                    update: { memory: content, updatedAt: new Date() },
-                    create: {
-                        userId,
-                        preferredLanguage: 'en',
-                        ttsEnabled: true,
-                        memory: content,
-                    },
-                });
-                return { success: true, message: 'User memory saved/updated successfully.' };
-            } else if (action === 'delete') {
-                await prisma.userPreferences.update({
-                    where: { userId },
-                    data: { memory: null, updatedAt: new Date() },
-                });
-                return { success: true, message: 'User memory deleted successfully.' };
-            } else {
-                return { success: false, error: 'Invalid action.' };
-            }
-        } catch (error: any) {
-            // If deleting and record does not exist, treat as success
-            if (action === 'delete' && error.code === 'P2025') {
-                return { success: true, message: 'No user memory to delete.' };
-            }
-            console.error('Error in userMemoryTool:', error);
-            return { success: false, error: `Failed to process user memory: ${error.message}` };
-        }
-    }
-});
-
-export const createCheckUserContextTool = (userId: string) => tool({
-    description: 'Check the user\'s internal context on our platform: portfolio, recent conversations, etc. This is the **first step** in any interaction. Based on the output, decide if you need to perform external research using the `webSearch` tool before asking a question.',
-    parameters: z.object({}),
-    execute: async () => {
-        try {
-            const userProfile = await prisma.userProfile.findUnique({
-                where: { id: userId },
-                select: { name: true, createdAt: true }
-            });
-            
-            // Get portfolio progress
-            const portfolioItems = await prisma.portfolioItem.findMany({
-                where: { userId },
-                orderBy: { createdAt: 'desc' },
-                select: { id: true, description: true, link: true, filePath: true, createdAt: true }
-            });
-            
-            // Get recent chat sessions
-            const recentSessions = await prisma.chatSession.findMany({
-                where: { userId },
-                orderBy: { updatedAt: 'desc' },
-                take: 5,
-                select: { id: true, title: true, updatedAt: true }
-            });
-            
-            // Get recent chat messages to understand context
-            const recentMessages = await prisma.chatMessage.findMany({
-                where: { userId },
-                orderBy: { createdAt: 'desc' },
-                take: 10,
-                select: { role: true, content: true, createdAt: true }
-            });
-            
-            // Check if we're in the middle of a question flow
-            const lastAssistantMessage = recentMessages.find(m => m.role === 'assistant');
-            const lastUserMessage = recentMessages.find(m => m.role === 'user');
-            // Check if the assistant has asked a question in their last message
-            const hasAskedQuestion = lastAssistantMessage ? 
-                (Array.isArray(lastAssistantMessage.content) 
-                    ? lastAssistantMessage.content.some((part: any) => 
-                        part?.type === 'text' && part?.text?.includes('?')
-                      )
-                    : String(lastAssistantMessage.content).includes('?')
-                ) : false;
-            const userHasResponded = lastUserMessage && lastAssistantMessage ? lastUserMessage.createdAt > lastAssistantMessage.createdAt : false;
-
-            // Fetch user preferences including memory
-            const userPreferences = await prisma.userPreferences.findUnique({
-                where: { userId },
-                select: { memory: true }
-            });
-            const userMemory = userPreferences?.memory || null;
-
-            return {
-                success: true,
-                userProfile,
-                portfolio: {
-                    totalItems: portfolioItems.length,
-                    items: portfolioItems,
-                    hasWork: portfolioItems.length > 0,
-                    recentWork: portfolioItems.slice(0, 3)
-                },
-                recentSessions,
-                recentMessages: recentMessages.map(m => ({ role: m.role, content: m.content, createdAt: m.createdAt })),
-                hasAskedQuestion,
-                userHasResponded,
-                userMemory, // Pass user memory to the AI
-                context: {
-                    isNewUser: portfolioItems.length === 0 && recentSessions.length === 0,
-                    needsMorePortfolioItems: portfolioItems.length < 3,
-                    hasEstablishedWork: portfolioItems.length >= 3,
-                    hasConversationHistory: recentSessions.length > 0
-                }
-            };
-        } catch (error: any) {
-            console.error('Error in checkUserContextTool:', error);
-            return { success: false, error: `Failed to check user context: ${error.message}` };
-        }
-    }
-}); 
-
 export const createIntelligentDataTool = (userId: string) => tool({
     description: "Intelligent data management tool. Describe what you want to do in natural language and provide context. The tool will intelligently determine the appropriate action and execute it. Use this for saving portfolio items, managing work descriptions, and any other data operations.",
     parameters: z.object({
@@ -752,4 +628,33 @@ export const createGetPredefinedQuestionTool = (userId: string) => tool({
             return { success: false, error: `Failed to fetch predefined question: ${error.message}` };
         }
     }
+}); 
+
+// Unified tool: Get all user preferences
+export const getUserPreferencesTool = (userId: string) => tool({
+  description: 'Fetch all user preferences for personalization (language, TTS, memory, etc.).',
+  parameters: z.object({}),
+  execute: async () => {
+    const prefs = await prisma.userPreferences.findUnique({ where: { userId } });
+    return prefs || {};
+  }
+});
+
+// Unified tool: Set/update any user preference
+export const setUserPreferencesTool = (userId: string) => tool({
+  description: 'Update any user preference (language, TTS, memory, etc.).',
+  parameters: z.object({
+    preferredLanguage: z.string().optional(),
+    ttsEnabled: z.boolean().optional(),
+    memory: z.string().optional(),
+    // Add more fields as needed
+  }),
+  execute: async (updates) => {
+    await prisma.userPreferences.upsert({
+      where: { userId },
+      update: { ...updates, updatedAt: new Date() },
+      create: { userId, ...updates },
+    });
+    return { success: true };
+  }
 }); 
