@@ -223,6 +223,8 @@ export default defineEventHandler(async (event) => {
             }
           }
 
+          // --- Voice cloning logic below is commented out ---
+          /*
           // Save high-quality version for voice cloning (44.1kHz mono WAV, silence trimmed)
           try {
             const wav44kTrimBuffer = await convertToWav44kMonoTrimSilence(audioFile.filepath);
@@ -244,6 +246,7 @@ export default defineEventHandler(async (event) => {
           } catch (e) {
             console.error('Failed to save high-quality voice clone sample:', e);
           }
+          */
         } else {
           console.log('STT: Skipping save, transcript too short or empty:', transcript);
         }

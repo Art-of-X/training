@@ -5,7 +5,7 @@
         <h1 class="text-xl font-bold text-secondary-900 dark:text-white">AI Chat</h1>
       </header>
       <div class="flex-1 overflow-y-auto p-4 space-y-4">
-        <div v-for="(message, index) in messages" :key="index" :class="message.role === 'user' ? 'flex justify-end' : 'flex'">
+        <div v-for="(message, index) in displayMessages" :key="index" :class="message.role === 'user' ? 'flex justify-end' : 'flex'">
           <div v-if="message.role !== 'user'" class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
             <DashboardX class="w-full h-full" />
           </div>
@@ -28,9 +28,6 @@
               <span>Thinking</span><span>.</span><span>.</span><span>.</span>
             </div>
           </div>
-        </div>
-        <div v-if="error" class="text-red-500">
-          <p>An error occurred: {{ error.message }}</p>
         </div>
       </div>
       <footer class="p-4 border-t border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-900/50 rounded-b-lg">
@@ -62,7 +59,7 @@
         class="flex-grow overflow-y-auto mb-4 text-base"
         style="scroll-behavior: smooth;"
       >
-        <div v-for="(message, index) in messages" :key="index" 
+        <div v-for="(message, index) in displayMessages" :key="index" 
              :class="['mb-4 flex', message.role === 'user' || message.role === 'recording' ? 'justify-end' : 'justify-start']">
           <div v-if="message.role !== 'user' && message.role !== 'recording'" class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
             <DashboardX class="w-full h-full" />
@@ -357,6 +354,12 @@ const fetchChatHistory = async () => {
   } catch (e: any) {
     historyError.value = e;
     console.error('Failed to fetch chat history:', e);
+    // Notify user via assistant message
+    messages.value.push({
+      role: 'assistant',
+      content: 'Sorry, I could not load your chat history. Please try again later.'
+    });
+    scrollToBottom();
   } finally {
     loadingHistory.value = false;
   }
@@ -510,12 +513,12 @@ const processAIResponse = async () => {
     }
   } catch (e) {
     console.error('Error processing AI response:', e);
-    error.value = e;
-    // Add error message
+    // Notify user via assistant message
     messages.value.push({
       role: 'assistant',
-      content: 'Sorry, I ran into an error.'
+      content: 'Sorry, I ran into an error while processing your request.'
     });
+    scrollToBottom();
   } finally {
     isLoading.value = false;
   }
@@ -554,10 +557,15 @@ const processVoiceInput = async (audioBlob: Blob) => {
     scrollToBottom(); // Ensure scroll happens after message update
 
   } catch (e) {
-    error.value = e;
     console.error('Error processing voice input:', e);
     // Remove the message on error, or change to an error message
     removeRecordingMessage(); // Or update with 'Error processing voice input.'
+    // Notify user via assistant message
+    messages.value.push({
+      role: 'assistant',
+      content: 'Sorry, I could not process your voice input. Please try again.'
+    });
+    scrollToBottom();
   } finally {
     isLoading.value = false;
   }
@@ -581,6 +589,12 @@ const handleProactiveFileUpload = async (event: Event) => {
             console.warn('Upload timeout - resetting upload state');
             isUploadingFile.value = false;
             uploadError.value = 'Upload timed out. Please try again.';
+            // Notify user via assistant message
+            messages.value.push({
+              role: 'assistant',
+              content: 'Sorry, your file upload timed out. Please try again.'
+            });
+            scrollToBottom();
         }
     }, 120000); // 2 minute safety timeout
 
@@ -604,52 +618,18 @@ const handleProactiveFileUpload = async (event: Event) => {
         // Process the file in the background
         try {
             console.log('Processing uploaded file:', response.url);
-            // Create a system message to ensure the AI processes the document
+            // Instead of pushing a system message to the UI, just call the AI with the context
+            // The system message is only for backend context, not for UI
             const systemMessage = {
                 role: 'system' as const,
                 content: 'The user has uploaded a document. Please analyze it thoroughly and be prepared to answer questions about it.'
             };
+            const userMessageForAI = `I have uploaded a file. Please use the documentProcessing tool to analyze this file: ${response.url}. The context is: user uploaded creative work or portfolio materials.`;
 
-            // Create the user message with document upload
-            const userMessageForAI = `I have uploaded a file. Please use the documentProcessing tool to analyze this file: ${response.url}. The context is: user uploaded creative work or portfolio materials.`
-
-            // Call the AI to process the file using the composable's handleSubmit
-            // Add the system message to messages.value temporarily if needed for context for the AI
-            // The actual content for the user is sent via handleSubmit which adds to messages.value
-            messages.value.push(systemMessage); // Add system message for AI to process, but it won't be displayed
-            originalHandleSubmit(userMessageForAI);
-            
-            // The AI response will be handled by the composable's sendMessage, so we remove this block
-            // const aiResponse = await $fetch('/api/chat/message', {
-            //     method: 'POST',
-            //     body: { 
-            //         messages: [systemMessage, userMessage]
-            //     },
-            //     timeout: 60000, // 60 second timeout for AI processing
-            // });
-            
-            // console.log('AI response received:', aiResponse);
-            
-            // // Add the AI response to the chat
-            // if (aiResponse && aiResponse.content) {
-            //     // Add the system message first (won't be displayed)
-            //     messages.value.push(systemMessage);
-            //     // Then add the user's upload message
-            //     messages.value.push(userMessage);
-            //     // Then add the assistant's response
-            //     messages.value.push({
-            //         role: 'assistant',
-            //         content: aiResponse.content
-            //     });
-            //     scrollToBottom();
-            // } else {
-            //     // Fallback if no response content
-            //     messages.value.push({
-            //         role: 'assistant',
-            //         content: `I've received your file "${file.name}". What would you like to know about it?`
-            //     });
-            //     scrollToBottom();
-            // }
+            // Call the AI to process the file, but do not add another user message to the UI
+            // Use a custom handleSubmit that does not push a user message, or temporarily remove the last user message if needed
+            // Here, we call handleSubmit, but only the agent's response will be shown
+            await originalHandleSubmit(userMessageForAI, true);
         } catch (messageError) {
             console.error('Error processing uploaded file:', messageError);
             // Add a message to let user know processing failed
@@ -663,6 +643,12 @@ const handleProactiveFileUpload = async (event: Event) => {
     } catch (e: any) {
         console.error('Upload error:', e);
         uploadError.value = e.data?.message || e.message || 'The file could not be uploaded. Please try again.';
+        // Notify user via assistant message
+        messages.value.push({
+          role: 'assistant',
+          content: 'Sorry, your file could not be uploaded. Please try again.'
+        });
+        scrollToBottom();
     } finally {
         // Clear the safety timeout
         clearTimeout(uploadTimeout);
@@ -745,6 +731,35 @@ const initializeChat = () => {
 
 // Observer to detect when chat becomes visible
 const chatObserver = ref<IntersectionObserver | null>(null);
+
+// Filter out system messages and technical user messages for display
+const displayMessages = computed(() => {
+  // Filter out system messages and technical user messages
+  const filtered = messages.value.filter((msg) => {
+    if (msg.role === 'system') return false;
+    if (msg.role === 'user' && typeof msg.content === 'string') {
+      if (msg.content.startsWith('I have uploaded a file. Please use the documentProcessing tool')) return false;
+      if (msg.content.trim() === 'The user has uploaded a document. Please analyze it thoroughly and be prepared to answer questions about it.') return false;
+    }
+    return true;
+  });
+
+  // Only show the last assistant placeholder (content === '') if it is the last message
+  let lastAssistantPlaceholderIndex = -1;
+  for (let i = 0; i < filtered.length; i++) {
+    const msg = filtered[i];
+    if (msg.role === 'assistant' && msg.content === '') {
+      lastAssistantPlaceholderIndex = i;
+    }
+  }
+  return filtered.filter((msg, i) => {
+    if (msg.role === 'assistant' && msg.content === '') {
+      // Only show if it's the last message in the array
+      return i === filtered.length - 1 && i === lastAssistantPlaceholderIndex;
+    }
+    return true;
+  });
+});
 
 // Cleanup function to stop TTS, message generation, and reset state
 function cleanup() {

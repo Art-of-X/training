@@ -152,7 +152,7 @@ export const useChat = () => {
       }
 
       // Play TTS if enabled and content exists
-      if (isTTSEnabled.value && content && typeof content === 'string') {
+      if (isTTSEnabled.value && content) {
         await playTTS(content);
       }
 
@@ -178,14 +178,16 @@ export const useChat = () => {
     }
   };
   
-  const handleSubmit = async (userInput: string) => {
+  const handleSubmit = async (userInput: string, suppressPlaceholder: boolean = false) => {
     if (!userInput || !userInput.trim()) return;
 
     const userMessage: CoreMessage = { role: 'user', content: userInput };
     messages.value.push(userMessage); // Add user message to local state immediately
 
     // Add a placeholder for the assistant's response immediately after user message
-    messages.value.push({ role: 'assistant', content: '' });
+    if (!suppressPlaceholder) {
+      messages.value.push({ role: 'assistant', content: '' });
+    }
 
     // Send all current messages (including the new user message) to the server
     // The server will handle fetching the full history based on sessionId
@@ -270,7 +272,7 @@ export const useChat = () => {
           metadata,
         };
       } else if (msg.role === 'tool') {
-        // Tool messages: content should always be a string
+        // Tool messages: content should always be a string, but CoreToolMessage expects ToolContent type
         let toolContent: string;
         try {
           toolContent = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
@@ -286,7 +288,12 @@ export const useChat = () => {
         }
         return {
           ...msg,
-          content: toolContent,
+          content: [{
+            type: 'tool-result',
+            toolCallId: 'unknown',
+            toolName: 'unknown',
+            result: toolContent
+          }],
           metadata,
         };
       } else {
@@ -401,44 +408,44 @@ export const useChat = () => {
     }
   };
 
-  const playTTS = async (text: string) => {
+  const playTTS = async (text: string | any[]) => {
     // Early return if TTS is disabled - safety check
     if (!isTTSEnabled.value) {
       return;
     }
-    
+    let ttsText = '';
+    if (typeof text === 'string') {
+      ttsText = text;
+    } else if (Array.isArray(text) && text.length > 0) {
+      const firstTextPart = text.find((part: any) => part.type === 'text' && part.text);
+      ttsText = firstTextPart ? firstTextPart.text : '';
+    }
+    if (!ttsText) return;
     try {
       isPlayingTTS.value = true;
       audioStarted.value = false; // Reset audio started state
-      
       // Stop any currently playing audio
       if (currentAudio.value) {
         currentAudio.value.pause();
         currentAudio.value = null;
       }
-      
       const response = await fetch('/api/voice/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text: ttsText }),
       });
-      
       if (!response.ok) {
         throw new Error('Failed to generate speech');
       }
-      
       const audioBuffer = await response.arrayBuffer();
       const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
       const audioUrl = URL.createObjectURL(audioBlob);
-      
       currentAudio.value = new Audio(audioUrl);
-      
       // Set audioStarted when audio actually begins playing
       currentAudio.value.onplay = () => {
         console.log('Composable: Audio playback started');
         audioStarted.value = true;
       };
-      
       currentAudio.value.onended = () => {
         console.log('Composable: Audio playback ended');
         isPlayingTTS.value = false;
@@ -446,7 +453,6 @@ export const useChat = () => {
         URL.revokeObjectURL(audioUrl);
         currentAudio.value = null;
       };
-      
       currentAudio.value.onerror = () => {
         console.log('Composable: Audio playback error');
         isPlayingTTS.value = false;
@@ -454,7 +460,6 @@ export const useChat = () => {
         URL.revokeObjectURL(audioUrl);
         currentAudio.value = null;
       };
-      
       await currentAudio.value.play();
     } catch (e) {
       isPlayingTTS.value = false;

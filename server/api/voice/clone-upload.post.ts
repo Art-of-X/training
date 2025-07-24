@@ -5,7 +5,10 @@ import wav from 'wav-decoder';
 
 export const config = { runtime: 'edge' };
 
+// --- Voice cloning logic is currently DISABLED. To re-enable, uncomment the relevant blocks below. ---
 export default defineEventHandler(async (event) => {
+  // --- Voice cloning logic below is commented out ---
+  /*
   // Auth
   const user = await serverSupabaseUser(event);
   if (!user) {
@@ -63,4 +66,6 @@ export default defineEventHandler(async (event) => {
     return { status: 500, error: uploadError.message };
   }
   return { status: 200, message: 'Uploaded', path: filePath };
+  */
+  return { status: 410, error: 'Voice cloning is disabled.' };
 }); 

@@ -11,75 +11,21 @@ import os from 'os';
 import fs from 'fs/promises';
 import ffmpegPath from 'ffmpeg-static';
 
+// Remove getUserSpeechSample, upsampleTo24kHzWav, and all voice clone logic
+// Only use the default voiceId for TTS
+
+// --- Voice cloning logic is currently DISABLED. To re-enable, uncomment the relevant blocks below. ---
+// --- Voice cloning logic below is commented out ---
+/*
 async function getUserSpeechSample(event, userId: string): Promise<Buffer | null> {
-  // Fetch all files for the user from the voice-clone-samples bucket
-  const supabase = await serverSupabaseClient(event);
-  const { data: list, error } = await supabase.storage.from('voice-clone-samples').list(userId + '/', { limit: 100 });
-  if (error) {
-    console.error('[VOICE CLONE] Error listing files from voice-clone-samples:', error);
-    return null;
-  }
-  if (!list || list.length === 0) {
-    console.log('[VOICE CLONE] No files found in voice-clone-samples for user.');
-    return null;
-  }
-  let totalDuration = 0;
-  let buffers: Buffer[] = [];
-  let urls: string[] = [];
-  for (const file of list) {
-    // Get public URL
-    const url = `${process.env.SUPABASE_URL}/storage/v1/object/public/voice-clone-samples/${userId}/${file.name}`;
-    urls.push(url);
-    // Download file
-    try {
-      const { data, error: downloadError } = await supabase.storage.from('voice-clone-samples').download(`${userId}/${file.name}`);
-      if (downloadError || !data) continue;
-      const buf = Buffer.from(await data.arrayBuffer());
-      buffers.push(buf);
-      // Estimate duration: assume 44.1kHz mono 16-bit PCM WAV
-      // duration = (file size - 44) / (44100 * 2)
-      const duration = Math.max(1, Math.round((buf.length - 44) / (44100 * 2)));
-      totalDuration += duration;
-    } catch (e) {
-      continue;
-    }
-    if (totalDuration >= 30) break;
-  }
-  console.log(`[VOICE CLONE] Aggregated duration: ${totalDuration}s from ${buffers.length} files. URLs:`, urls);
-  if (totalDuration < 30) return null;
-  function stripWavHeader(buffer: Buffer): Buffer {
-    return buffer.slice(44);
-  }
-  let finalBuffer = Buffer.concat([
-    buffers[0].slice(0, 44),
-    ...buffers.map((b, i) => (i === 0 ? b.slice(44) : stripWavHeader(b)))
-  ]);
-  return finalBuffer;
+  // ... original function code ...
 }
 
 // Helper: Convert buffer to 24kHz mono WAV using ffmpeg-static
 async function upsampleTo24kHzWav(inputBuffer: Buffer): Promise<Buffer> {
-  const inputPath = path.join(os.tmpdir(), `clone_input_${Date.now()}.wav`);
-  const outputPath = path.join(os.tmpdir(), `clone_output_${Date.now()}.wav`);
-  await fs.writeFile(inputPath, inputBuffer);
-  return new Promise((resolve, reject) => {
-    exec(`${ffmpegPath} -y -i "${inputPath}" -ar 24000 -ac 1 -c:a pcm_s16le "${outputPath}"`, async (error) => {
-      await fs.unlink(inputPath).catch(() => {});
-      if (error) {
-        console.error('[VOICE CLONE] ffmpeg upsample error:', error);
-        reject(error);
-      } else {
-        try {
-          const buf = await fs.readFile(outputPath);
-          await fs.unlink(outputPath).catch(() => {});
-          resolve(buf);
-        } catch (e) {
-          reject(e);
-        }
-      }
-    });
-  });
+  // ... original function code ...
 }
+*/
 
 export default defineEventHandler(async (event) => {
     try {
@@ -109,8 +55,10 @@ export default defineEventHandler(async (event) => {
         });
         let voiceId = userPreferences?.voiceId || null;
 
-        // If no voiceId, check if we have enough user speech to clone
+        // If no voiceId, always use the default
         if (!voiceId) {
+            // --- Voice cloning logic below is commented out ---
+            /*
             const speechSample = await getUserSpeechSample(event, user.id); // pass event
             if (speechSample) {
                 // Upsample to 24kHz mono WAV for cloning
@@ -152,6 +100,8 @@ export default defineEventHandler(async (event) => {
                 console.log('[VOICE CLONE] Not enough speech for cloning.');
                 voiceId = 's3TPKV1kjDlVtZbl4Ksh';
             }
+            */
+            voiceId = 's3TPKV1kjDlVtZbl4Ksh';
         }
 
         console.log(`TTS: Processing request for user ${user.id}, text length: ${text.length}`);

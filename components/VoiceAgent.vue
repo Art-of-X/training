@@ -113,6 +113,8 @@ import { ref, onMounted, onUnmounted, nextTick, computed, watch, defineExpose } 
 import { useChat } from '~/composables/useChat';
 import ChatHistoryModal from '~/components/ChatHistoryModal.vue'
 import { useWavRecorder } from '~/composables/useMediaRecorder'
+// Import useVoiceAgent for standalone usage
+import { useVoiceAgent } from '~/composables/useVoiceAgent'
 
 // Session management to prevent audio overlap (This is a local counter for media stream session, not chat session)
 const sessionCounter = ref(0);
@@ -348,7 +350,7 @@ const textInput = ref('');
 
 // Voice Activity Detection parameters - Optimized for low latency
 const VAD_THRESHOLD = 0.04; // Less sensitive to background noise/keyboard
-const SILENCE_DURATION = 1000; // Keep as is
+const SILENCE_DURATION = 3500; // Keep as is
 const MIN_SPEECH_DURATION = 700; // Require at least 700ms of speech
 const BUFFER_SIZE = 1024; // Smaller buffer for lower latency. Alternatively 2048
 
@@ -400,9 +402,9 @@ const processAudioData = (audioData: Float32Array, level: number) => {
       
       speechBuffer.value = [...vadBuffer.value]; // Include pre-speech audio
       // --- Start high-quality WAV recording in sync with speech ---
-      if (!wavRecorder.isRecording.value && totalWavDuration < 30) {
-        wavRecorder.start()
-      }
+      // if (!wavRecorder.isRecording.value && totalWavDuration < 30) {
+      //   wavRecorder.start()
+      // }
     } else {
       // Continue speech
       speechBuffer.value.push(audioData);
@@ -428,21 +430,21 @@ const processAudioData = (audioData: Float32Array, level: number) => {
         speechBuffer.value = [];
         silenceTimeout.value = null;
         // --- Stop WAV recording when speech ends ---
-        if (wavRecorder.isRecording.value) {
-          wavRecorder.stop().then(async (blob) => {
-            if (blob && totalWavDuration < 30) {
-              // Estimate duration from blob size (44.1kHz mono 16-bit PCM)
-              const durationSec = blob.size / (44100 * 2);
-              if (totalWavDuration + durationSec <= 30) {
-                // Upload WAV to voice-clone-samples bucket
-                const formData = new FormData();
-                formData.append('audio', blob, 'voice-clone.wav');
-                await fetch('/api/voice/clone-upload', { method: 'POST', body: formData });
-                totalWavDuration += durationSec;
-              }
-            }
-          })
-        }
+        // if (wavRecorder.isRecording.value) {
+        //   wavRecorder.stop().then(async (blob) => {
+        //     if (blob && totalWavDuration < 30) {
+        //       // Estimate duration from blob size (44.1kHz mono 16-bit PCM)
+        //       const durationSec = blob.size / (44100 * 2);
+        //       if (totalWavDuration + durationSec <= 30) {
+        //         // Upload WAV to voice-clone-samples bucket
+        //         const formData = new FormData();
+        //         formData.append('audio', blob, 'voice-clone.wav');
+        //         await fetch('/api/voice/clone-upload', { method: 'POST', body: formData });
+        //         totalWavDuration += durationSec;
+        //       }
+        //     }
+        //   })
+        // }
       }, SILENCE_DURATION);
     }
   } else {
@@ -693,6 +695,10 @@ const startVoiceStream = async () => {
 
 // Stop voice streaming
 const stopVoiceStream = () => {
+  // Stop TTS if playing
+  if (typeof composableStopTTS === 'function') {
+    composableStopTTS();
+  }
   sessionCounter.value++; // Invalidate current session to cancel pending operations
   isConnected.value = false;
   isSpeaking.value = false;
@@ -756,18 +762,25 @@ const pauseVoiceAgent = () => {
   }
 };
 
+// For standalone VoiceAgent usage
+const voiceAgent = useVoiceAgent();
+
+const wavRecorder = useWavRecorder();
+
 // Enable TTS by default for VoiceAgent
 onMounted(() => {
   console.log('VoiceAgent: Component mounted, setting up TTS');
   // Enable composable's TTS for VoiceAgent
   composableTTSEnabled.value = true;
-  
   console.log('VoiceAgent: Composable TTS enabled for voice agent');
-  
   // Trigger initial render
   nextTick(() => {
     forceReinitCounter.value += 1;
   });
+  // If using useVoiceAgent directly, trigger initial message
+  if (voiceAgent.messages.value.length === 0) {
+    voiceAgent.getInitialMessage();
+  }
 });
 
 // File upload functions
