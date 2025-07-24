@@ -27,4 +27,8 @@ Es gilt die Datenschutzerklärung der Hochschule für bildende Künste Hamburg
 Link: https://www.hfbk-hamburg.de/de/hochschule/datenschutzerklärung
 
 
-Ein Projekt der HFBK Hamburg (Logo) und der Hamburg Open Online University (HOOU)
+![HOOU Logo](/images/hoou.png)
+![HFBK Logo](/images/hfbk.jpg)
+
+
+Ein Projekt der HFBK Hamburg und der Hamburg Open Online University (HOOU)
