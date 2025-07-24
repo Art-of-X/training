@@ -14,12 +14,19 @@ export const useVersion = () => {
       : 'Px Grotesk, sans-serif'
   )
 
+  const isHfbk = computed(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.host.endsWith('hfbk.net')
+    }
+    return false
+  })
+
   // Add versionConfig with footerLinks
   const versionConfig = computed(() => {
     return {
       footerLinks: [
-        { to: '/legal/imprint', text: 'Imprint', external: false },
-        { to: '/legal/dataprivacy', text: 'Data Privacy', external: false }
+        { to: isHfbk.value ? '/hfbk/imprint' : '/legal/imprint', text: 'Imprint', external: false },
+        { to: isHfbk.value ? '/hfbk/dataprivacy' : '/legal/dataprivacy', text: 'Data Privacy', external: false }
       ]
     }
   })
