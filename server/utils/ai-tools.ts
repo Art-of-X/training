@@ -7,7 +7,7 @@ import path from 'path';
 import { serverSupabaseClient } from '#supabase/server';
 import { createOpenAI } from '@ai-sdk/openai';
 import { generateText, type CoreMessage } from 'ai';
-import { PDFExtract, type PDFExtractOptions, type PDFExtractResult } from 'pdf.js-extract';
+import { PDFExtract, PDFExtractOptions } from 'pdf.js-extract';
 
 // Helper function to read JSON data files.
 async function readJsonData(filePath: string) {
@@ -27,6 +27,23 @@ async function readJsonData(filePath: string) {
         console.error(`Error reading or parsing JSON file at ${filePath}:`, error);
         return [];
     }
+}
+
+// Add helper for robust PDF extraction using pdf.js-extract
+async function extractTextFromPDF(arrayBuffer: ArrayBuffer): Promise<string> {
+  const pdfExtract = new PDFExtract();
+  const options: PDFExtractOptions = { normalizeWhitespace: true };
+  const nodeBuffer = Buffer.from(arrayBuffer);
+  return new Promise((resolve, reject) => {
+    pdfExtract.extractBuffer(nodeBuffer, options, (err, data) => {
+      if (err) return reject(err);
+      // Concatenate all text items from all pages
+      const text = data.pages
+        .map(page => page.content.map(item => item.str).join(' '))
+        .join('\n\n');
+      resolve(text);
+    });
+  });
 }
 
 // A Zod schema for the allowed model names, derived from your Prisma schema.
@@ -472,51 +489,22 @@ export const createDocumentProcessingTool = (userId: string) => tool({
             let documentAnalysis: string;
             
             if (fileExtension === 'pdf') {
-                const pdfExtract = new PDFExtract();
-                const options: PDFExtractOptions = { normalizeWhitespace: true };
-
                 try {
-                    const data = await pdfExtract.extractBuffer(Buffer.from(fileBuffer), options);
-                    let extractedText = '';
-                    for (const page of data.pages) {
-                        for (const item of page.content) {
-                            if ('str' in item) {
-                                extractedText += item.str + ' ';
-                            }
-                        }
-                        extractedText += '\n\n'; // Add page break
-                    }
-                    
-                    // Use OpenAI to summarize or analyze the extracted text if it's too long
+                    const extractedText = await extractTextFromPDF(fileBuffer);
                     const { text: analysis } = await generateText({
                         model: openai('gpt-4o-mini'),
                         messages: [
                             {
                                 role: 'user',
-                                content: `${visionPrompt}\n\nExtracted PDF Content:\n${extractedText.substring(0, 8000)}` // Limit length for prompt
+                                content: `${visionPrompt}\n\nExtracted PDF Content:\n${extractedText.substring(0, 8000)}`
                             }
                         ],
                         maxTokens: 1000,
                     });
                     documentAnalysis = analysis;
-
                 } catch (pdfError: any) {
                     console.error('Error extracting text from PDF:', pdfError);
-                    // Fallback to generic PDF analysis if extraction fails
-                    documentAnalysis = `
-Document Type: PDF file
-Main Content: PDF document uploaded by user
-Key Details: File size: ${(fileBuffer.byteLength / 1024).toFixed(2)} KB. Text extraction failed: ${pdfError.message}
-Relevance: This appears to be a PDF document that may contain creative work, documentation, or portfolio materials
-Insights: The user has uploaded a PDF file which could contain design work, documentation, or other creative content. 
-
-Note: This PDF has been uploaded and is available for reference. Since PDF text extraction encountered an error, you should ask the user specific questions about the content, such as:
-- What type of document is this?
-- What is the main topic or purpose of this PDF?
-- How does this relate to their creative work or portfolio?
-- What specific details would they like to share about the content?
-- What creative insights or feedback would they like about this document?
-                    `;
+                    documentAnalysis = `\nDocument Type: PDF file\nMain Content: PDF document uploaded by user\nKey Details: File size: ${(fileBuffer.byteLength / 1024).toFixed(2)} KB. Text extraction failed: ${pdfError.message}\nRelevance: This appears to be a PDF document that may contain creative work, documentation, or portfolio materials\nInsights: The user has uploaded a PDF file which could contain design work, documentation, or other creative content. \n\nNote: This PDF has been uploaded and is available for reference. Since PDF text extraction encountered an error, you should ask the user specific questions about the content, such as:\n- What type of document is this?\n- What is the main topic or purpose of this PDF?\n- How does this relate to their creative work or portfolio?\n- What specific details would they like to share about the content?\n- What creative insights or feedback would they like about this document?\n                    `;
                 }
             } else if (['doc', 'docx', 'txt', 'rtf', 'md', 'json', 'xml', 'csv'].includes(fileExtension || '')) {
                 // For text-based documents, try to extract text and analyze
@@ -535,13 +523,7 @@ Note: This PDF has been uploaded and is available for reference. Since PDF text 
                     documentAnalysis = analysis;
                 } catch (e: any) {
                     console.error('Error decoding text document:', e);
-                    documentAnalysis = `
-Document Type: Text document
-Main Content: Text document uploaded by user
-Key Details: File size: ${(fileBuffer.byteLength / 1024).toFixed(2)} KB. Decoding failed: ${e.message}
-Relevance: This appears to be a text document that may contain creative work, documentation, or other materials
-Insights: The user has uploaded a text file that could contain various information relevant to their creative process.
-                    `;
+                    documentAnalysis = `\nDocument Type: Text document\nMain Content: Text document uploaded by user\nKey Details: File size: ${(fileBuffer.byteLength / 1024).toFixed(2)} KB. Decoding failed: ${e.message}\nRelevance: This appears to be a text document that may contain creative work, documentation, or other materials\nInsights: The user has uploaded a text file that could contain various information relevant to their creative process.\n                    `;
                 }
             } else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension || '')) {
                 // For images, use vision directly
@@ -564,13 +546,7 @@ Insights: The user has uploaded a text file that could contain various informati
                 documentAnalysis = analysis;
             } else {
                 // For unsupported file types or general binary files
-                documentAnalysis = `
-Document Type: Unknown/Unsupported File Type
-Main Content: Binary file uploaded by user
-Key Details: File size: ${(fileBuffer.byteLength / 1024).toFixed(2)} KB. File extension: ${fileExtension || 'none'}
-Relevance: The user has uploaded a file of an unknown type. It might be related to their creative work or portfolio.
-Insights: Since the file type is not supported for direct analysis, you should ask the user to describe its content and relevance to their creative work.
-                `;
+                documentAnalysis = `\nDocument Type: Unknown/Unsupported File Type\nMain Content: Binary file uploaded by user\nKey Details: File size: ${(fileBuffer.byteLength / 1024).toFixed(2)} KB. File extension: ${fileExtension || 'none'}\nRelevance: The user has uploaded a file of an unknown type. It might be related to their creative work or portfolio.\nInsights: Since the file type is not supported for direct analysis, you should ask the user to describe its content and relevance to their creative work.\n                `;
             }
             
             const result = {

@@ -9,8 +9,4 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('monologue-recordings', 'monologue-recordings', true)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('peer-training-recordings', 'peer-training-recordings', true)
 ON CONFLICT (id) DO NOTHING; 
