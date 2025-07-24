@@ -1,87 +1,46 @@
--- Enable RLS on storage.objects table (should already be enabled)
--- Note: This is usually enabled by default in Supabase
-
--- Create policies for monologue-recordings bucket
--- Users can only access files in their own user folder
-
--- Policy: Users can insert their own files
-CREATE POLICY "Users can upload monologue files" ON storage.objects
-FOR INSERT WITH CHECK (
-  bucket_id = 'monologue-recordings' 
-  AND auth.uid()::text = (storage.foldername(name))[1]
+-- portfolio-assets bucket (Public)
+-- INSERT: Allow individual insert
+CREATE POLICY "Allow individual insert 1ls6mjs_0" ON storage.objects
+FOR INSERT TO authenticated
+WITH CHECK (
+  bucket_id = 'portfolio-assets' AND
+  auth.uid()::text = (storage.foldername(name))[1]
 );
 
--- Policy: Users can select/view their own files  
-CREATE POLICY "Users can view monologue files" ON storage.objects
-FOR SELECT USING (
-  bucket_id = 'monologue-recordings'
-  AND auth.uid()::text = (storage.foldername(name))[1]
+-- UPDATE: Allow individual update and delete
+CREATE POLICY "Allow individual update and delete 1ls6mjs_0" ON storage.objects
+FOR UPDATE TO authenticated
+USING (
+  bucket_id = 'portfolio-assets' AND
+  auth.uid()::text = (storage.foldername(name))[1]
 );
 
--- Policy: Users can delete their own files
-CREATE POLICY "Users can delete monologue files" ON storage.objects  
-FOR DELETE USING (
-  bucket_id = 'monologue-recordings'
-  AND auth.uid()::text = (storage.foldername(name))[1]
+-- DELETE: Allow individual update and delete
+CREATE POLICY "Allow individual update and delete 1ls6mjs_1" ON storage.objects
+FOR DELETE TO authenticated
+USING (
+  bucket_id = 'portfolio-assets' AND
+  auth.uid()::text = (storage.foldername(name))[1]
 );
 
--- Policy: Users can update their own files (for upserts)
-CREATE POLICY "Users can update monologue files" ON storage.objects
-FOR UPDATE USING (
-  bucket_id = 'monologue-recordings'
-  AND auth.uid()::text = (storage.foldername(name))[1]
+-- monologue-recordings bucket (Public)
+-- INSERT: Allow authenticated users to upload recordings
+CREATE POLICY "Allow authenticated users to upload recordings" ON storage.objects
+FOR INSERT TO authenticated
+WITH CHECK (
+  bucket_id = 'monologue-recordings' AND
+  auth.uid()::text = (storage.foldername(name))[1]
 );
 
--- Create policies for portfolio-assets bucket
-
--- Policy: Users can insert their own files
-CREATE POLICY "Users can upload portfolio files" ON storage.objects
-FOR INSERT WITH CHECK (
-  bucket_id = 'portfolio-assets'
-  AND auth.uid()::text = (storage.foldername(name))[1]
+-- SELECT: Allow authenticated users to view their own recordings
+CREATE POLICY "Allow authenticated users to view their own recordings" ON storage.objects
+FOR SELECT TO authenticated
+USING (
+  bucket_id = 'monologue-recordings' AND
+  auth.uid()::text = (storage.foldername(name))[1]
 );
 
--- Policy: Users can select/view their own files
-CREATE POLICY "Users can view portfolio files" ON storage.objects
-FOR SELECT USING (
-  bucket_id = 'portfolio-assets' 
-  AND auth.uid()::text = (storage.foldername(name))[1]
-);
+-- peer-training-recordings bucket (Public)
+-- No policies created yet
 
--- Policy: Users can delete their own files
-CREATE POLICY "Users can delete portfolio files" ON storage.objects
-FOR DELETE USING (
-  bucket_id = 'portfolio-assets'
-  AND auth.uid()::text = (storage.foldername(name))[1]
-);
-
--- Policy: Users can update their own files (for upserts)
-CREATE POLICY "Users can update portfolio files" ON storage.objects
-FOR UPDATE USING (
-  bucket_id = 'portfolio-assets'
-  AND auth.uid()::text = (storage.foldername(name))[1]
-);
-
--- Create bucket policies (for bucket access)
--- These allow users to access the buckets themselves
-
--- Monologue recordings bucket access
-CREATE POLICY "Give users access to monologue bucket" ON storage.buckets
-FOR SELECT USING (id = 'monologue-recordings');
-
--- Portfolio assets bucket access  
-CREATE POLICY "Give users access to portfolio bucket" ON storage.buckets
-FOR SELECT USING (id = 'portfolio-assets');
-
--- Note: Public bucket policies (if you want files to be publicly accessible)
--- Uncomment these if you want public read access to files
-
-/*
--- Public read access to monologue recordings
-CREATE POLICY "Public read monologue files" ON storage.objects
-FOR SELECT USING (bucket_id = 'monologue-recordings');
-
--- Public read access to portfolio assets
-CREATE POLICY "Public read portfolio files" ON storage.objects  
-FOR SELECT USING (bucket_id = 'portfolio-assets');
-*/ 
+-- Remove all other policies for these buckets to keep minimal and clean. 
