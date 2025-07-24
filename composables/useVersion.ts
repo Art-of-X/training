@@ -15,6 +15,7 @@ export const useVersion = () => {
   )
 
   return {
+    version,
     imprintLink: '/hfbk/imprint',
     dataprivacyLink: '/hfbk/dataprivacy',
     fontFamily
