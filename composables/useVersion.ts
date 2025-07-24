@@ -14,10 +14,19 @@ export const useVersion = () => {
       : 'Px Grotesk, sans-serif'
   )
 
+  // Add versionConfig with footerLinks
+  const versionConfig = computed(() => {
+    return {
+      footerLinks: [
+        { to: '/legal/imprint', text: 'Imprint', external: false },
+        { to: '/legal/dataprivacy', text: 'Data Privacy', external: false }
+      ]
+    }
+  })
+
   return {
     version,
-    imprintLink: '/hfbk/imprint',
-    dataprivacyLink: '/hfbk/dataprivacy',
+    versionConfig,
     fontFamily
   }
 } 

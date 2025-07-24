@@ -30,13 +30,12 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
       }
       
-      // Use email as a default name
-      const name = user.email?.split('@')[0] || 'New User'
+      const displayName = user.user_metadata?.display_name || user.user_metadata?.name || user.email?.split('@')[0] || 'New User'
 
       userProfile = await prisma.userProfile.create({
         data: {
           id: user.id,
-          name: name,
+          name: displayName,
         },
       })
     }

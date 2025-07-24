@@ -34,6 +34,9 @@ export const useAuth = () => {
         password,
         options: {
           emailRedirectTo: redirectUrl,
+          data: {
+            display_name: name,
+          },
         }
       })
       
