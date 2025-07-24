@@ -12,15 +12,16 @@
 
 <script setup lang="ts">
 import { NuxtLink } from '#components'
-import { ref, onMounted } from 'vue'
+import { computed } from 'vue'
 
-const imprintLink = ref('/legal/imprint')
-const dataprivacyLink = ref('/legal/dataprivacy')
-
-onMounted(() => {
-  if (typeof window !== 'undefined' && window.location.host.endsWith('hfbk.net')) {
-    imprintLink.value = '/hfbk/imprint'
-    dataprivacyLink.value = '/hfbk/dataprivacy'
+const isHfbk = computed(() => {
+  if (typeof window !== 'undefined') {
+    return window.location.host.endsWith('hfbk.net')
   }
+  // Optionally, check process.env for SSR if you have domain info
+  return false
 })
+
+const imprintLink = computed(() => isHfbk.value ? '/hfbk/imprint' : '/legal/imprint')
+const dataprivacyLink = computed(() => isHfbk.value ? '/hfbk/dataprivacy' : '/legal/dataprivacy')
 </script> 
