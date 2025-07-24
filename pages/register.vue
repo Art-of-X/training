@@ -92,6 +92,25 @@
             {{ errors.confirmPassword }}
           </p>
         </div>
+
+        <div>
+          <label for="accessCode" class="form-label">
+            Access Code
+          </label>
+          <input
+            id="accessCode"
+            v-model="form.accessCode"
+            name="accessCode"
+            type="text"
+            required
+            class="form-input"
+            :class="{ 'border-error-300': errors.accessCode }"
+            placeholder="Enter your access code"
+          />
+          <p v-if="errors.accessCode" class="form-error">
+            {{ errors.accessCode }}
+          </p>
+        </div>
       </div>
 
       <!-- Error display -->
@@ -142,14 +161,16 @@ const form = reactive({
   name: '',
   email: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  accessCode: ''
 })
 
 const errors = reactive({
   name: '',
   email: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  accessCode: ''
 })
 
 // Use auth composable
@@ -173,6 +194,11 @@ watch(() => form.password, () => {
 
 watch(() => form.confirmPassword, () => {
   errors.confirmPassword = ''
+  clearError()
+})
+
+watch(() => form.accessCode, () => {
+  errors.accessCode = ''
   clearError()
 })
 
@@ -220,6 +246,12 @@ const validateForm = () => {
     errors.confirmPassword = 'Passwords do not match'
     isValid = false
   }
+
+  // Access code validation
+  if (!form.accessCode) {
+    errors.accessCode = 'Access code is required'
+    isValid = false
+  }
   
   return isValid
 }
@@ -230,7 +262,7 @@ const handleSignUp = async () => {
     return
   }
   
-  const result = await signUp(form.email, form.password, form.name)
+  const result = await signUp(form.email, form.password, form.name, form.accessCode)
   
   if (result.success) {
     // Show success message and redirect to confirmation page

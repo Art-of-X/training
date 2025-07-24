@@ -10,11 +10,21 @@ export const useAuth = () => {
   const error = ref<string | null>(null)
 
   // Sign up with email and password
-  const signUp = async (email: string, password: string, name: string) => {
+  const signUp = async (email: string, password: string, name: string, accessCode: string) => {
     isLoading.value = true
     error.value = null
     
     try {
+      // Validate access code first
+      const codeResult = await $fetch<{ valid: boolean }>('/api/auth/validate-access-code', {
+        method: 'POST',
+        body: { accessCode }
+      })
+      if (!codeResult.valid) {
+        error.value = 'Invalid access code'
+        return { success: false, error: error.value }
+      }
+
       const config = useRuntimeConfig()
       const origin = process.client ? window.location.origin : config.public.siteUrl
       const redirectUrl = `${origin}/confirm`
