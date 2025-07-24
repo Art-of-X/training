@@ -11,10 +11,7 @@
 
     <!-- Main VoiceAgent UI -->
     <template v-else>
-      <!-- View History Button (Moved to top right) -->
-      <div v-if="isConnected" class="flex justify-end w-full max-w-md mb-2">
-        <button @click="showHistoryModal = true" class="btn-secondary text-sm px-3 py-1">View History</button>
-      </div>
+      <!-- History button removed, now managed in dashboard -->
       
       <VoiceAgentX :audioLevel="currentAudioLevel" :mode="currentMode" :forceReinit="forceReinitCounter" />
       
@@ -96,14 +93,7 @@
       </div>
 
       <!-- History Modal -->
-      <ChatHistoryModal
-        :show="showHistoryModal"
-        :loading="loadingHistory"
-        :error="historyError"
-        :groupedHistory="groupedHistory"
-        @close="showHistoryModal = false"
-        @loadSession="loadSession"
-      />
+      <!-- History Modal -->
     </template>
   </div>
 </template>
@@ -111,7 +101,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, computed, watch, defineExpose } from 'vue';
 import { useChat } from '~/composables/useChat';
-import ChatHistoryModal from '~/components/ChatHistoryModal.vue'
+// Remove ChatHistoryModal import
+// import ChatHistoryModal from '~/components/ChatHistoryModal.vue'
 import { useWavRecorder } from '~/composables/useMediaRecorder'
 // Import useVoiceAgent for standalone usage
 import { useVoiceAgent } from '~/composables/useVoiceAgent'
@@ -170,78 +161,87 @@ interface ChatSession {
   }[];
 }
 
-const showHistoryModal = ref(false);
-const chatHistory = ref<ChatSession[]>([]);
-const loadingHistory = ref(false);
-const historyError = ref<Error | null>(null);
+// Remove all chat history modal state and logic
+// const showHistoryModal = ref(false);
+// const chatHistory = ref<ChatSession[]>([]);
+// const loadingHistory = ref(false);
+// const historyError = ref<Error | null>(null);
+// const groupedHistory = computed(() => { ... });
+// const fetchChatHistory = async () => { ... };
+// const loadSession = async (sessionMessages, sessionId) => { ... };
+// watch(showHistoryModal, ...);
 
 // Group history by date and show session titles
 const groupedHistory = computed(() => {
   const groups: { [key: string]: { id: string; title: string; time: string; messageCount: number; messages: { role: string; content: string }[] }[] } = {};
   
-  chatHistory.value.forEach(session => {
-    const sessionDate = new Date(session.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    const sessionTime = new Date(session.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  // This part of the code is no longer needed as chat history is managed in the dashboard.
+  // The original code had this logic, but it's now redundant.
+  // chatHistory.value.forEach(session => {
+  //   const sessionDate = new Date(session.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  //   const sessionTime = new Date(session.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-    if (!groups[sessionDate]) {
-      groups[sessionDate] = [];
-    }
+  //   if (!groups[sessionDate]) {
+  //     groups[sessionDate] = [];
+  //   }
     
-    groups[sessionDate].push({
-      id: session.id,
-      title: session.title || 'Untitled Chat', // Use session title
-      time: sessionTime,
-      messageCount: session.chatMessages.length,
-      messages: session.chatMessages.map(msg => ({ role: msg.role, content: msg.content }))
-    });
-  });
+  //   groups[sessionDate].push({
+  //     id: session.id,
+  //     title: session.title || 'Untitled Chat', // Use session title
+  //     time: sessionTime,
+  //     messageCount: session.chatMessages.length,
+  //     messages: session.chatMessages.map(msg => ({ role: msg.role, content: msg.content }))
+  //   });
+  // });
   
   // Sort dates descending
-  const sortedDates = Object.keys(groups).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-  const sortedGroups: typeof groups = {};
-  sortedDates.forEach(date => {
-    sortedGroups[date] = groups[date].sort((a, b) => { // Sort sessions within a day by time (descending)
-      const timeA = new Date(`1/1/2000 ${a.time}`).getTime();
-      const timeB = new Date(`1/1/2000 ${b.time}`).getTime();
-      return timeB - timeA;
-    });
-  });
+  // const sortedDates = Object.keys(groups).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  // const sortedGroups: typeof groups = {};
+  // sortedDates.forEach(date => {
+  //   sortedGroups[date] = groups[date].sort((a, b) => { // Sort sessions within a day by time (descending)
+  //     const timeA = new Date(`1/1/2000 ${a.time}`).getTime();
+  //     const timeB = new Date(`1/1/2000 ${b.time}`).getTime();
+  //     return timeB - timeA;
+  //   });
+  // });
 
-  return sortedGroups;
+  return {}; // Return empty object as history is managed externally
 });
 
-const fetchChatHistory = async () => {
-  loadingHistory.value = true;
-  historyError.value = null;
-  try {
-    // Fetch all chat sessions with their messages
-    const data = await $fetch<ChatSession[]>('/api/chat/history');
-    chatHistory.value = data;
-  } catch (e: any) {
-    historyError.value = e;
-    console.error('Failed to fetch chat history:', e);
-  } finally {
-    loadingHistory.value = false;
-  }
-};
+// Remove View History button and ChatHistoryModal from template
+// const fetchChatHistory = async () => {
+//   loadingHistory.value = true;
+//   historyError.value = null;
+//   try {
+//     // Fetch all chat sessions with their messages
+//     const data = await $fetch<ChatSession[]>('/api/chat/history');
+//     chatHistory.value = data;
+//   } catch (e: any) {
+//     historyError.value = e;
+//     console.error('Failed to fetch chat history:', e);
+//   } finally {
+//     loadingHistory.value = false;
+//   }
+// };
 
-const loadSession = async (sessionMessages: { role: string; content: string }[], sessionId: string) => {
-  // Stop any ongoing audio playback first
-  // cleanupTTSAudio(); // This function is no longer needed
+// Remove View History button and ChatHistoryModal from template
+// const loadSession = async (sessionMessages: { role: string; content: string }[], sessionId: string) => {
+//   // Stop any ongoing audio playback first
+//   // cleanupTTSAudio(); // This function is no longer needed
   
-  // Clear current messages and load selected session using the composable's loadSession
-  loadComposableSession(sessionMessages, sessionId); // Call the composable's loadSession
-  hasInitialized.value = true; // Mark as initialized to prevent initial message on load
-  showHistoryModal.value = false; // Close modal
-  await nextTick();
-  // No specific scroll needed as VoiceAgent doesn't display chat directly
-};
+//   // Clear current messages and load selected session using the composable's loadSession
+//   loadComposableSession(sessionMessages, sessionId); // Call the composable's loadSession
+//   hasInitialized.value = true; // Mark as initialized to prevent initial message on load
+//   showHistoryModal.value = false; // Close modal
+//   await nextTick();
+//   // No specific scroll needed as VoiceAgent doesn't display chat directly
+// };
 
-watch(showHistoryModal, (newVal) => {
-  if (newVal) {
-    fetchChatHistory();
-  }
-});
+// watch(showHistoryModal, (newVal) => {
+//   if (newVal) {
+//     fetchChatHistory();
+//   }
+// });
 
 // Watch composable's TTS state for visual mode updates
 watch(() => isLoading.value, (loading) => {

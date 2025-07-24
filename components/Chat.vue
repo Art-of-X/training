@@ -49,9 +49,7 @@
     
     <!-- Embedded Chat (playground style) -->
     <div v-else class="flex flex-col h-full w-full">
-      <div class="flex justify-end mb-2">
-        <button @click="showHistoryModal = true" class="btn-secondary text-sm px-3 py-1">View History</button>
-      </div>
+      <!-- History button removed, now managed in dashboard -->
       
       <!-- Chat messages -->
       <div 
@@ -202,14 +200,6 @@
     </div>
 
     <!-- History Modal -->
-    <ChatHistoryModal
-      :show="showHistoryModal"
-      :loading="loadingHistory"
-      :error="historyError"
-      :groupedHistory="groupedHistory"
-      @close="showHistoryModal = false"
-      @loadSession="loadSession"
-    />
   </div>
 </template>
 
@@ -217,7 +207,8 @@
 import { useChat } from '~/composables/useChat';
 import { onMounted, onUnmounted, ref, watch, nextTick, computed, defineExpose } from 'vue';
 import DashboardX from '~/components/DashboardX.vue';
-import ChatHistoryModal from '~/components/ChatHistoryModal.vue'
+// Remove ChatHistoryModal import
+// import ChatHistoryModal from '~/components/ChatHistoryModal.vue'
 
 // Props
 interface Props {
@@ -304,83 +295,90 @@ interface ChatSession {
   }[];
 }
 
-const showHistoryModal = ref(false);
-const chatHistory = ref<ChatSession[]>([]);
-const loadingHistory = ref(false);
-const historyError = ref<Error | null>(null);
+// Remove all chat history modal state and logic
+// const showHistoryModal = ref(false);
+// const chatHistory = ref<ChatSession[]>([]);
+// const loadingHistory = ref(false);
+// const historyError = ref<Error | null>(null);
+// const groupedHistory = computed(() => { ... });
+// const fetchChatHistory = async () => { ... };
+// const loadSession = async (sessionMessages, sessionId) => { ... };
+// watch(showHistoryModal, ...);
 
 // Group history by date and show session titles
 const groupedHistory = computed(() => {
   const groups: { [key: string]: { id: string; title: string; time: string; messageCount: number; messages: { role: string; content: string }[] }[] } = {};
   
-  chatHistory.value.forEach(session => {
-    const sessionDate = new Date(session.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    const sessionTime = new Date(session.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  // chatHistory.value.forEach(session => { // This line is removed as chatHistory is removed
+  //   const sessionDate = new Date(session.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  //   const sessionTime = new Date(session.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-    if (!groups[sessionDate]) {
-      groups[sessionDate] = [];
-    }
+  //   if (!groups[sessionDate]) {
+  //     groups[sessionDate] = [];
+  //   }
     
-    groups[sessionDate].push({
-      id: session.id,
-      title: session.title || 'Untitled Chat', // Use session title
-      time: sessionTime,
-      messageCount: session.chatMessages.length,
-      messages: session.chatMessages.map(msg => ({ role: msg.role, content: msg.content }))
-    });
-  });
+  //   groups[sessionDate].push({
+  //     id: session.id,
+  //     title: session.title || 'Untitled Chat', // Use session title
+  //     time: sessionTime,
+  //     messageCount: session.chatMessages.length,
+  //     messages: session.chatMessages.map(msg => ({ role: msg.role, content: msg.content }))
+  //   });
+  // });
   
   // Sort dates descending
-  const sortedDates = Object.keys(groups).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-  const sortedGroups: typeof groups = {};
-  sortedDates.forEach(date => {
-    sortedGroups[date] = groups[date].sort((a, b) => { // Sort sessions within a day by time (descending)
-      const timeA = new Date(`1/1/2000 ${a.time}`).getTime();
-      const timeB = new Date(`1/1/2000 ${b.time}`).getTime();
-      return timeB - timeA;
-    });
-  });
+  // const sortedDates = Object.keys(groups).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  // const sortedGroups: typeof groups = {};
+  // sortedDates.forEach(date => {
+  //   sortedGroups[date] = groups[date].sort((a, b) => { // Sort sessions within a day by time (descending)
+  //     const timeA = new Date(`1/1/2000 ${a.time}`).getTime();
+  //     const timeB = new Date(`1/1/2000 ${b.time}`).getTime();
+  //     return timeB - timeA;
+  //   });
+  // });
 
-  return sortedGroups;
+  return {}; // Return empty object as chatHistory is removed
 });
 
-const fetchChatHistory = async () => {
-  loadingHistory.value = true;
-  historyError.value = null;
-  try {
-    // Fetch all chat sessions with their messages
-    const data = await $fetch<ChatSession[]>('/api/chat/history');
-    chatHistory.value = data;
-  } catch (e: any) {
-    historyError.value = e;
-    console.error('Failed to fetch chat history:', e);
-    // Notify user via assistant message
-    messages.value.push({
-      role: 'assistant',
-      content: 'Sorry, I could not load your chat history. Please try again later.'
-    });
-    scrollToBottom();
-  } finally {
-    loadingHistory.value = false;
-  }
-};
+// Remove fetchChatHistory function
+// const fetchChatHistory = async () => {
+//   loadingHistory.value = true;
+//   historyError.value = null;
+//   try {
+//     // Fetch all chat sessions with their messages
+//     const data = await $fetch<ChatSession[]>('/api/chat/history');
+//     chatHistory.value = data;
+//   } catch (e: any) {
+//     historyError.value = e;
+//     console.error('Failed to fetch chat history:', e);
+//     // Notify user via assistant message
+//     messages.value.push({
+//       role: 'assistant',
+//       content: 'Sorry, I could not load your chat history. Please try again later.'
+//     });
+//     scrollToBottom();
+//   } finally {
+//     loadingHistory.value = false;
+//   }
+// };
 
-const loadSession = async (sessionMessages: { role: string; content: string }[], sessionId: string) => {
-  // Stop any ongoing audio playback first
-  cleanupAudio();
-  // Clear current messages and load selected session using the composable's loadSession
-  loadComposableSession(sessionMessages, sessionId); // Call the composable's loadSession
-  hasInitialized.value = true; // Mark as initialized to prevent initial message on load
-  showHistoryModal.value = false; // Close modal
-  await nextTick();
-  scrollToBottom();
-};
+// Remove loadSession function
+// const loadSession = async (sessionMessages: { role: string; content: string }[], sessionId: string) => {
+//   // Stop any ongoing audio playback first
+//   cleanupAudio();
+//   // Clear current messages and load selected session using the composable's loadSession
+//   loadComposableSession(sessionMessages, sessionId); // Call the composable's loadSession
+//   hasInitialized.value = true; // Mark as initialized to prevent initial message on load
+//   showHistoryModal.value = false; // Close modal
+//   await nextTick();
+//   scrollToBottom();
+// };
 
-watch(showHistoryModal, (newVal) => {
-  if (newVal) {
-    fetchChatHistory();
-  }
-});
+// watch(showHistoryModal, (newVal) => { // This line is removed as showHistoryModal is removed
+//   if (newVal) {
+//     fetchChatHistory();
+//   }
+// });
 
 const startRecording = async () => {
   try {
@@ -781,7 +779,8 @@ function cleanup() {
   isUploadingFile.value = false;
   uploadError.value = null;
 }
-defineExpose({ cleanup });
+
+defineExpose({ cleanup, loadSession: loadComposableSession });
 
 onMounted(async () => {
   // Disable composable's TTS by default for Chat

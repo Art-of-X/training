@@ -65,6 +65,16 @@
             <!-- Voice Agent Component -->
             <VoiceAgent ref="voiceAgentRef" :key="voiceAgentKey" v-show="activeTab === 'voice'" class="h-[60vh] flex flex-col" />
 
+            <!-- History Tab -->
+            <ChatHistoryPanel
+              v-if="activeTab === 'history'"
+              :loading="loadingHistory"
+              :error="historyError"
+              :groupedHistory="groupedHistory"
+              @loadSession="loadSession"
+              class="mt-6"
+            />
+
           </div>
         </div>
       </div>
@@ -77,7 +87,9 @@ import { computed, ref, watch, onMounted } from 'vue';
 import ProgressBar from '~/components/ProgressBar.vue';
 import ChatComponent from '~/components/Chat.vue';
 import VoiceAgent from '~/components/VoiceAgent.vue';
+import ChatHistoryPanel from '~/components/ChatHistoryPanel.vue';
 import { useUserProfile } from '~/composables/useUserProfile';
+import { useChat } from '~/composables/useChat';
 
 definePageMeta({
   title: 'Training Dashboard'
@@ -90,8 +102,9 @@ const tabs = [
   { id: 'static', label: 'Modules' },
   { id: 'chat', label: 'Chat' },
   { id: 'voice', label: 'Voice' },
+  { id: 'history', label: 'History' },
 ];
-const activeTab = ref<'static' | 'chat' | 'voice'>('voice');
+const activeTab = ref<'static' | 'chat' | 'voice' | 'history'>('chat');
 
 interface Progress {
   completed: number;
@@ -145,13 +158,69 @@ const trainingModules = computed(() => [
   }
 ]);
 
-// Remove any code that fetches or uses /api/user/progress, including error handling and data usage.
+// Chat history state (shared for both chat and voice)
+const chatHistory = ref([]);
+const loadingHistory = ref(false);
+const historyError = ref(null);
+
+const groupedHistory = computed(() => {
+  const groups = {};
+  chatHistory.value.forEach(session => {
+    const sessionDate = new Date(session.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const sessionTime = new Date(session.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    if (!groups[sessionDate]) groups[sessionDate] = [];
+    groups[sessionDate].push({
+      id: session.id,
+      title: session.title || 'Untitled Chat',
+      time: sessionTime,
+      messageCount: session.chatMessages.length,
+      messages: session.chatMessages.map(msg => ({ role: msg.role, content: msg.content }))
+    });
+  });
+  const sortedDates = Object.keys(groups).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  const sortedGroups = {};
+  sortedDates.forEach(date => {
+    sortedGroups[date] = groups[date].sort((a, b) => {
+      const timeA = new Date(`1/1/2000 ${a.time}`).getTime();
+      const timeB = new Date(`1/1/2000 ${b.time}`).getTime();
+      return timeB - timeA;
+    });
+  });
+  return sortedGroups;
+});
+
+const fetchChatHistory = async () => {
+  loadingHistory.value = true;
+  historyError.value = null;
+  try {
+    const data = await $fetch('/api/chat/history');
+    chatHistory.value = data;
+  } catch (e) {
+    historyError.value = e;
+    // Optionally: show a toast or error message
+  } finally {
+    loadingHistory.value = false;
+  }
+};
+
+// Load session into the correct component depending on active tab
+const chatRef = ref();
+const voiceAgentRef = ref();
+const loadSession = (sessionMessages, sessionId) => {
+  // Always load into chat
+  if (chatRef.value?.loadSession) {
+    chatRef.value.loadSession(sessionMessages, sessionId);
+    activeTab.value = 'chat';
+  }
+};
+
+// Fetch history when switching to history tab
+watch(activeTab, (newTab) => {
+  if (newTab === 'history') fetchChatHistory();
+});
 
 // Key to force VoiceAgent recreation when switching to voice tab
 const voiceAgentKey = ref(0);
-
-const chatRef = ref();
-const voiceAgentRef = ref();
 
 watch(activeTab, (newTab, oldTab) => {
   if (oldTab === 'chat' && chatRef.value?.cleanup) {
