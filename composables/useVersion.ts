@@ -13,6 +13,13 @@ export const useVersion = () => {
   
   // Version-specific configuration
   const versionConfig = computed(() => {
+    // Default links
+    let imprintLink = '/legal/imprint'
+    let dataprivacyLink = '/legal/dataprivacy'
+    if (typeof window !== 'undefined' && window.location.host.endsWith('hfbk.net')) {
+      imprintLink = '/hfbk/imprint'
+      dataprivacyLink = '/hfbk/dataprivacy'
+    }
     if (version.value === 'research') {
       return {
         fontFamily: 'Helvetica, Arial, sans-serif',
@@ -96,8 +103,8 @@ export const useVersion = () => {
       policyType: 'commercial',
       theme: 'standard',
       footerLinks: [
-        { text: 'Imprint', to: '/legal/imprint', external: false },
-        { text: 'Data Policy', to: '/legal/dataprivacy', external: false },
+        { text: 'Imprint', to: imprintLink, external: false },
+        { text: 'Data Policy', to: dataprivacyLink, external: false },
         { text: 'Terms of Service', to: '/legal/terms', external: false }
       ],
       colors: {
