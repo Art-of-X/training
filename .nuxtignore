@@ -1,0 +1,9 @@
+# Exclude oceanchat from Nuxt processing to prevent TypeScript conflicts
+../oceanchat/
+/oceanchat/
+oceanchat/
+
+# Exclude other project directories
+../landing/
+/landing/
+landing/ 

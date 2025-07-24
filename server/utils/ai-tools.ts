@@ -5,6 +5,9 @@ import { Prisma } from '@prisma/client';
 import fs from 'fs/promises';
 import path from 'path';
 import { serverSupabaseClient } from '#supabase/server';
+import { createOpenAI } from '@ai-sdk/openai';
+import { generateText, type CoreMessage } from 'ai';
+import { PDFExtract, type PDFExtractOptions, type PDFExtractResult } from 'pdf.js-extract';
 
 // Helper function to read JSON data files.
 async function readJsonData(filePath: string) {
@@ -31,19 +34,16 @@ async function readJsonData(filePath: string) {
 const allowedModels = z.enum([
     'UserProfile',
     'PortfolioItem',
-    'MonologueRecording',
-    'AUTAnswer',
-    'RATAnswer',
-    'DATSubmission',
-    'DemographicsAnswer',
+    'ChatSession',
+    'ChatMessage',
 ]);
 
 // Helper function to generate a schema description string for the AI.
 function getModelSchemas() {
-    const models = Prisma.dmmf.datamodel.models.filter(model => allowedModels.options.includes(model.name as any));
+    const models = (Prisma as any).dmmf.datamodel.models.filter((model: any) => allowedModels.options.includes(model.name as any));
     
-    return models.map((model: Prisma.DMMF.Model) => {
-        const fieldDescriptions = model.fields.map((field: Prisma.DMMF.Field) => {
+    return models.map((model: any) => {
+        const fieldDescriptions = model.fields.map((field: any) => {
             // We don't need to expose the user relation fields to the AI, it's handled automatically.
             if(field.name === 'user' || field.name === 'userId') return null;
             return `    ${field.name}: ${field.type}`;
@@ -63,25 +63,21 @@ const queryArgsSchema = z.object({
     distinct: z.array(z.string()).optional().describe('Filter for distinct records based on a field.'),
 }).optional();
 
-
 /**
  * A factory function that creates a secure, dynamic database query tool.
  * @param userId The ID of the currently authenticated user.
  * @returns A tool that can be used by the AI to query the database.
  */
 export const createDatabaseQueryTool = (userId: string) => tool({
-    description: `Use this tool to query the application's database to find the answer to a user's question. You MUST specify the data model to query. All queries are automatically filtered by the current user's ID.
-
-**IMPORTANT**: To check progress or get counts, use the 'count' queryType instead of 'findMany' to be more efficient. For example, to count portfolio items, use { model: 'PortfolioItem', queryType: 'count' }.
-
-Available models and their schemas:
----
-${modelSchemaString}
----
-`,
+    description: `Use this tool to query the application's database to find the answer to a user's question. You MUST specify the data model to query. All queries are automatically filtered by the current user's ID.\n\n**IMPORTANT**: To check progress or get counts, use the 'count' queryType instead of 'findMany' to be more efficient. For example, to count portfolio items, use { model: 'PortfolioItem', queryType: 'count' }.\n\nAvailable models and their schemas:\n---\n${modelSchemaString}\n---\n`,
     parameters: z.object({
         model: allowedModels,
-        queryType: z.enum(['findMany', 'count', 'findFirst']).describe("The type of query to run: 'findMany' to get a list of records, 'count' to get a number of records, or 'findFirst' to get a single record."),
+        queryType: z.enum([
+    'findMany', 
+    'count', 
+    'findFirst',
+    'groupBy'
+]).describe("The type of query to run: 'findMany' to get a list of records, 'count' to get a number of records, 'findFirst' to get a single record, or 'groupBy' to group records."),
         args: queryArgsSchema,
     }),
     execute: async ({ model, queryType, args }) => {
@@ -96,9 +92,9 @@ ${modelSchemaString}
         // Sanitize the 'select' arguments to prevent fetching large relational data
         let secureSelect = args?.select;
         if (secureSelect) {
-            const modelInfo = Prisma.dmmf.datamodel.models.find(m => m.name === model);
+            const modelInfo = (Prisma as any).dmmf.datamodel.models.find((m: any) => m.name === model);
             if (modelInfo) {
-                const relationFields = new Set(modelInfo.fields.filter(f => f.kind === 'object').map(f => f.name));
+                const relationFields = new Set(modelInfo.fields.filter((f: any) => f.kind === 'object').map((f: any) => f.name));
                 const requestedFields = Object.keys(secureSelect);
                 const requestedRelationFields = requestedFields.filter(f => relationFields.has(f));
 
@@ -134,215 +130,64 @@ ${modelSchemaString}
     }
 });
 
-async function getMonologueProgress(userId: string) {
-    const questions = await readJsonData('monologue-questions.json');
-    const total = questions.length;
-
-    const answeredRecords = await prisma.monologueRecording.findMany({
-        where: { userId: userId },
-        select: { questionId: true },
-        distinct: ['questionId']
-    });
-    
-    const answered = answeredRecords.length;
-    return { answered, total };
-}
-
-export const createGetMonologueProgressTool = (userId: string) => tool({
-    description: 'Get the user\'s progress in the monologue module. This tells you how many questions they have answered out of the total.',
-    parameters: z.object({}),
-    execute: async () => {
-        try {
-            const progress = await getMonologueProgress(userId);
-            return progress;
-        } catch (error) {
-            console.error('Error in getMonologueProgressTool:', error);
-            return { error: 'Failed to get monologue progress.' };
-        }
-    }
-});
-
-async function getNextQuestion(userId: string) {
-    const progress = await getOverallProgress(userId);
-    const portfolioThreshold = 3; // We want at least 3 items to start with.
-
-    // Phase 1: Onboarding & Initial Portfolio Building
-    if (progress.portfolio.completed < portfolioThreshold) {
-        if (progress.portfolio.completed === 0 && progress.monologue.completed === 0) {
-            // This is the user's very first interaction.
-            return {
-                type: 'greeting_and_portfolio_request',
-                module: 'Introduction',
-                text: `This is the user's first interaction. Please generate a warm, encouraging welcome message. Briefly introduce yourself as their AI partner for this creativity training. Explain that the first step is to get to know them and their work. Then, ask them to introduce themselves and share some examples of their work by providing links (e.g., to their website, social media, or specific pieces) or by uploading files.`,
-            };
-        } else {
-            // User has started but not met the threshold yet.
-            return {
-                type: 'task',
-                module: 'Portfolio',
-                text: `Thanks for sharing! Let's continue building out your portfolio. You've added ${progress.portfolio.completed} item(s) so far. To get a good overview, we're aiming for about ${portfolioThreshold} initial items. Please share another link or upload another file.`
-            };
-        }
-    }
-
-    // Phase 2: Monologue Deep Dive
-    const monologueUnanswered = await getUnansweredQuestions(userId, 'monologue');
-    if (monologueUnanswered && !('error' in monologueUnanswered) && monologueUnanswered.unansweredCount > 0) {
-        const q = monologueUnanswered.unansweredQuestions[0];
-        
-        const isFirstMonologueQuestion = progress.monologue.completed === 0;
-        const introText = isFirstMonologueQuestion
-            ? `That's a fantastic start for your portfolio. Now, let's switch gears to some short reflective questions. They're designed to help you think about your creative process. Here's the first one: "${q.text}"`
-            : `Great, let's move on to the next reflection. Here's what I'd like you to think about now: "${q.text}"`;
-
-        return {
-            type: 'question',
-            module: 'Monologue',
-            text: introText,
-            questionDetails: { id: q.id },
-            questionId: q.id
-        };
-    }
-
-    // Phase 3: All Done (for now)
-    // All monologue questions are answered. The user can still add to their portfolio.
-    return {
-        type: 'done',
-        module: 'All Complete',
-        text: "Congratulations! You've completed all the monologue questions for now. This is a huge accomplishment. You can always come back to add more items to your portfolio or review your reflections."
-    };
-}
-
-async function getOverallProgress(userId: string) {
-    const [
-        monologueQuestions, 
-        autQuestions, 
-        ratQuestions, 
-    ] = await Promise.all([
-      readJsonData('monologue-questions.json'),
-      readJsonData('aut-questions.json'),
-      readJsonData('rat-questions.json'),
-    ]);
-
-    const [
-      portfolioCount,
-      answeredMonologueIds,
-      answeredAutIds,
-      answeredRatIds,
-      datSubmissionCount,
-      demographicsAnswerCount,
-    ] = await Promise.all([
-      prisma.portfolioItem.count({ where: { userId: userId } }),
-      prisma.monologueRecording.findMany({
-        where: { userId: userId },
-        select: { questionId: true },
-      }).then(records => [...new Set(records.map(r => r.questionId))]),
-      prisma.aUTAnswer.findMany({
-        where: { userId: userId },
-        select: { questionId: true },
-      }).then(answers => [...new Set(answers.map(a => a.questionId))]),
-      prisma.rATAnswer.findMany({
-        where: { userId: userId },
-        select: { questionId: true },
-      }).then(answers => [...new Set(answers.map(a => a.questionId))]),
-      prisma.dATSubmission.count({ where: { userId: userId } }),
-      prisma.demographicsAnswer.count({
-        where: { userId: userId },
-      }),
-    ]);
-    
-    const autCompleted = answeredAutIds.length > 0 && autQuestions.length > 0 && answeredAutIds.length >= autQuestions.length;
-    const ratCompleted = answeredRatIds.length > 0 && ratQuestions.length > 0 && answeredRatIds.length >= ratQuestions.length;
-    const datCompleted = datSubmissionCount > 0;
-    
-    let creativityProgress = 0;
-    if (autCompleted) creativityProgress++;
-    if (ratCompleted) creativityProgress++;
-    if (datCompleted) creativityProgress++;
-
-    return {
-      portfolio: {
-        completed: portfolioCount,
-        total: 10,
-      },
-      monologue: {
-        completed: answeredMonologueIds.length,
-        total: monologueQuestions.length,
-      },
-      creativity: {
-        completed: creativityProgress,
-        total: 3,
-      },
-      demographics: {
-        completed: demographicsAnswerCount > 0 ? 1 : 0,
-        total: 1,
-      },
-    };
-}
-
-export const createGetOverallProgressTool = (userId: string) => tool({
-    description: 'Get an overview of the user\'s progress across all training modules: portfolio, monologue, creativity, and demographics.',
-    parameters: z.object({}),
-    execute: async () => {
-        try {
-            const progress = await getOverallProgress(userId);
-            return progress;
-        } catch (error) {
-            console.error('Error in getOverallProgressTool:', error);
-            return { error: 'Failed to get overall progress.' };
-        }
-    }
-});
-
-export const createGetNextQuestionTool = (userId: string) => tool({
-    description: 'Determines and retrieves the very next single question or task the user should work on to continue their training. Call this to proactively guide the user. It automatically finds where they left off and what the next logical step is.',
-    parameters: z.object({}),
-    execute: async () => {
-        try {
-            const nextStep = await getNextQuestion(userId);
-            return { success: true, ...nextStep };
-        } catch (error: any) {
-            console.error('Error in getNextQuestionTool:', error);
-            return { success: false, error: `Failed to get next question: ${error.message}` };
-        }
-    }
-});
-
-export const createAddPortfolioLinkTool = (userId: string) => tool({
-    description: 'Add a new portfolio item using a URL. Use this when the user provides a link to their work and a description or uploads a file.',
+export const createWebSearchTool = () => tool({
+    description: 'Crucial for personalizing conversations. Before starting a deep conversation, especially with new users or those with sparse portfolios, use this tool to search for the artist\'s name. You MUST use the specific findings (e.g., project names, visual styles, interview quotes) to ask direct, personal questions. For example: "I saw your \'Nocturnal Animals\' series on Behance. Could you tell me about your process for that specific project?"',
     parameters: z.object({
-        link: z.string().url().describe('The URL of the portfolio item.'),
-        description: z.string().describe('A description of the portfolio item.'),
+        query: z.string().describe('The search query. Should be the user\'s name to find their professional presence.'),
     }),
-    execute: async ({ link, description }) => {
-        if (!userId) {
-            return { success: false, error: 'User is not authenticated.' };
-        }
+    execute: async ({ query }) => {
         try {
-            const newItem = await prisma.portfolioItem.create({
-                data: {
-                    userId,
-                    link,
-                    description,
-                }
+            const apiKey = process.env.BRAVE_API_KEY;
+            if (!apiKey) {
+                return { success: false, error: 'Brave Search API key is not configured.' };
+            }
+            const response = await fetch(`https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Subscription-Token': apiKey,
+                },
             });
-            return { success: true, data: newItem };
+
+            if (!response.ok) {
+                return { success: false, error: `Brave Search API request failed with status ${response.status}` };
+            }
+
+            const data = await response.json();
+            
+            if (!data.web || !data.web.results) {
+                return { success: true, results: "No results found." };
+            }
+
+            const searchResults = data.web.results.slice(0, 5).map((result: any) => ({
+                title: result.title,
+                url: result.url,
+                snippet: result.description,
+            }));
+
+            return { success: true, results: searchResults };
+
         } catch (error: any) {
-            console.error(`Error creating portfolio link for user ${userId}:`, error);
-            return { success: false, error: `Failed to add portfolio link: ${error.message}` };
+            console.error('Error in web search tool:', error);
+            return { success: false, error: `Failed to perform web search: ${error.message}` };
         }
     }
 });
 
 export const createFinalizeFileUploadTool = (userId: string, event: any) => tool({
-    description: "Once the user has provided a temporary file URL and all necessary context (like a description and the target module), use this tool to finalize the upload. This moves the file to its permanent location and saves the metadata to the database.",
+    description: "Once the user has provided a temporary file URL and all necessary context (like a description), use this tool to finalize the upload. This moves the file to its permanent location and saves the metadata to the database as a portfolio item.",
     parameters: z.object({
         tempUrl: z.string().url().describe("The temporary URL of the file provided by the user."),
-        target: z.enum(['portfolio', 'monologue']).describe("The module this file is for ('portfolio' or 'monologue')."),
         description: z.string().describe("The user-provided description for the file."),
-        questionId: z.number().optional().describe("If the target is 'monologue', the ID of the question this file is supplementary to."),
+    }).transform((data) => {
+        // Fix malformed JSON keys that might have trailing colons
+        const cleanedData: any = {};
+        Object.keys(data).forEach(key => {
+            const cleanKey = key.replace(/:$/, ''); // Remove trailing colon
+            cleanedData[cleanKey] = data[key as keyof typeof data];
+        });
+        return cleanedData;
     }),
-    execute: async ({ tempUrl, target, description, questionId }) => {
+    execute: async ({ tempUrl, description }) => {
         try {
             const supabase = await serverSupabaseClient(event);
             const bucketName = 'uploads';
@@ -355,19 +200,9 @@ export const createFinalizeFileUploadTool = (userId: string, event: any) => tool
                 return { success: false, error: 'Invalid temporary URL provided.' };
             }
 
-            // 2. Determine the new path
+            // 2. Determine the new path for portfolio
             const fileName = tempPath.split('/').pop();
-            let newPath: string;
-            if (target === 'portfolio') {
-                newPath = `portfolio/${userId}/${fileName}`;
-            } else if (target === 'monologue') {
-                 if (!questionId) {
-                    return { success: false, error: "A questionId is required for monologue file uploads." };
-                }
-                newPath = `monologue/${userId}/${questionId}/${fileName}`;
-            } else {
-                return { success: false, error: 'Invalid target specified.' };
-            }
+            const newPath = `portfolio/${userId}/${fileName}`;
 
             // 3. Copy the file to the new location
             const { error: copyError } = await supabase.storage.from(bucketName).copy(tempPath, newPath);
@@ -375,40 +210,24 @@ export const createFinalizeFileUploadTool = (userId: string, event: any) => tool
                 console.error('Error copying file:', copyError);
                 return { success: false, error: `Failed to move file: ${copyError.message}` };
             }
-             const { data: { publicUrl: newPublicUrl } } = supabase.storage.from(bucketName).getPublicUrl(newPath);
+            const { data: { publicUrl: newPublicUrl } } = supabase.storage.from(bucketName).getPublicUrl(newPath);
 
-
-            // 4. Create the database record
-            if (target === 'portfolio') {
-                await prisma.portfolioItem.create({
-                    data: {
-                        userId,
-                        description,
-                        filePath: newPublicUrl,
-                    },
-                });
-            } else if (target === 'monologue' && questionId) {
-                // This assumes we are adding a supplementary file to an *existing* recording.
-                // A more complex flow would be needed to create the recording and file simultaneously.
-                 await prisma.monologueRecording.updateMany({
-                    where: { userId, questionId },
-                    data: {
-                        supplementaryFilePath: newPublicUrl,
-                        supplementaryDescription: description,
-                    },
-                });
-                // If no record exists, you might want to create one.
-                // This simplified version updates existing records.
-            }
+            // 4. Create the portfolio item
+            await prisma.portfolioItem.create({
+                data: {
+                    userId,
+                    description,
+                    filePath: newPublicUrl,
+                },
+            });
 
             // 5. Delete the temporary file
             const { error: deleteError } = await supabase.storage.from(bucketName).remove([tempPath]);
             if (deleteError) {
-                // Log the error but don't fail the whole operation, since the file is already copied.
                 console.error('Failed to delete temporary file:', deleteError);
             }
 
-            return { success: true, message: `File successfully saved to ${target}.` };
+            return { success: true, message: `File successfully saved to portfolio.` };
         } catch (error: any) {
             console.error(`Error finalizing file upload for user ${userId}:`, error);
             return { success: false, error: `An unexpected error occurred: ${error.message}` };
@@ -416,122 +235,426 @@ export const createFinalizeFileUploadTool = (userId: string, event: any) => tool
     }
 });
 
-async function getUnansweredQuestions(userId: string, module: 'monologue' | 'aut' | 'rat' | 'demographics') {
-    let questions: any[] = [];
-    let answeredIds: Set<number | string>;
-
-    switch (module) {
-        case 'monologue':
-            questions = await readJsonData('monologue-questions.json');
-            const answeredMonologueRecords = await prisma.monologueRecording.findMany({
-                where: { userId },
-                select: { questionId: true },
-            });
-            answeredIds = new Set(answeredMonologueRecords.map(r => r.questionId));
-            break;
-        case 'aut':
-            questions = await readJsonData('aut-questions.json');
-            const answeredAutRecords = await prisma.aUTAnswer.findMany({
-                where: { userId },
-                select: { questionId: true },
-            });
-            answeredIds = new Set(answeredAutRecords.map(a => a.questionId));
-            break;
-        case 'rat':
-            questions = await readJsonData('rat-questions.json');
-            const answeredRatRecords = await prisma.rATAnswer.findMany({
-                where: { userId },
-                select: { questionId: true },
-            });
-            answeredIds = new Set(answeredRatRecords.map(r => r.questionId));
-            break;
-        case 'demographics':
-            questions = await readJsonData('demographics.json');
-            const existingAnswers = await prisma.demographicsAnswer.findMany({
-              where: { userId: userId },
-              select: { questionKey: true }
-            });
-            answeredIds = new Set(existingAnswers.map(a => a.questionKey));
-            break;
-        default:
-            return { error: 'Invalid module specified.' };
-    }
-
-    const idField = module === 'demographics' ? 'key' : 'id';
-    const unansweredQuestions = questions.filter(q => !answeredIds.has(q[idField]));
-    
-    let responsePayload;
-
-    if (module === 'demographics') {
-        responsePayload = unansweredQuestions.map((q: any) => ({ question: q.question, key: q.key, options: q.options }));
-    } else {
-        responsePayload = unansweredQuestions;
-    }
-
-    return {
-        module,
-        unansweredCount: unansweredQuestions.length,
-        totalCount: questions.length,
-        unansweredQuestions: responsePayload.slice(0, 5) 
-    };
-}
-
-export const createGetUnansweredQuestionsTool = (userId: string) => tool({
-    description: `Get a list of unanswered questions for a specific module (monologue, aut, rat, demographics). Use this to guide the user on what to do next.`,
+export const createQueryChatSessionsTool = (userId: string) => tool({
+    description: 'Query chat sessions to understand previous conversations and build on them. Use this to find specific discussions about topics, techniques, or projects mentioned by the user.',
     parameters: z.object({
-        module: z.enum(['monologue', 'aut', 'rat', 'demographics'])
+        query: z.string().describe('Search query to find relevant chat sessions. Can be a topic, technique, project name, or general theme.'),
+        limit: z.number().optional().describe('Maximum number of sessions to return. Default is 5.'),
     }),
-    execute: async ({ module }) => {
+    execute: async ({ query, limit = 5 }) => {
         try {
-            return await getUnansweredQuestions(userId, module);
+            const searchTerm = query.toLowerCase();
+            
+            // Search in chat session titles and messages
+            const sessions = await prisma.chatSession.findMany({
+                where: { 
+                    userId,
+                    OR: [
+                        { title: { contains: searchTerm, mode: 'insensitive' } },
+                    ]
+                },
+                include: {
+                    chatMessages: {
+                        orderBy: { createdAt: 'asc' },
+                        take: 10, // Limit messages per session
+                        select: { role: true, content: true, createdAt: true }
+                    }
+                },
+                orderBy: { updatedAt: 'desc' },
+                take: limit
+            });
+            
+            return {
+                success: true,
+                sessions: sessions.map(session => ({
+                    id: session.id,
+                    title: session.title,
+                    createdAt: session.createdAt,
+                    updatedAt: session.updatedAt,
+                    messageCount: session.chatMessages?.length || 0,
+                    relevantMessages: session.chatMessages || []
+                }))
+            };
         } catch (error: any) {
-            console.error(`Error in getUnansweredQuestionsTool for module ${module}:`, error);
-            return { error: `Failed to get unanswered questions for ${module}: ${error.message}` };
+            console.error('Error in queryChatSessionsTool:', error);
+            return { success: false, error: `Failed to query chat sessions: ${error.message}` };
         }
     }
 });
 
-export const createSaveMonologueTextResponseTool = (userId: string) => tool({
-    description: "Saves a user's text-based response to the last monologue question they were asked. The tool automatically identifies the correct question.",
+export const createGetPortfolioItemDetailsTool = (userId: string) => tool({
+    description: 'Get detailed information about a specific portfolio item to ask targeted questions about the work.',
     parameters: z.object({
-        textResponse: z.string().describe("The user's complete, text-based answer to the monologue question."),
+        portfolioItemId: z.string().describe('The ID of the portfolio item to examine.'),
     }),
-    execute: async ({ textResponse }) => {
+    execute: async ({ portfolioItemId }) => {
         try {
-            const unansweredResult = await getUnansweredQuestions(userId, 'monologue');
-            if (unansweredResult.error || !unansweredResult.unansweredQuestions || unansweredResult.unansweredQuestions.length === 0) {
-                 return { success: false, error: 'Could not determine which question to save the answer for. No unanswered questions found.' };
-            }
-
-            const questionToAnswer = unansweredResult.unansweredQuestions[0];
-            const questionId = questionToAnswer.id;
-            const questionText = questionToAnswer.text;
+            const item = await prisma.portfolioItem.findFirst({
+                where: { 
+                    id: portfolioItemId,
+                    userId 
+                },
+                select: {
+                    id: true,
+                    description: true,
+                    link: true,
+                    filePath: true,
+                    createdAt: true,
+                }
+            });
             
-            const existingRecording = await prisma.monologueRecording.findFirst({
-                where: { userId, questionId },
+            if (!item) {
+                return { success: false, error: 'Portfolio item not found.' };
+            }
+            
+            return {
+                success: true,
+                item
+            };
+        } catch (error: any) {
+            console.error('Error in getPortfolioItemDetailsTool:', error);
+            return { success: false, error: `Failed to get portfolio item details: ${error.message}` };
+        }
+    }
+});
+
+export const createAnalyzeLinkTool = (userId: string) => tool({
+    description: 'Analyze a web link to extract its main content, identify the type of content (e.g., article, portfolio), and generate a summary and insights. Use this to understand external resources shared by the user.',
+    parameters: z.object({
+        url: z.string().url().describe('The URL of the link to analyze.'),
+    }),
+    execute: async ({ url }) => {
+        try {
+            // Use a web scraping service or library to fetch the content
+            // For this example, we'll use a placeholder for the scraping logic
+            const response = await fetch(url);
+            const html = await response.text();
+            
+            // Basic content extraction (in a real app, use a library like Cheerio or JSDOM)
+            const titleMatch = html.match(/<title>(.*?)<\/title>/i);
+            const title = titleMatch ? titleMatch[1] : 'No title found';
+            
+            const openai = createOpenAI({
+                apiKey: process.env.OPENAI_API_KEY,
             });
 
-            if (existingRecording) {
-                await prisma.monologueRecording.update({
-                    where: { id: existingRecording.id },
-                    data: { textResponse },
-                });
-            } else {
-                await prisma.monologueRecording.create({
+            const { text: analysis } = await generateText({
+                model: openai('gpt-4o-mini'),
+                prompt: `Analyze the following web page content and provide a summary. URL: ${url}. Title: ${title}. Content: ${html.substring(0, 4000)}`,
+            });
+
+            return { success: true, analysis };
+        } catch (error: any) {
+            console.error(`Error analyzing link for user ${userId}:`, error);
+            return { 
+                success: false, 
+                error: `Failed to analyze link: ${error.message}`,
+                url: url
+            };
+        }
+    }
+});
+
+export const createIntelligentDataTool = (userId: string) => tool({
+    description: "Intelligent data management tool. Describe what you want to do in natural language and provide context. The tool will intelligently determine the appropriate action and execute it. Use this for saving portfolio items, managing work descriptions, and any other data operations.",
+    parameters: z.object({
+        action: z.string().describe("What you want to do in natural language (e.g., 'save portfolio item', 'add work description', 'update portfolio item')"),
+        context: z.string().describe("Current conversation context and what led to this action"),
+        data: z.object({
+            portfolioDescription: z.string().optional().describe("Portfolio item description"),
+            portfolioLink: z.string().url().optional().describe("Portfolio item link"),
+            workDetails: z.string().optional().describe("Detailed information about the work"),
+            technique: z.string().optional().describe("Technique or method used"),
+            inspiration: z.string().optional().describe("Inspiration or concept behind the work"),
+        }).describe("Relevant data for the action"),
+    }).transform((data) => {
+        // Fix malformed JSON keys that might have trailing colons
+        const cleanedData: any = {};
+        Object.keys(data).forEach(key => {
+            const cleanKey = key.replace(/:$/, ''); // Remove trailing colon
+            cleanedData[cleanKey] = data[key as keyof typeof data];
+        });
+        return cleanedData;
+    }),
+    execute: async ({ action, context, data }) => {
+        try {
+            // Handle portfolio items
+            if (data.portfolioDescription || data.portfolioLink) {
+                const newItem = await prisma.portfolioItem.create({
                     data: {
                         userId,
-                        questionId,
-                        questionText: questionText,
-                        textResponse,
-                        audioPath: null, 
-                    },
+                        description: data.portfolioDescription || 'Portfolio item',
+                        link: data.portfolioLink || null,
+                    }
                 });
+                
+                return {
+                    success: true,
+                    action: 'portfolio_added',
+                    message: `Added to portfolio: "${data.portfolioDescription}"`, // Assuming description is always present if this path is taken
+                    portfolioItemId: newItem.id
+                };
             }
             
-            return { success: true, message: 'Response saved successfully.' };
+            return { success: false, error: 'Could not determine appropriate action based on provided data' };
         } catch (error: any) {
-            console.error(`Error saving monologue text response for user ${userId}:`, error);
+            console.error(`Error in intelligent data tool for user ${userId}:`, error);
             return { success: false, error: `An unexpected error occurred: ${error.message}` };
         }
     }
+}); 
+
+export const createDocumentProcessingTool = (userId: string) => tool({
+    description: "Process and understand uploaded documents using AI analysis. Supports PDFs (basic analysis), images (vision analysis), and text documents (TXT, DOC, DOCX, RTF, MD, JSON, XML, CSV). Extract text, understand content, and provide insights about the document. Use this when users upload files to understand what they contain.",
+    parameters: z.object({
+        fileUrl: z.string().url().describe("The URL of the uploaded file to process"),
+        context: z.string().describe("Context about why this file is being processed (e.g., 'user uploaded portfolio work')"),
+    }).transform((data) => {
+        // Fix malformed JSON keys that might have trailing colons
+        const cleanedData: any = {};
+        Object.keys(data).forEach(key => {
+            const cleanKey = key.replace(/:$/, ''); // Remove trailing colon
+            cleanedData[cleanKey] = data[key as keyof typeof data];
+        });
+        return cleanedData;
+    }),
+    execute: async ({ fileUrl, context }) => {
+        try {
+            // Download the file from the URL
+            const response = await fetch(fileUrl);
+            if (!response.ok) {
+                return { success: false, error: `Failed to download file: ${response.statusText}` };
+            }
+            
+            const fileBuffer = await response.arrayBuffer();
+            const fileBlob = new Blob([fileBuffer]);
+            
+            // Determine file type and prepare for OpenAI
+            const fileExtension = fileUrl.split('.').pop()?.toLowerCase();
+            let mimeType = 'application/octet-stream';
+            
+            if (fileExtension === 'pdf') {
+                mimeType = 'application/pdf';
+            } else if (['jpg', 'jpeg'].includes(fileExtension || '')) {
+                mimeType = 'image/jpeg';
+            } else if (fileExtension === 'png') {
+                mimeType = 'image/png';
+            } else if (fileExtension === 'gif') {
+                mimeType = 'image/gif';
+            } else if (fileExtension === 'webp') {
+                mimeType = 'image/webp';
+            }
+            
+            // Create file for OpenAI API
+            const file = new File([fileBlob], `document.${fileExtension}`, { type: mimeType });
+            
+            // Use OpenAI's vision model to understand the document
+            const openai = createOpenAI({
+                apiKey: process.env.OPENAI_API_KEY,
+            });
+            
+            const visionPrompt = `
+            Analyze this document and provide a comprehensive understanding of its content.
+            
+            Context: ${context}
+            
+            Please provide:
+            1. **Document Type**: What type of document is this?
+            2. **Main Content**: What is the primary information or message?
+            3. **Key Details**: What specific data, numbers, or important points are mentioned?
+            4. **Relevance**: How does this relate to the user's creative work or portfolio?
+            5. **Insights**: What insights can we draw about the user's creative process, style, or approach?
+            
+            Be specific and detailed in your analysis. If this is creative work, describe the visual elements, techniques, and artistic choices.
+            `;
+            
+            // Handle different file types appropriately
+            let documentAnalysis: string;
+            
+            if (fileExtension === 'pdf') {
+                const pdfExtract = new PDFExtract();
+                const options: PDFExtractOptions = { normalizeWhitespace: true };
+
+                try {
+                    const data = await pdfExtract.extractBuffer(Buffer.from(fileBuffer), options);
+                    let extractedText = '';
+                    for (const page of data.pages) {
+                        for (const item of page.content) {
+                            if ('str' in item) {
+                                extractedText += item.str + ' ';
+                            }
+                        }
+                        extractedText += '\n\n'; // Add page break
+                    }
+                    
+                    // Use OpenAI to summarize or analyze the extracted text if it's too long
+                    const { text: analysis } = await generateText({
+                        model: openai('gpt-4o-mini'),
+                        messages: [
+                            {
+                                role: 'user',
+                                content: `${visionPrompt}\n\nExtracted PDF Content:\n${extractedText.substring(0, 8000)}` // Limit length for prompt
+                            }
+                        ],
+                        maxTokens: 1000,
+                    });
+                    documentAnalysis = analysis;
+
+                } catch (pdfError: any) {
+                    console.error('Error extracting text from PDF:', pdfError);
+                    // Fallback to generic PDF analysis if extraction fails
+                    documentAnalysis = `
+Document Type: PDF file
+Main Content: PDF document uploaded by user
+Key Details: File size: ${(fileBuffer.byteLength / 1024).toFixed(2)} KB. Text extraction failed: ${pdfError.message}
+Relevance: This appears to be a PDF document that may contain creative work, documentation, or portfolio materials
+Insights: The user has uploaded a PDF file which could contain design work, documentation, or other creative content. 
+
+Note: This PDF has been uploaded and is available for reference. Since PDF text extraction encountered an error, you should ask the user specific questions about the content, such as:
+- What type of document is this?
+- What is the main topic or purpose of this PDF?
+- How does this relate to their creative work or portfolio?
+- What specific details would they like to share about the content?
+- What creative insights or feedback would they like about this document?
+                    `;
+                }
+            } else if (['doc', 'docx', 'txt', 'rtf', 'md', 'json', 'xml', 'csv'].includes(fileExtension || '')) {
+                // For text-based documents, try to extract text and analyze
+                try {
+                    const textContent = new TextDecoder().decode(fileBuffer);
+                    const { text: analysis } = await generateText({
+                        model: openai('gpt-4o-mini'),
+                        messages: [
+                            {
+                                role: 'user',
+                                content: `${visionPrompt}\n\nDocument Content:\n${textContent.substring(0, 8000)}`
+                            }
+                        ],
+                        maxTokens: 1000,
+                    });
+                    documentAnalysis = analysis;
+                } catch (e: any) {
+                    console.error('Error decoding text document:', e);
+                    documentAnalysis = `
+Document Type: Text document
+Main Content: Text document uploaded by user
+Key Details: File size: ${(fileBuffer.byteLength / 1024).toFixed(2)} KB. Decoding failed: ${e.message}
+Relevance: This appears to be a text document that may contain creative work, documentation, or other materials
+Insights: The user has uploaded a text file that could contain various information relevant to their creative process.
+                    `;
+                }
+            } else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension || '')) {
+                // For images, use vision directly
+                const base64Image = Buffer.from(fileBuffer).toString('base64');
+                const imageUrl = `data:${mimeType};base64,${base64Image}`;
+
+                const { text: analysis } = await generateText({
+                    model: openai('gpt-4o-mini'),
+                    messages: [
+                        {
+                            role: 'user',
+                            content: [
+                                { type: 'text', text: visionPrompt },
+                                { type: 'image', image: imageUrl }
+                            ]
+                        }
+                    ],
+                    maxTokens: 1000,
+                });
+                documentAnalysis = analysis;
+            } else {
+                // For unsupported file types or general binary files
+                documentAnalysis = `
+Document Type: Unknown/Unsupported File Type
+Main Content: Binary file uploaded by user
+Key Details: File size: ${(fileBuffer.byteLength / 1024).toFixed(2)} KB. File extension: ${fileExtension || 'none'}
+Relevance: The user has uploaded a file of an unknown type. It might be related to their creative work or portfolio.
+Insights: Since the file type is not supported for direct analysis, you should ask the user to describe its content and relevance to their creative work.
+                `;
+            }
+            
+            const result = {
+                success: true,
+                documentAnalysis,
+                fileType: mimeType,
+                fileSize: fileBuffer.byteLength,
+                context,
+                extractedContent: documentAnalysis,
+                insights: {
+                    documentType: documentAnalysis.includes('Document Type:') ? 
+                        documentAnalysis.split('Document Type:')[1]?.split('\n')[0]?.trim() : 'Unknown',
+                    mainContent: documentAnalysis.includes('Main Content:') ? 
+                        documentAnalysis.split('Main Content:')[1]?.split('\n')[0]?.trim() : 'Not specified',
+                    keyDetails: documentAnalysis.includes('Key Details:') ? 
+                        documentAnalysis.split('Key Details:')[1]?.split('\n')[0]?.trim() : 'Not specified',
+                    relevance: documentAnalysis.includes('Relevance:') ? 
+                        documentAnalysis.split('Relevance:')[1]?.split('\n')[0]?.trim() : 'Not specified',
+                    insights: documentAnalysis.includes('Insights:') ? 
+                        documentAnalysis.split('Insights:')[1]?.split('\n')[0]?.trim() : 'Not specified',
+                }
+            };
+            
+            return result;
+        } catch (error: any) {
+            console.error(`Error processing document for user ${userId}:`, error);
+            return { success: false, error: `Failed to process document: ${error.message}` };
+        }
+    }
+});
+
+export const createGetPredefinedQuestionTool = (userId: string) => tool({
+    description: 'Fetch a predefined question from a JSON file to diversify the conversation or prompt new discussions. Use this tool when the conversation is slowing down, or you need to introduce a new angle to explore the user\'s creative process or general artistic philosophy. Always follow up with a natural question based on the retrieved prompt.',
+    parameters: z.object({
+        category: z.string().optional().describe('Optional: A category to filter predefined questions by. If not provided, a random question from the general pool will be returned.'),
+    }),
+    execute: async ({ category }) => {
+        try {
+            const questions = await readJsonData('general-questions.json');
+            
+            let filteredQuestions = questions;
+            if (category) {
+                filteredQuestions = questions.filter((q: any) => q.category && q.category.toLowerCase() === category.toLowerCase());
+            }
+
+            if (filteredQuestions.length === 0) {
+                return { success: false, error: 'No questions found for the given category or no questions available.' };
+            }
+
+            const randomQuestion = filteredQuestions[Math.floor(Math.random() * filteredQuestions.length)];
+            
+            return { success: true, question: randomQuestion.question, category: randomQuestion.category || "general" };
+        } catch (error: any) {
+            console.error('Error in getPredefinedQuestionTool:', error);
+            return { success: false, error: `Failed to fetch predefined question: ${error.message}` };
+        }
+    }
+}); 
+
+// Unified tool: Get all user preferences
+export const getUserPreferencesTool = (userId: string) => tool({
+  description: 'Fetch all user preferences for personalization (language, TTS, memory, etc.).',
+  parameters: z.object({}),
+  execute: async () => {
+    const prefs = await prisma.userPreferences.findUnique({ where: { userId } });
+    return prefs || {};
+  }
+});
+
+// Unified tool: Set/update any user preference
+export const setUserPreferencesTool = (userId: string) => tool({
+  description: 'Update any user preference (language, TTS, memory, etc.).',
+  parameters: z.object({
+    preferredLanguage: z.string().optional(),
+    ttsEnabled: z.boolean().optional(),
+    memory: z.string().optional(),
+    // Add more fields as needed
+  }),
+  execute: async (updates) => {
+    await prisma.userPreferences.upsert({
+      where: { userId },
+      update: { ...updates, updatedAt: new Date() },
+      create: { userId, ...updates },
+    });
+    return { success: true };
+  }
 }); 

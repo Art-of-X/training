@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,158 +8,176 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// User Profile (linked to Supabase Auth)
 model UserProfile {
-  id        String   @id @default(uuid()) @db.Uuid @map("id") // Links to auth.users.id
-  name      String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  portfolioItems           PortfolioItem[]
-  monologueRecordings      MonologueRecording[]
-  peerTrainingParticipants PeerTrainingParticipant[] @relation("Participants")
+  id                       String                    @id @default(uuid()) @map("id") @db.Uuid
+  createdAt                DateTime                  @default(now()) @map("created_at")
+  updatedAt                DateTime                  @updatedAt @map("updated_at")
+  name                     String
   autAnswers               AUTAnswer[]
-  ratAnswers               RATAnswer[]
+  chatMessages             ChatMessage[]
+  chatSessions             ChatSession[]
   datSubmissions           DATSubmission[]
   demographicsAnswers      DemographicsAnswer[]
-  chatMessages             ChatMessage[]
+  monologueRecordings      MonologueRecording[]
+  peerTrainingParticipants PeerTrainingParticipant[] @relation("Participants")
+  portfolioItems           PortfolioItem[]
+  ratAnswers               RATAnswer[]
+  preferences              UserPreferences?
+  voiceAgentRecordings    VoiceAgentRecording[]
 
-  @@map("user_profiles") // Map to the public.user_profiles table
+  @@map("user_profiles")
 }
 
-// Portfolio Module
+model UserPreferences {
+  id                String      @id @default(uuid()) @db.Uuid
+  userId            String      @unique @map("user_id") @db.Uuid
+  ttsEnabled        Boolean     @default(true) @map("tts_enabled")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+  preferredLanguage String      @default("en") @map("preferred_language")
+  memory            String?     @db.Text
+  voiceId           String?     @map("voice_id") // ElevenLabs voice clone ID
+  user              UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
 model PortfolioItem {
-  id          String   @id @default(uuid()) @db.Uuid
-  userId      String   @map("user_id") @db.Uuid
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
   description String
   link        String?
-  filePath    String?  @map("file_path")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
+  filePath    String?     @map("file_path")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
   user        UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("portfolio_items")
 }
 
-// Monologue Module
-// Questions are now stored in public/data/monologue-questions.json
 model MonologueRecording {
-  id                     String   @id @default(uuid()) @db.Uuid
-  userId                 String   @map("user_id") @db.Uuid
-  questionText           String   @map("question_text")
-  textResponse           String?  @map("text_response")
-  audioPath              String?  @map("audio_path")
-  durationSeconds        Int?     @map("duration_seconds")
-  supplementaryFilePath  String?  @map("supplementary_file_path")
-  supplementaryLink      String?  @map("supplementary_link")
-  supplementaryDescription String? @map("supplementary_description")
-  createdAt              DateTime @default(now()) @map("created_at")
-  questionId             Int      @map("question_id") // References JSON file questions
+  id                       String      @id @default(uuid()) @db.Uuid
+  userId                   String      @map("user_id") @db.Uuid
+  questionText             String      @map("question_text")
+  audioPath                String?     @map("audio_path")
+  durationSeconds          Int?        @map("duration_seconds")
+  createdAt                DateTime    @default(now()) @map("created_at")
+  questionId               Int?        @map("question_id")
+  supplementaryFilePath    String?     @map("supplementary_file_path")
+  supplementaryDescription String?     @map("supplementary_description")
+  supplementaryLink        String?     @map("supplementary_link")
+  textResponse             String?     @map("text_response")
+  isCustomQuestion         Boolean     @default(false) @map("is_custom_question")
+  user                     UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Relations
-  user            UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, questionId])
   @@map("monologue_recordings")
 }
 
-// Peer Training Module
 model PeerTrainingRecording {
-  id                String   @id @default(uuid()) @db.Uuid
-  videoPath         String   @map("video_path") // Path to recorded video in Supabase Storage
-  specificQuestions String[] @map("specific_questions") // TEXT[]
-  durationSeconds   Int?     @map("duration_seconds")
-
-  participants PeerTrainingParticipant[] @relation("TrainingRecord")
-
-  createdAt DateTime @default(now()) @map("created_at")
+  id                String                    @id @default(uuid()) @db.Uuid
+  videoPath         String                    @map("video_path")
+  specificQuestions String[]                  @map("specific_questions")
+  durationSeconds   Int?                      @map("duration_seconds")
+  createdAt         DateTime                  @default(now()) @map("created_at")
+  participants      PeerTrainingParticipant[] @relation("TrainingRecord")
 
   @@map("peer_training_recordings")
 }
 
-// Join table for Peer Training Participants (Many-to-Many)
 model PeerTrainingParticipant {
-  trainingId String @map("training_id") @db.Uuid
-  userId     String @map("user_id") @db.Uuid
+  trainingId String                @map("training_id") @db.Uuid
+  userId     String                @map("user_id") @db.Uuid
+  training   PeerTrainingRecording @relation("TrainingRecord", fields: [trainingId], references: [id], onDelete: Cascade)
+  user       UserProfile           @relation("Participants", fields: [userId], references: [id], onDelete: Cascade)
 
-  training PeerTrainingRecording @relation("TrainingRecord", fields: [trainingId], references: [id], onDelete: Cascade)
-  user     UserProfile           @relation("Participants", fields: [userId], references: [id], onDelete: Cascade)
-
-  @@id([trainingId, userId]) // Composite primary key
+  @@id([trainingId, userId])
   @@map("peer_training_participants")
 }
 
-// Creativity Benchmarking Module
-// Questions are now stored in public/data/aut-questions.json and public/data/rat-questions.json
-
-// Alternate Uses Test (AUT)
 model AUTAnswer {
-  id         String   @id @default(uuid()) @db.Uuid
-  userId     String   @map("user_id") @db.Uuid
-  questionId Int      @map("question_id") // References JSON file questions
+  id         String      @id @default(uuid()) @db.Uuid
+  userId     String      @map("user_id") @db.Uuid
+  questionId Int         @map("question_id")
   uses       String[]
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  user     UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime    @default(now()) @map("created_at")
+  user       UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("aut_answers")
 }
 
-// Remote Associates Test (RAT)
 model RATAnswer {
-  id         String   @id @default(uuid()) @db.Uuid
-  userId     String   @map("user_id") @db.Uuid
-  questionId Int      @map("question_id") // References JSON file questions
+  id         String      @id @default(uuid()) @db.Uuid
+  userId     String      @map("user_id") @db.Uuid
+  questionId Int         @map("question_id")
   answer     String
-  isCorrect  Boolean? // Some RATs have correct answers
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  user     UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isCorrect  Boolean?
+  createdAt  DateTime    @default(now()) @map("created_at")
+  user       UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("rat_answers")
 }
 
-// Divergent Association Task (DAT)
-// No questions, just user submissions.
 model DATSubmission {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
+  id        String      @id @default(uuid()) @db.Uuid
+  userId    String      @map("user_id") @db.Uuid
   words     String[]
-  score     Float?   // Semantic distance score
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score     Float?
+  createdAt DateTime    @default(now()) @map("created_at")
+  user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("dat_submissions")
 }
 
-// Demographics Module - Questions stored in JSON, only answers in DB
 model DemographicsAnswer {
-  id          String   @id @default(uuid()) @db.Uuid
-  userId      String   @map("user_id") @db.Uuid
-  questionKey String   @map("question_key") // References the "key" field in JSON
-  answer      String   // Stored as string regardless of original type
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  answer      String
+  createdAt   DateTime    @default(now()) @map("created_at")
+  questionKey String      @map("question_key")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  user        UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, questionKey]) // One answer per user per question
+  @@unique([userId, questionKey])
   @@map("demographics_answers")
 }
 
-model ChatMessage {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  role      String // "user" or "assistant"
-  content   String   @db.Text
+model ChatSession {
+  id           String        @id @default(cuid()) @map("id")
+  userId       String        @map("user_id") @db.Uuid
+  title        String        @default("Untitled Chat")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  chatMessages ChatMessage[]
+  user         UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Relations
-  user   UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String      @db.Uuid
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id          String       @id @default(cuid())
+  role        String
+  sessionId   String       @map("session_id")
+  createdAt   DateTime     @default(now())
+  userId      String?      @map("user_id") @db.Uuid
+  content     Json
+  metadata    Json?
+  type        String       @default("text")
+  updatedAt   DateTime     @updatedAt
+  chatSession ChatSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user        UserProfile? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+  @@index([sessionId])
   @@map("chat_messages")
-} 
+}
+
+model VoiceAgentRecording {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  audioPath   String
+  durationSec Float?
+  createdAt   DateTime @default(now())
+  user        UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("voice_agent_recordings")
+}

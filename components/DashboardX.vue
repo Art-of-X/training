@@ -75,7 +75,7 @@ const updateXObjectColors = () => {
 function init() {
   if (!container.value) return;
   const width = container.value.clientWidth;
-  const height = 500; // Fixed height for the container
+  const height = container.value.clientHeight; // Use parent's height
 
   // Scene
   scene = new THREE.Scene();
@@ -107,8 +107,8 @@ function init() {
 }
 
 function createX() {
-    const barLength = 2.5;
-    const barWidth = 0.4;
+    const barLength = 3.25; // Adjusted to be slightly smaller
+    const barWidth = 0.5; // Adjusted to be slightly smaller
     const primaryColor = getPrimaryColor();
     const material = new THREE.MeshStandardMaterial({
         color: new THREE.Color(primaryColor),
@@ -197,7 +197,7 @@ onUnmounted(() => {
 function onWindowResize() {
     if(!camera || !renderer || !container.value) return;
     const width = container.value.clientWidth;
-    const height = 500; // Fixed height
+    const height = container.value.clientHeight; // Use parent's height
 
     camera.aspect = width / height;
     camera.updateProjectionMatrix();

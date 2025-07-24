@@ -1,0 +1,239 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "category": "Art",
+      "text": "Which artists have fascinated you and why?"
+    },
+    {
+      "id": 2,
+      "category": "Art",
+      "text": "What art do you find truly terrible, and why?"
+    },
+    {
+      "id": 3,
+      "category": "Art",
+      "text": "How would you experimentally determine the size of Europe? Describe your creative problem-solving process."
+    },
+    {
+      "id": 4,
+      "category": "Daily Life",
+      "text": "What are your favorite ice cream flavors and what do they evoke in you?"
+    },
+    {
+      "id": 5,
+      "category": "Art",
+      "text": "What are you most afraid of and how does this fear shape your life or art?"
+    },
+    {
+      "id": 6,
+      "category": "Art",
+      "text": "What was your first work of art and what did it reveal about your artistic voice?"
+    },
+    {
+      "id": 7,
+      "category": "Art",
+      "text": "What colors does the sky have to you and how does it change with your mood?"
+    },
+    {
+      "id": 8,
+      "category": "Art",
+      "text": "How high is the sky to you and what does the concept of endless space mean to you?"
+    },
+    {
+      "id": 9,
+      "category": "Art",
+      "text": "What do you daydream about and where do these fantasies take you?"
+    },
+    {
+      "id": 10,
+      "category": "Art",
+      "text": "What is your favorite animal and what qualities do you share with it?"
+    },
+    {
+      "id": 11,
+      "category": "Art",
+      "text": "Which color holds special meaning in your life and how does it speak to you?"
+    },
+    {
+      "id": 12,
+      "category": "Art",
+      "text": "What distinguishes your art from that of the artist closest to you and how do you perceive these differences?"
+    },
+    {
+      "id": 13,
+      "category": "Art",
+      "text": "What materials do you work with and how do they influence your creative process?"
+    },
+    {
+      "id": 14,
+      "category": "Art",
+      "text": "How much money do you think it takes to be happy and what does wealth mean to you?"
+    },
+    {
+      "id": 15,
+      "category": "Art",
+      "text": "Who is the most important person in your world and what makes them irreplaceable?"
+    },
+    {
+      "id": 16,
+      "category": "Art",
+      "text": "What topics do you enjoy debating and what does this reveal about your values?"
+    },
+    {
+      "id": 17,
+      "category": "Art",
+      "text": "Which of your artworks would you never sell and what makes them sacred to you?"
+    },
+    {
+      "id": 18,
+      "category": "Daily Life",
+      "text": "Describe your daily routine and what are the most meaningful or challenging aspects of it?"
+    },
+    {
+      "id": 19,
+      "category": "Art",
+      "text": "How do you know when you've worked too much and what are the signs of creative exhaustion?"
+    },
+    {
+      "id": 20,
+      "category": "Art",
+      "text": "How do you know when an artwork is finished and what does completion mean to you?"
+    },
+    {
+      "id": 21,
+      "category": "Art",
+      "text": "How do you recognize quality in art (yours or others') and what criteria do you use to evaluate work?"
+    },
+    {
+      "id": 22,
+      "category": "Art",
+      "text": "How do you express love to another person and what does love mean to you?"
+    },
+    {
+      "id": 23,
+      "category": "Art",
+      "text": "Do you think children can create art and what does this reveal about creativity?"
+    },
+    {
+      "id": 24,
+      "category": "Art",
+      "text": "How can you recognize an artist's age from their work and what does this tell us about artistic development?"
+    },
+    {
+      "id": 25,
+      "category": "Art",
+      "text": "What is your understanding of power and how does it manifest in your life and art?"
+    },
+    {
+      "id": 26,
+      "category": "Art",
+      "text": "What does being rich mean to you beyond financial wealth?"
+    },
+    {
+      "id": 27,
+      "category": "Art",
+      "text": "What does being poor mean to you and how do you think about poverty?"
+    },
+    {
+      "id": 28,
+      "category": "Art",
+      "text": "What is your goal in life and what drives you forward?"
+    },
+    {
+      "id": 29,
+      "category": "Art",
+      "text": "To whom would you sell your soul, and if so, for how much, and what does this question reveal about your values?"
+    },
+    {
+      "id": 30,
+      "category": "Art",
+      "text": "How would you define 'soul' and what does this concept mean to you?"
+    },
+    {
+      "id": 31,
+      "category": "Art",
+      "text": "How many identities do you have and how do you navigate between them?"
+    },
+    {
+      "id": 32,
+      "category": "Art",
+      "text": "How long does it take you to finish an artwork and what factors influence this timeline?"
+    },
+    {
+      "id": 33,
+      "category": "Art",
+      "text": "Which books have influenced your thinking and how have they shaped your worldview?"
+    },
+    {
+      "id": 34,
+      "category": "Art",
+      "text": "What is art for you and how do you define it?"
+    },
+    {
+      "id": 35,
+      "category": "Art",
+      "text": "What would you like to receive as a gift and what does this reveal about your desires?"
+    },
+    {
+      "id": 36,
+      "category": "Art",
+      "text": "What do you think about when you brush your teeth and what does this mundane moment reveal about your mind?"
+    },
+    {
+      "id": 37,
+      "category": "Art",
+      "text": "What plants do you have or would you plant in your garden and what do they mean to you?"
+    },
+    {
+      "id": 38,
+      "category": "Art",
+      "text": "Is there ever a legitimate reason to kill another person and how do you think about violence?"
+    },
+    {
+      "id": 39,
+      "category": "Art",
+      "text": "What would be the harshest punishment that could be imposed on you and what does this reveal about your fears?"
+    },
+    {
+      "id": 40,
+      "category": "Art",
+      "text": "What are you afraid of and how do these fears shape your life and art?"
+    },
+    {
+      "id": 41,
+      "category": "Art",
+      "text": "Which law should be abolished immediately and what does this reveal about your values?"
+    },
+    {
+      "id": 42,
+      "category": "Art",
+      "text": "Which law should definitely be introduced and what would be its impact?"
+    },
+    {
+      "id": 43,
+      "category": "Art",
+      "text": "What superpower do you wish to have and how would you use it?"
+    },
+    {
+      "id": 44,
+      "category": "Art",
+      "text": "Would you like to live forever and what would immortality mean to you?"
+    },
+    {
+      "id": 45,
+      "category": "Art",
+      "text": "What is something a person you're just getting to know should not find out about you and why?"
+    },
+    {
+      "id": 46,
+      "category": "Art",
+      "text": "What is your favorite joke and what does it reveal about your sense of humor?"
+    },
+    {
+      "id": 47,
+      "category": "Art",
+      "text": "What do you take responsibility for and how do you think about accountability?"
+    }
+  ]
+} 

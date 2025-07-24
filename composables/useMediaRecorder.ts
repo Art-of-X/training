@@ -296,3 +296,94 @@ export const useMediaRecorder = () => {
     getSupportedVideoMimeType
   }
 } 
+
+// --- WAV Recorder using Recorder.js for high-quality uncompressed audio ---
+import toWav from 'audiobuffer-to-wav'
+
+export const useWavRecorder = () => {
+  const isRecording = ref(false)
+  const audioContext = ref<AudioContext | null>(null)
+  const stream = ref<MediaStream | null>(null)
+  const source = ref<MediaStreamAudioSourceNode | null>(null)
+  const scriptNode = ref<ScriptProcessorNode | null>(null)
+  const audioBufferChunks: Float32Array[] = []
+  const wavBlob = ref<Blob | null>(null)
+  const error = ref<string | null>(null)
+
+  const start = async () => {
+    try {
+      error.value = null
+      audioContext.value = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 44100 })
+      stream.value = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          sampleRate: 44100,
+          channelCount: 1,
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
+        }
+      })
+      source.value = audioContext.value.createMediaStreamSource(stream.value)
+      scriptNode.value = audioContext.value.createScriptProcessor(4096, 1, 1)
+      scriptNode.value.onaudioprocess = (e) => {
+        audioBufferChunks.push(new Float32Array(e.inputBuffer.getChannelData(0)))
+      }
+      source.value.connect(scriptNode.value)
+      scriptNode.value.connect(audioContext.value.destination)
+      isRecording.value = true
+      wavBlob.value = null
+    } catch (e: any) {
+      error.value = e.message || 'Failed to start WAV recording.'
+      isRecording.value = false
+    }
+  }
+
+  const stop = async () => {
+    if (!audioContext.value || !isRecording.value) return null
+    try {
+      isRecording.value = false
+      // Disconnect nodes
+      scriptNode.value?.disconnect()
+      source.value?.disconnect()
+      // Concatenate all chunks
+      const length = audioBufferChunks.reduce((sum, arr) => sum + arr.length, 0)
+      const buffer = audioContext.value.createBuffer(1, length, 44100)
+      let offset = 0
+      for (const chunk of audioBufferChunks) {
+        buffer.getChannelData(0).set(chunk, offset)
+        offset += chunk.length
+      }
+      // Encode to strict WAV
+      const wav = toWav(buffer)
+      wavBlob.value = new Blob([wav], { type: 'audio/wav' })
+      // Clean up
+      stream.value?.getTracks().forEach(track => track.stop())
+      audioContext.value.close()
+      audioContext.value = null
+      stream.value = null
+      source.value = null
+      scriptNode.value = null
+      audioBufferChunks.length = 0
+      return wavBlob.value
+    } catch (e: any) {
+      error.value = e.message || 'Failed to stop WAV recording.'
+      return null
+    }
+  }
+
+  const getWavBlob = () => wavBlob.value
+
+  onUnmounted(() => {
+    if (isRecording.value) stop()
+    stream.value?.getTracks().forEach(track => track.stop())
+    audioContext.value?.close()
+  })
+
+  return {
+    isRecording: readonly(isRecording),
+    error: readonly(error),
+    start,
+    stop,
+    getWavBlob
+  }
+} 
