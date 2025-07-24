@@ -87,7 +87,7 @@
                       </button>
                       <div class="border-t border-secondary-100 dark:border-secondary-700 my-2"></div>
                       <div class="flex flex-col space-y-1 px-4 pb-2">
-                        <template v-for="link in versionConfig.footerLinks" :key="link.to">
+                        <template v-for="link in versionConfig?.footerLinks || []" :key="link.to">
                           <NuxtLink
                             v-if="!link.external"
                             :to="link.to"
