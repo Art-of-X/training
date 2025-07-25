@@ -2,6 +2,9 @@ import { resolve } from 'path'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-06-28',
+  future: {
+    compatibilityVersion: 4,
+  },
   devtools: { enabled: true },
   
   // Essential modules for the SOTA platform
@@ -109,15 +112,15 @@ export default defineNuxtConfig({
   // Runtime configuration
   runtimeConfig: {
     // Private keys (only available on server-side)
-    supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-    databaseUrl: process.env.DATABASE_URL,
+    supabaseServiceKey: '',
+    databaseUrl: '',
     
     // Public keys (exposed to client-side)
     public: {
-      supabaseUrl: process.env.SUPABASE_URL,
-      supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
-      siteUrl: 'http://localhost:3000',
-      version: process.env.VERSION || 'commercial'
+      supabaseUrl: '',
+      supabaseAnonKey: '',
+      siteUrl: '',
+      version: 'commercial'
     }
   },
   

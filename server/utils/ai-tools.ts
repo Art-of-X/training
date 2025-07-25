@@ -21,14 +21,8 @@ async function readJsonData(filePath: string) {
         
         const fileContent = await fs.readFile(fullPath, 'utf-8');
         const data = JSON.parse(fileContent);
-        // Standardize access to the questions array
-        if (data && Array.isArray(data.questions)) {
-            return data.questions;
-        }
-        if (Array.isArray(data)) {
-            return data;
-        }
-        return [];
+        // Return the data as-is to maintain compatibility
+        return data;
     } catch (error) {
         console.error(`Error reading or parsing JSON file at ${filePath}:`, error);
         return [];
@@ -591,7 +585,8 @@ export const createGetPredefinedQuestionTool = (userId: string) => tool({
     }),
     execute: async ({ category }) => {
         try {
-            const questions = await readJsonData('general-questions.json');
+            const data = await readJsonData('general-questions.json');
+            const questions = data.questions || data;
             
             let filteredQuestions = questions;
             if (category) {
