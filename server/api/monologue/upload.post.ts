@@ -4,6 +4,7 @@ import { prisma } from '../../utils/prisma'
 import { z } from 'zod'
 import fs from 'fs/promises'
 import path from 'path'
+import { fileURLToPath } from 'url'
 
 // Validation schema for additional data
 const monologueDataSchema = z.object({
@@ -69,7 +70,9 @@ export default defineEventHandler(async (event) => {
     const { question, duration, questionId, supplementaryDescription, supplementaryLink } = monologueDataSchema.parse(additionalData || {})
 
     // Validate that the questionId exists in the JSON file
-    const questionsPath = path.join(process.cwd(), 'public', 'data', 'monologue-questions.json')
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const questionsPath = path.join(__dirname, '..', '..', '..', 'public', 'data', 'monologue-questions.json')
     const questionsContent = await fs.readFile(questionsPath, 'utf-8')
     const { questions } = JSON.parse(questionsContent)
     

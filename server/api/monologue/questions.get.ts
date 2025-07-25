@@ -2,6 +2,7 @@ import { defineEventHandler, createError } from 'h3'
 import { serverSupabaseUser } from '#supabase/server'
 import fs from 'fs/promises'
 import path from 'path'
+import { fileURLToPath } from 'url'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -15,7 +16,9 @@ export default defineEventHandler(async (event) => {
     }
 
     // Read questions from JSON file
-    const questionsPath = path.join(process.cwd(), 'public', 'data', 'monologue-questions.json')
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const questionsPath = path.join(__dirname, '..', '..', '..', 'public', 'data', 'monologue-questions.json')
     const questionsContent = await fs.readFile(questionsPath, 'utf-8')
     const { questions } = JSON.parse(questionsContent)
 

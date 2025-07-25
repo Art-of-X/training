@@ -4,15 +4,21 @@ import { prisma } from './prisma';
 import { Prisma } from '@prisma/client';
 import fs from 'fs/promises';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { serverSupabaseClient } from '#supabase/server';
 import { createOpenAI } from '@ai-sdk/openai';
 import { generateText, type CoreMessage } from 'ai';
-import { PDFExtract, PDFExtractOptions } from 'pdf.js-extract';
+import { PDFExtract } from 'pdf.js-extract';
+import type { PDFExtractOptions } from 'pdf.js-extract';
 
 // Helper function to read JSON data files.
 async function readJsonData(filePath: string) {
     try {
-        const fullPath = path.join(process.cwd(), 'public', 'data', filePath);
+        // Use import.meta.url for reliable path resolution in both dev and production
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+        const fullPath = path.join(__dirname, '..', '..', 'public', 'data', filePath);
+        
         const fileContent = await fs.readFile(fullPath, 'utf-8');
         const data = JSON.parse(fileContent);
         // Standardize access to the questions array

@@ -16,6 +16,7 @@ import { prisma } from '~/server/utils/prisma';
 import { fetchPromptsFromPublicSheet } from './fetchPromptsFromPublicSheet';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 interface GenerateTitleParams {
   messages: { role: string; content: string }[];
@@ -63,7 +64,9 @@ export async function generateAICoreResponse(
 
     if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'local') {
         // Load prompts from text files in local/dev
-        const assetsDir = path.join(process.cwd(), 'assets');
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+        const assetsDir = path.join(__dirname, '..', '..', 'assets');
         systemPrompt = fs.readFileSync(path.join(assetsDir, 'systemPrompt.txt'), 'utf-8');
         developerPrompt = fs.readFileSync(path.join(assetsDir, 'developerPrompt.txt'), 'utf-8');
         // Optionally, interpolate userName if needed
