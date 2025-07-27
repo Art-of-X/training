@@ -32,13 +32,15 @@
       </div>
       <footer class="p-4 border-t border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-900/50 rounded-b-lg">
         <form @submit.prevent="handleSubmitWithScroll" class="flex items-center space-x-2">
-          <input
+          <textarea
             v-model="inputValue"
-            @keyup.enter="handleSubmitWithScroll"
-            type="text"
+            @keydown.enter.exact.prevent="handleSubmitWithScroll"
+            @keydown.enter.shift.exact="handleShiftEnter"
             placeholder="Type your message..."
-            class="flex-1 p-2 border rounded-lg bg-white dark:bg-secondary-800 dark:border-secondary-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            class="flex-1 p-2 border rounded-lg bg-white dark:bg-secondary-800 dark:border-secondary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
             :disabled="isLoading"
+            rows="1"
+            ref="messageInput"
           />
           <button type="submit" class="btn-primary" :disabled="isLoading">
             {{ isLoading ? 'Sending...' : 'Send' }}
@@ -178,14 +180,16 @@
             </svg>
           </button>
           
-          <input 
+          <textarea 
             v-model="inputValue"
-            @keyup.enter="handleSubmitWithScroll"
+            @keydown.enter.exact.prevent="handleSubmitWithScroll"
+            @keydown.enter.shift.exact="handleShiftEnter"
             @focus="initializeChat"
-            type="text"
             placeholder="Type your message..."
-            class="flex-1 w-full px-2 py-2 bg-transparent focus:outline-none dark:text-white"
+            class="flex-1 w-full px-2 py-2 bg-transparent focus:outline-none dark:text-white resize-none"
             :disabled="isLoading"
+            rows="1"
+            ref="messageInput"
           />
           <button 
             type="submit"
@@ -696,6 +700,40 @@ const handleSubmitWithScroll = async (e: Event) => {
   // Use the composable's handleSubmit which properly handles voice input and session ID
   originalHandleSubmit(userMessage);
 };
+
+// Handle Shift+Enter for new lines
+const handleShiftEnter = (e: Event) => {
+  e.preventDefault();
+  const textarea = e.target as HTMLTextAreaElement;
+  const cursorPosition = textarea.selectionStart;
+  const textBeforeCursor = textarea.value.substring(0, cursorPosition);
+  const textAfterCursor = textarea.value.substring(cursorPosition);
+  
+  // Insert newline at cursor position
+  textarea.value = textBeforeCursor + '\n' + textAfterCursor;
+  
+  // Set cursor position after the newline
+  nextTick(() => {
+    textarea.setSelectionRange(cursorPosition + 1, cursorPosition + 1);
+    autoResizeTextarea();
+  });
+};
+
+// Auto-resize textarea based on content
+const messageInput = ref<HTMLTextAreaElement | null>(null);
+const autoResizeTextarea = () => {
+  if (messageInput.value) {
+    messageInput.value.style.height = 'auto';
+    messageInput.value.style.height = Math.min(messageInput.value.scrollHeight, 120) + 'px';
+  }
+};
+
+// Watch input value to auto-resize
+watch(inputValue, () => {
+  nextTick(() => {
+    autoResizeTextarea();
+  });
+});
 
 // Removed handleMessage function as its logic is now handled by useChat's handleSubmit
 
