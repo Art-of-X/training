@@ -1,184 +1,172 @@
 <template>
   <div :class="embedded ? 'h-full' : 'py-8 container-wide'">
+    <!-- Non-embedded Chat -->
     <div v-if="!embedded" class="flex flex-col h-[75vh] bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-lg shadow-sm">
       <header class="p-4 border-b border-secondary-200 dark:border-secondary-700">
         <h1 class="text-xl font-bold text-secondary-900 dark:text-white">AI Chat</h1>
       </header>
-      <div class="flex-1 overflow-y-auto p-4 space-y-4">
-        <div v-for="(message, index) in displayMessages" :key="index" :class="message.role === 'user' ? 'flex justify-end' : 'flex'">
-          <div v-if="message.role !== 'user'" class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
-            <DashboardX class="w-full h-full" />
-          </div>
-          <div
-            class="p-3 rounded-lg max-w-lg"
-            :class="message.role === 'user' ? 'bg-primary-500 text-white' : 'bg-secondary-200 dark:bg-secondary-700'"
-          >
-            <div v-if="Array.isArray(message.content)">
-              <div v-for="(part, partIndex) in message.content" :key="partIndex">
-                <p v-if="part.type === 'text'" class="whitespace-pre-wrap">{{ part.text }}</p>
-                <img v-else-if="part.type === 'image'" :src="part.image" class="max-w-xs h-auto rounded-lg my-2" />
-                <a v-else-if="part.type === 'file'" :href="part.url" target="_blank" class="text-primary-300 hover:underline flex items-center">
-                  <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.123l-3.397 3.396m0 0l-3.397-3.396M11.355 14.519V3m0 11.519c-4.482 0-8.123 3.641-8.123 8.123C3.232 20.402 7.89 24 12.752 24c4.861 0 9.519-3.598 9.519-9.519 0-4.482-3.641-8.123-8.123-8.123z"></path></svg>
-                  {{ part.fileName || 'Uploaded File' }} ({{ part.mimeType }})
-                </a>
+      <div class="flex flex-col flex-1">
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+          <div v-for="(message, index) in displayMessages" :key="index" :class="message.role === 'user' ? 'flex justify-end' : 'flex'">
+            <div v-if="message.role !== 'user'" class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
+              <DashboardX class="w-full h-full" />
+            </div>
+            <div
+              class="p-3 rounded-lg max-w-lg"
+              :class="message.role === 'user' ? 'bg-primary-500 text-white' : 'bg-secondary-200 dark:bg-secondary-700'"
+            >
+              <div v-if="Array.isArray(message.content)">
+                <div v-for="(part, partIndex) in message.content" :key="partIndex">
+                  <p v-if="part.type === 'text'" class="whitespace-pre-wrap">{{ part.text }}</p>
+                  <img v-else-if="part.type === 'image'" :src="part.image" class="max-w-xs h-auto rounded-lg my-2" />
+                  <a v-else-if="part.type === 'file'" :href="part.url" target="_blank" class="text-primary-300 hover:underline flex items-center">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.123l-3.397 3.396m0 0l-3.397-3.396M11.355 14.519V3m0 11.519c-4.482 0-8.123 3.641-8.123 8.123C3.232 20.402 7.89 24 12.752 24c4.861 0 9.519-3.598 9.519-9.519 0-4.482-3.641-8.123-8.123-8.123z"></path></svg>
+                    {{ part.fileName || 'Uploaded File' }} ({{ part.mimeType }})
+                  </a>
+                </div>
+              </div>
+              <p v-else-if="message.content" class="whitespace-pre-wrap">{{ message.content }}</p>
+              <div v-else class="flex items-center space-x-1">
+                <span>Thinking</span><span>.</span><span>.</span><span>.</span>
               </div>
             </div>
-            <p v-else-if="message.content" class="whitespace-pre-wrap">{{ message.content }}</p>
-            <div v-else class="flex items-center space-x-1">
-              <span>Thinking</span><span>.</span><span>.</span><span>.</span>
-            </div>
           </div>
+          
+          <!-- Spacer to ensure last message is visible above input -->
+          <div class="h-4"></div>
         </div>
-      </div>
-      <footer class="p-4 border-t border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-900/50 rounded-b-lg">
-        <form @submit.prevent="handleSubmitWithScroll" class="flex items-center space-x-2">
+        <footer class="p-4 border-t border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-900/50 rounded-b-lg">
+        <form @submit.prevent="handleSubmitWithScroll" class="flex flex-col space-y-3">
           <textarea
             v-model="inputValue"
             @keydown.enter.exact.prevent="handleSubmitWithScroll"
             @keydown.enter.shift.exact="handleShiftEnter"
             placeholder="Type your message..."
-            class="flex-1 p-2 border rounded-lg bg-white dark:bg-secondary-800 dark:border-secondary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+            class="w-full p-4 border rounded-lg bg-white dark:bg-secondary-800 dark:border-secondary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none min-h-[120px] text-base"
             :disabled="isLoading"
-            rows="1"
+            rows="4"
             ref="messageInput"
           />
-          <button type="submit" class="btn-primary" :disabled="isLoading">
-            {{ isLoading ? 'Sending...' : 'Send' }}
-          </button>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <button
+                type="button"
+                @click="triggerFileUpload"
+                :disabled="isLoading"
+                class="px-4 py-2 rounded-lg text-secondary-600 hover:bg-secondary-100 dark:text-secondary-400 dark:hover:bg-secondary-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                </svg>
+                <span>Attach</span>
+              </button>
+              <button
+                type="button"
+                @click="toggleTTS"
+                :disabled="isLoading"
+                class="px-4 py-2 rounded-lg text-secondary-600 hover:bg-secondary-100 dark:text-secondary-400 dark:hover:bg-secondary-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <span>Search</span>
+              </button>
+            </div>
+            <button type="submit" class="btn-primary px-6 py-2 rounded-full" :disabled="isLoading || !inputValue.trim()">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+              </svg>
+            </button>
+          </div>
         </form>
       </footer>
+        </div>
+      </div>
     </div>
     
     <!-- Embedded Chat (playground style) -->
-    <div v-else class="flex flex-col h-full w-full">
+    <div v-if="embedded" class="flex flex-col h-full w-full">
       <!-- History button removed, now managed in dashboard -->
       
-      <!-- Chat messages -->
-      <div 
-        ref="chatContainer"
-        class="flex-grow overflow-y-auto mb-4 text-base"
-        style="scroll-behavior: smooth;"
-      >
-        <div v-for="(message, index) in displayMessages" :key="index" 
-             :class="['mb-4 flex', message.role === 'user' || message.role === 'recording' ? 'justify-end' : 'justify-start']">
-          <div v-if="message.role !== 'user' && message.role !== 'recording'" class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
-            <DashboardX class="w-full h-full" />
-          </div>
-          <div :class="['inline-block py-2 px-3 rounded-lg max-w-[80%]', 
-                        message.role === 'user' 
-                          ? 'bg-secondary-500 text-white' 
-                          : message.role === 'recording'
-                          ? 'bg-secondary-500 text-white'
-                          : 'bg-primary-500 text-white']">
-             <div v-if="message.role === 'recording'" class="whitespace-pre-wrap">{{ message.content }}</div>
-             <div v-else-if="Array.isArray(message.content)">
-              <div v-for="(part, partIndex) in message.content" :key="partIndex">
-                <p v-if="part.type === 'text'" class="whitespace-pre-wrap">{{ part.text }}</p>
-                <img v-else-if="part.type === 'image'" :src="part.image" class="max-w-xs h-auto rounded-lg my-2" />
-                <a v-else-if="part.type === 'file'" :href="part.url" target="_blank" class="text-primary-300 hover:underline flex items-center">
-                  <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.123l-3.397 3.396m0 0l-3.397-3.396M11.355 14.519V3m0 11.519c-4.482 0-8.123 3.641-8.123 8.123C3.232 20.402 7.89 24 12.752 24c4.861 0 9.519-3.598 9.519-9.519 0-4.482-3.641-8.123-8.123-8.123z"></path></svg>
-                  {{ part.fileName || 'Uploaded File' }} ({{ part.mimeType }})
-                </a>
+      <!-- Chat container with messages and input -->
+      <div class="flex flex-col h-full">
+        <!-- Chat messages -->
+        <div 
+          ref="chatContainer"
+          class="flex-1 overflow-y-auto text-base"
+          style="scroll-behavior: smooth;"
+        >
+          <div v-for="(message, index) in displayMessages" :key="index" 
+               :class="['mb-4 flex', message.role === 'user' || message.role === 'recording' ? 'justify-end' : 'justify-start']">
+            <div v-if="message.role !== 'user' && message.role !== 'recording'" class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
+              <DashboardX class="w-full h-full" />
+            </div>
+            <div :class="['inline-block py-2 px-3 rounded-lg max-w-[80%]', 
+                          message.role === 'user' 
+                            ? 'bg-secondary-500 text-white' 
+                            : message.role === 'recording'
+                            ? 'bg-secondary-500 text-white'
+                            : 'bg-primary-500 text-white']">
+               <div v-if="message.role === 'recording'" class="whitespace-pre-wrap">{{ message.content }}</div>
+               <div v-else-if="Array.isArray(message.content)">
+                <div v-for="(part, partIndex) in message.content" :key="partIndex">
+                  <p v-if="part.type === 'text'" class="whitespace-pre-wrap">{{ part.text }}</p>
+                  <img v-else-if="part.type === 'image'" :src="part.image" class="max-w-xs h-auto rounded-lg my-2" />
+                  <a v-else-if="part.type === 'file'" :href="part.url" target="_blank" class="text-primary-300 hover:underline flex items-center">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.123l-3.397 3.396m0 0l-3.397-3.396M11.355 14.519V3m0 11.519c-4.482 0-8.123 3.641-8.123 8.123C3.232 20.402 7.89 24 12.752 24c4.861 0 9.519-3.598 9.519-9.519 0-4.482-3.641-8.123-8.123-8.123z"></path></svg>
+                    {{ part.fileName || 'Uploaded File' }} ({{ part.mimeType }})
+                  </a>
+                </div>
+              </div>
+               <p v-else-if="message.content" class="whitespace-pre-wrap">{{ message.content }}</p>
+               <!-- This is the "thinking" indicator -->
+               <div v-else class="flex items-center space-x-1 text-white">
+                <span>Thinking</span><span>.</span><span>.</span><span>.</span>
               </div>
             </div>
-             <p v-else-if="message.content" class="whitespace-pre-wrap">{{ message.content }}</p>
-             <!-- This is the "thinking" indicator -->
-             <div v-else class="flex items-center space-x-1 text-white">
-              <span>Thinking</span><span>.</span><span>.</span><span>.</span>
+          </div>
+          
+          <!-- Loading animation for the very first message -->
+          <div v-if="isLoading && messages.length === 0" class="mb-4 flex justify-start">
+            <div class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
+              <DashboardX class="w-full h-full" />
+            </div>
+            <div class="inline-block py-2 px-3 rounded-lg max-w-[80%] bg-primary-500 text-white">
+              <div class="flex items-center space-x-1">
+                <span>Thinking</span><span>.</span><span>.</span><span>.</span>
+              </div>
             </div>
           </div>
+          
+          <!-- Error message -->
+          <div v-if="error" class="mb-4 text-center text-red-500">
+            {{ error.message }}
+          </div>
+           <!-- Upload Progress Indicator -->
+          <div v-if="isUploadingFile" class="mb-4 flex justify-start">
+            <div class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
+              <DashboardX class="w-full h-full" />
+            </div>
+            <div class="inline-block py-2 px-3 rounded-lg max-w-[80%] bg-primary-500 text-white">
+              <div class="flex items-center space-x-1">
+                <span>Thinking</span><span>.</span><span>.</span><span>.</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Spacer to ensure last message is visible above input -->
+          <div class="h-4"></div>
         </div>
         
-        <!-- Loading animation for the very first message -->
-        <div v-if="isLoading && messages.length === 0" class="mb-4 flex justify-start">
-          <div class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
-            <DashboardX class="w-full h-full" />
-          </div>
-          <div class="inline-block py-2 px-3 rounded-lg max-w-[80%] bg-primary-500 text-white">
-            <div class="flex items-center space-x-1">
-              <span>Thinking</span><span>.</span><span>.</span><span>.</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Error message -->
-        <div v-if="error" class="mb-4 text-center text-red-500">
-          {{ error.message }}
-        </div>
-         <!-- Upload Progress Indicator -->
-        <div v-if="isUploadingFile" class="mb-4 flex justify-start">
-          <div class="flex-shrink-0 w-16 h-16 flex items-center justify-center mr-2 overflow-hidden">
-            <DashboardX class="w-full h-full" />
-          </div>
-          <div class="inline-block py-2 px-3 rounded-lg max-w-[80%] bg-primary-500 text-white">
-            <div class="flex items-center space-x-1">
-              <span>Thinking</span><span>.</span><span>.</span><span>.</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Input area - always visible -->
-      <div class="flex-shrink-0">
-        <form @submit.prevent="handleSubmitWithScroll" class="flex items-center space-x-2 p-1 border rounded-lg bg-white dark:bg-secondary-800 dark:border-secondary-600 focus-within:ring-2 focus-within:ring-primary-500">
+        <!-- Input area - always at bottom of chat container -->
+        <div class="flex-shrink-0 bg-white dark:bg-secondary-800 border-t border-secondary-200 dark:border-secondary-700">
+          <form @submit.prevent="handleSubmitWithScroll" class="flex flex-col space-y-3 p-3 border rounded-lg bg-white dark:bg-secondary-800 dark:border-secondary-600 focus-within:ring-2 focus-within:ring-primary-500">
           <input 
             type="file" 
             ref="fileInput" 
             @change="handleProactiveFileUpload" 
             class="hidden" 
           />
-          <button
-            type="button"
-            @click="triggerFileUpload"
-            @focus="initializeChat"
-            :disabled="isLoading || isUploadingFile"
-            class="p-2 rounded-full text-secondary-500 hover:bg-secondary-100 dark:hover:bg-secondary-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Upload a file"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
-          </button>
-          
-          <!-- Voice Controls -->
-          <!-- Microphone button -->
-          <button
-            type="button"
-            @click="isRecording ? stopRecording() : startRecording()"
-            @focus="initializeChat"
-            :disabled="isLoading || isUploadingFile"
-            :class="[
-              'p-2 rounded-full focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
-              isRecording 
-                ? 'bg-red-500 text-white animate-pulse' 
-                : 'text-secondary-500 hover:bg-secondary-100 dark:hover:bg-secondary-700'
-            ]"
-            aria-label="Toggle voice recording"
-          >
-            <svg v-if="!isRecording" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-            </svg>
-            <svg v-else class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M6 6h12v12H6z"></path>
-            </svg>
-          </button>
-          
-          <!-- Speaker button -->
-          <button
-            type="button"
-            @click="toggleTTS"
-            @focus="initializeChat"
-            :disabled="isLoading || isUploadingFile"
-            :class="[
-              'p-2 rounded-full focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
-              isTTSEnabled 
-                ? 'bg-primary-500 text-white' 
-                : 'text-secondary-500 hover:bg-secondary-100 dark:hover:bg-secondary-700'
-            ]"
-            aria-label="Toggle text-to-speech"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M9 12H7a1 1 0 01-1-1v-2a1 1 0 011-1h2l3.464-2.464A1 1 0 0114 6v12a1 1 0 01-1.536.844L9 16z"></path>
-            </svg>
-          </button>
           
           <textarea 
             v-model="inputValue"
@@ -186,18 +174,81 @@
             @keydown.enter.shift.exact="handleShiftEnter"
             @focus="initializeChat"
             placeholder="Type your message..."
-            class="flex-1 w-full px-2 py-2 bg-transparent focus:outline-none dark:text-white resize-none"
+            class="w-full p-4 bg-transparent focus:outline-none dark:text-white resize-none min-h-[120px] text-base border-0"
             :disabled="isLoading"
-            rows="1"
+            rows="4"
             ref="messageInput"
           />
-          <button 
-            type="submit"
-            class="btn-primary"
-            :disabled="isLoading || !inputValue.trim()"
-          >
-            Send
-          </button>
+          
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <button
+                type="button"
+                @click="triggerFileUpload"
+                @focus="initializeChat"
+                :disabled="isLoading || isUploadingFile"
+                class="px-4 py-2 rounded-lg text-secondary-500 hover:bg-secondary-100 dark:hover:bg-secondary-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                aria-label="Upload a file"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                </svg>
+                <span>Attach</span>
+              </button>
+              
+              <!-- Voice Controls -->
+              <button
+                type="button"
+                @click="isRecording ? stopRecording() : startRecording()"
+                @focus="initializeChat"
+                :disabled="isLoading || isUploadingFile"
+                :class="[
+                  'px-4 py-2 rounded-lg focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2',
+                  isRecording 
+                    ? 'bg-red-500 text-white animate-pulse' 
+                    : 'text-secondary-500 hover:bg-secondary-100 dark:hover:bg-secondary-700'
+                ]"
+                aria-label="Toggle voice recording"
+              >
+                <svg v-if="!isRecording" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                </svg>
+                <svg v-else class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 6h12v12H6z"></path>
+                </svg>
+                <span>{{ isRecording ? 'Stop' : 'Voice' }}</span>
+              </button>
+              
+              <button
+                type="button"
+                @click="toggleTTS"
+                @focus="initializeChat"
+                :disabled="isLoading || isUploadingFile"
+                :class="[
+                  'px-4 py-2 rounded-lg focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2',
+                  isTTSEnabled 
+                    ? 'bg-primary-500 text-white' 
+                    : 'text-secondary-500 hover:bg-secondary-100 dark:hover:bg-secondary-700'
+                ]"
+                aria-label="Toggle text-to-speech"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M9 12H7a1 1 0 01-1-1v-2a1 1 0 011-1h2l3.464-2.464A1 1 0 0114 6v12a1 1 0 01-1.536.844L9 16z"></path>
+                </svg>
+                <span>TTS</span>
+              </button>
+            </div>
+            
+            <button 
+              type="submit"
+              class="btn-primary px-6 py-2 rounded-full"
+              :disabled="isLoading || !inputValue.trim()"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+              </svg>
+            </button>
+          </div>
         </form>
          <p v-if="uploadError" class="text-xs text-red-500 mt-1 pl-2">{{ uploadError }}</p>
       </div>
@@ -678,8 +729,20 @@ const processResponseSimple = async (text: string, isFirstMessage: boolean = fal
     console.log('Chat: Message displayed, composable TTS will handle audio if enabled');
 };
 
-// Auto-scroll to bottom function
+// Auto-scroll to bottom function with smooth behavior
 const scrollToBottom = () => {
+  nextTick(() => {
+    if (chatContainer.value) {
+      chatContainer.value.scrollTo({
+        top: chatContainer.value.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  });
+};
+
+// Force scroll to bottom (for immediate scrolling without animation)
+const forceScrollToBottom = () => {
   nextTick(() => {
     if (chatContainer.value) {
       chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
@@ -724,7 +787,7 @@ const messageInput = ref<HTMLTextAreaElement | null>(null);
 const autoResizeTextarea = () => {
   if (messageInput.value) {
     messageInput.value.style.height = 'auto';
-    messageInput.value.style.height = Math.min(messageInput.value.scrollHeight, 120) + 'px';
+    messageInput.value.style.height = Math.min(messageInput.value.scrollHeight, 200) + 'px';
   }
 };
 
@@ -753,7 +816,10 @@ const getInitialMessageWithTTS = async () => {
 };
 
 // Watch for changes that should trigger scrolling
-watch(messages, () => scrollToBottom(), { deep: true });
+watch(messages, () => {
+  // Always scroll to bottom when messages change
+  scrollToBottom();
+}, { deep: true, immediate: true });
 
 // Function to initialize chat when it becomes visible
 const initializeChat = () => {
@@ -796,6 +862,12 @@ const displayMessages = computed(() => {
     return true;
   });
 });
+
+// Watch for changes in the displayMessages computed property
+watch(displayMessages, () => {
+  // Ensure scroll happens when display messages change
+  scrollToBottom();
+}, { deep: true });
 
 // Cleanup function to stop TTS, message generation, and reset state
 function cleanup() {

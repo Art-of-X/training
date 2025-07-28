@@ -1,5 +1,5 @@
 <template>
-  <footer class="fixed bottom-0 left-0 right-0 bg-transparent p-4 z-50">
+  <footer v-if="!isAuthenticated" class="fixed bottom-0 left-0 right-0 bg-transparent p-4 z-50">
     <div class="container-wide mx-auto">
       <div class="flex justify-center items-center space-x-4">
         <NuxtLink :to="imprintLink" class="text-xs text-neutral-800 hover:underline">Imprint</NuxtLink>
@@ -13,6 +13,10 @@
 <script setup lang="ts">
 import { NuxtLink } from '#components'
 import { computed } from 'vue'
+
+const user = useSupabaseUser()
+
+const isAuthenticated = computed(() => !!user.value)
 
 const isHfbk = computed(() => {
   if (typeof window !== 'undefined') {
