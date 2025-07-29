@@ -36,6 +36,7 @@
                   <div class="h-full">
                     <div class="flex items-center justify-between">
                       <h3 class="text-lg font-semibold text-secondary-900 dark:text-white">{{ module.name }}</h3>
+                      <span v-if="module.progress" class="text-xs font-semibold text-secondary-600 dark:text-secondary-400">{{ module.progress.completed }} / {{ module.progress.total }}</span>
                     </div>
                     <p class="text-sm text-secondary-600 dark:text-secondary-300 mt-1">
                       {{ module.description }}
@@ -60,10 +61,10 @@
             </div>
 
             <!-- Chat Component -->
-            <ChatComponent ref="chatRef" :embedded="true" v-show="activeTab === 'chat'" class="h-[60vh] flex flex-col" />
+            <ChatComponent ref="chatRef" :embedded="true" v-if="activeTab === 'chat'" class="h-[60vh] flex flex-col" />
 
             <!-- Voice Agent Component -->
-            <VoiceAgent ref="voiceAgentRef" :key="voiceAgentKey" v-show="activeTab === 'voice'" class="h-[60vh] flex flex-col" />
+            <VoiceAgent ref="voiceAgentRef" :key="voiceAgentKey" v-if="activeTab === 'voice'" class="h-[60vh] flex flex-col" />
 
             <!-- History Tab -->
             <ChatHistoryPanel
@@ -233,6 +234,16 @@ watch(activeTab, (newTab, oldTab) => {
     voiceAgentKey.value += 1; // Already present, forces re-mount
   }
   // Optionally, force re-mount for Chat as well if you want a fresh session
+});
+
+// Fetch progress data on component mount
+onMounted(async () => {
+  try {
+    const response = await $fetch('/api/creativity-benchmarking/progress');
+    progressData.value = response.data;
+  } catch (e) {
+    console.error('Error fetching progress data:', e);
+  }
 });
 </script>
 

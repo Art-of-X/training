@@ -79,6 +79,13 @@
                       >
                         Training Dashboard
                       </NuxtLink>
+                      <NuxtLink
+                        to="/training/mental-model"
+                        class="dropdown-item"
+                        @click="closeUserMenu"
+                      >
+                        Your Mental Model
+                      </NuxtLink>
                       <button
                         @click="handleSignOut"
                         class="dropdown-item w-full text-left"
