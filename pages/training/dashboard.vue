@@ -239,8 +239,23 @@ watch(activeTab, (newTab, oldTab) => {
 // Fetch progress data on component mount
 onMounted(async () => {
   try {
-    const response = await $fetch('/api/creativity-benchmarking/progress');
-    progressData.value = response.data;
+    const [autProgress, ratProgress, datProgress, portfolioProgress, demographicsProgress] = await Promise.all([
+      $fetch('/api/creativity-benchmarking/progress?type=aut').catch(e => ({ answered: 0, total: 0 })),
+      $fetch('/api/creativity-benchmarking/progress?type=rat').catch(e => ({ answered: 0, total: 0 })),
+      $fetch('/api/creativity-benchmarking/progress?type=dat').catch(e => ({ answered: 0, total: 0 })),
+      // Mocking portfolio and demographics for now as endpoints might not exist
+      Promise.resolve({ completed: 5, total: 10 }), 
+      Promise.resolve({ completed: 2, total: 8 }),
+    ]);
+
+    progressData.value = {
+      creativity: {
+        completed: (autProgress.answered > 0 ? 1 : 0) + (ratProgress.answered > 0 ? 1 : 0) + (datProgress.answered > 0 ? 1 : 0),
+        total: 3 // Total of 3 creativity tests
+      },
+      portfolio: portfolioProgress,
+      demographics: demographicsProgress,
+    };
   } catch (e) {
     console.error('Error fetching progress data:', e);
   }

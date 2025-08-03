@@ -134,7 +134,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="flex-grow overflow-y-auto">
+    <main class="flex-grow overflow-y-auto bg-white dark:bg-secondary-900">
       <slot />
     </main>
 
