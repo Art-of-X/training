@@ -93,5 +93,7 @@ export function useDynamicColors() {
         root.style.setProperty('--color-primary-950', `${primary.h} ${primary.s}% ${Math.max(primary.l - 45, 5)}%`);
     }
 
-    return { setColors };
+    return { setColors, generateColors };
 } 
+
+export { generateColors };

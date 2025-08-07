@@ -258,8 +258,13 @@ export default defineEventHandler(async (event) => {
         },
       });
       
-      // Update the chat session title if this is the first message
-      if (existingMessages.length === 0) {
+      // Update the chat session title if it's the default "New Chat"
+      const chatSession = await prisma.chatSession.findUnique({
+        where: { id: currentSessionId },
+        select: { title: true },
+      });
+
+      if (chatSession && chatSession.title === "New Chat") {
         // Convert messages to simple string format for title generation
         const titleMessages = messagesForAI.map(msg => ({
           role: msg.role,

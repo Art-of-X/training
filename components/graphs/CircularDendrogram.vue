@@ -11,6 +11,7 @@ import { ref, watch, onMounted, onUnmounted, nextTick, computed } from 'vue';
 import * as d3 from 'd3';
 import type { HierarchyNode, DisplayNodeInfo } from './types';
 import { getNodeColor } from './utils';
+import { useDynamicColors } from '~/composables/useDynamicColors';
 
 interface Props {
   hierarchyData: d3.HierarchyNode<HierarchyNode> | null;
@@ -38,55 +39,71 @@ const drawCircularDendrogram = () => {
   const container = d3.select(circularContainer.value!);
   container.html('');
 
-  const width = circularContainer.value?.clientWidth || 800; // Dynamic width based on container, default 800
-  const height = circularContainer.value?.clientHeight || 600; // Dynamic height based on container, default 600
-  const cx = width / 2; // Centered cx
-  const cy = height / 2; // Centered cy
-  const radius = Math.min(width, height) / 2 - 100; // Restored original padding
+  const width = circularContainer.value?.clientWidth || 800;
+  const height = circularContainer.value?.clientHeight || 600;
+  const cx = width / 2;
+  const cy = height / 2;
+  const radius = Math.min(width, height) / 2 - 100;
 
   const svg = container.append('svg')
     .attr('width', '100%')
     .attr('height', '100%')
-    .attr('viewBox', [-cx, -cy, width, height]) // ViewBox centered
+    .attr('viewBox', [-cx, -cy, width, height])
     .attr('style', 'width: 100%; height: auto; font: 10px sans-serif;');
 
   const mainGroup = svg.append('g');
 
-  // Create a radial tree layout.
   const tree = d3.tree<HierarchyNode>()
     .size([2 * Math.PI, radius])
-    .separation((a, b) => (a.parent == b.parent ? 10 : 12) / a.depth); // Further increased separation for maximum label display
+    .separation((a, b) => (a.parent == b.parent ? 10 : 12) / a.depth);
 
-  // Sort the tree and apply the layout.
   const root = tree(d3.hierarchy(props.hierarchyData.data)
     .sort((a, b) => d3.ascending(a.data.name, b.data.name)));
 
-  // Append links.
-  mainGroup.append('g')
+  const links = mainGroup.append('g')
     .attr('fill', 'none')
     .attr('stroke', isDark.value ? '#fff' : '#555')
-    .attr('stroke-opacity', 0.4)
-    .attr('stroke-width', 1.5)
+    .attr('stroke-width', 10)
     .selectAll('path')
     .data(root.links())
     .join('path')
-    .attr('d', d3.linkRadial<any, any>()
-      .angle(d => d.x)
-      .radius(d => d.y));
+    .attr('d', (d: any) => {
+      const start = d3.pointRadial(d.source.x, d.source.y);
+      const end = d3.pointRadial(d.target.x, d.target.y);
+      return `M${start[0]},${start[1]}L${end[0]},${end[1]}`;
+    });
 
-  // Append nodes.
-  mainGroup.append('g')
-    .selectAll('circle')
+  const nodes = mainGroup.append('g')
+    .selectAll('rect')
     .data(root.descendants())
-    .join('circle')
+    .join('rect')
     .attr('transform', d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)`)
     .attr('fill', (d: any) => getNodeColor(d))
-    .attr('r', (d: any) => {
-      if (d.data.type === 'user') return 8;
-      if (d.data.type === 'spark') return 4;
-      return 2.5;
+    .attr('width', (d: any) => {
+      if (d.data.type === 'user' || d.data.type === 'method' || d.data.type === 'competency') return 16;
+      if (d.data.type === 'spark') return 10;
+      return 7;
     })
-    .style('cursor', 'pointer')
+    .attr('height', (d: any) => {
+      if (d.data.type === 'user' || d.data.type === 'method' || d.data.type === 'competency') return 16;
+      if (d.data.type === 'spark') return 10;
+      return 7;
+    })
+    .attr('x', (d: any) => {
+      if (d.data.type === 'user' || d.data.type === 'method' || d.data.type === 'competency') return -8;
+      if (d.data.type === 'spark') return -5;
+      return -3.5;
+    })
+    .attr('y', (d: any) => {
+      if (d.data.type === 'user' || d.data.type === 'method' || d.data.type === 'competency') return -8;
+      if (d.data.type === 'spark') return -5;
+      return -3.5;
+    })
+    .style('cursor', 'grab')
+    .call(d3.drag()
+      .on('start', dragstarted)
+      .on('drag', dragged)
+      .on('end', dragended))
     .on('click', (event, d) => {
       event.stopPropagation();
       emit('nodeClick', {
@@ -97,8 +114,7 @@ const drawCircularDendrogram = () => {
       });
     });
 
-  // Append labels.
-  mainGroup.append('g')
+  const labels = mainGroup.append('g')
     .attr('stroke-linejoin', 'round')
     .attr('stroke-width', 3)
     .selectAll('text')
@@ -110,16 +126,45 @@ const drawCircularDendrogram = () => {
     .attr('text-anchor', d => d.x < Math.PI === !d.children ? 'start' : 'end')
     .attr('paint-order', 'stroke')
     .attr('stroke', isDark.value ? 'black' : 'white')
-    .attr('fill', isDark.value ? 'white': 'currentColor')
+    .attr('fill', isDark.value ? 'white' : 'currentColor')
     .text(d => d.data.name)
     .attr('font-size', (d: any) => {
       if (d.data.type === 'user') return '14px';
       if (d.data.type === 'spark') return '10px';
-      return '8px'; // Smaller default font size for general nodes
+      return '8px';
     })
     .attr('font-weight', (d: any) => d.data.type === 'user' ? 'bold' : 'normal');
 
-  // Add zoom behavior (applied to SVG, controls mainGroup)
+  function dragstarted(event: any) {
+    d3.select(event.sourceEvent.target).raise();
+  }
+
+  function dragged(event: any, d: any) {
+    const [newX, newY] = d3.pointer(event, mainGroup.node());
+    const newRadius = Math.sqrt(newX * newX + newY * newY);
+    let newAngle = Math.atan2(newY, newX) + Math.PI / 2;
+
+    d.y = newRadius;
+    d.x = newAngle;
+
+    updatePositions();
+  }
+
+  function dragended() {
+    // No action needed
+  }
+
+  function updatePositions() {
+    links.attr('d', (d: any) => {
+      const start = d3.pointRadial(d.source.x, d.source.y);
+      const end = d3.pointRadial(d.target.x, d.target.y);
+      return `M${start[0]},${start[1]}L${end[0]},${end[1]}`;
+    });
+
+    nodes.attr('transform', (d: any) => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)`);
+    labels.attr('transform', (d: any) => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0) rotate(${d.x >= Math.PI ? 180 : 0})`);
+  }
+
   const zoom = d3.zoom<SVGSVGElement, unknown>()
     .scaleExtent([0.5, 3])
     .on('zoom', (event) => {
@@ -127,22 +172,17 @@ const drawCircularDendrogram = () => {
       mainGroup.attr('transform', transform);
     });
 
-  // Apply zoom behavior to SVG
   svg.call(zoom);
 
-  // Calculate adaptive initial zoom out scale
-  const naturalGraphSize = 2 * radius; // Graph spans 2 * radius in its natural size
-  let adaptiveInitialScale = 1; // Default to 1 (no zoom)
+  const naturalGraphSize = 2 * radius;
+  let adaptiveInitialScale = 1;
   if (naturalGraphSize > 0 && Math.min(width, height) > 0) {
-    // Ensure graph fits within min(width, height) with some padding (0.9 for 10% padding)
     adaptiveInitialScale = Math.min(width, height) / naturalGraphSize * 0.9;
-    // Clamp the adaptiveInitialScale within the allowed scaleExtent
     adaptiveInitialScale = Math.max(0.5, Math.min(3, adaptiveInitialScale));
   }
   
-  // Apply initial zoom out
   svg.transition()
-    .duration(0) // No transition for initial load
+    .duration(0)
     .call(zoom.transform, d3.zoomIdentity.scale(adaptiveInitialScale));
 };
 
@@ -161,7 +201,6 @@ const cleanupResizeObserver = () => {
   }
 };
 
-// Watch for changes
 watch(() => props.hierarchyData, () => {
   nextTick(() => {
     drawCircularDendrogram();
@@ -202,4 +241,4 @@ onUnmounted(() => {
   pointer-events: none;
   user-select: none;
 }
-</style> 
+</style>

@@ -14,8 +14,11 @@ export default defineEventHandler(async (event) => {
       where: {
         userId: user.id,
       },
-      include: {
-        chatMessages: { // Corrected relation name
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+        chatMessages: {
           orderBy: {
             createdAt: 'asc',
           },
@@ -28,7 +31,7 @@ export default defineEventHandler(async (event) => {
         },
       },
       orderBy: {
-        createdAt: 'desc', // Show most recent sessions first
+        createdAt: 'desc',
       },
     });
 
@@ -44,4 +47,4 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Failed to fetch chat history.'
     });
   }
-}); 
+});
