@@ -1,93 +1,72 @@
 <template>
-  <div class="py-8 container-wide">
-    <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-secondary-900 dark:text-white mb-2">Portfolio Training</h1>
-      <p class="text-lg text-secondary-600 dark:text-secondary-300">
-        Share your creative work through links and file uploads to help train the AI on your artistic style and portfolio.
-      </p>
+  <div class="p-8">
+    <SectionHeader title="Portfolio" @add="openAddModal" />
+
+    <!-- Grid of portfolio items -->
+    <ItemGrid 
+      :items="portfolioItems || []" 
+      @delete="deleteItem"
+    />
+    <div v-if="!portfolioItems || portfolioItems.length === 0" class="text-center py-12 text-secondary-500">
+      <p>No portfolio items yet. Click the '+' button to add your first one.</p>
     </div>
 
-    <!-- Existing Items -->
-    <div v-if="portfolioItems && portfolioItems.length > 0" class="mb-8">
-      <h2 class="text-xl font-semibold text-secondary-900 dark:text-white mb-4">Your Portfolio</h2>
-      <ul class="space-y-3">
-        <li v-for="item in portfolioItems" :key="item.id" class="flex items-center justify-between p-3 bg-secondary-100 dark:bg-secondary-700/50 rounded-md">
-          <div>
-            <p class="font-medium text-secondary-800 dark:text-secondary-200">{{ item.description }}</p>
-            <a v-if="item.link" :href="item.link" target="_blank" class="text-sm text-primary-600 dark:text-primary-400 hover:underline break-all">{{ item.link }}</a>
-            <p v-if="item.filePath" class="text-sm text-secondary-600 dark:text-secondary-400">{{ getFileName(item.filePath) }}</p>
-          </div>
-          <button
-            @click="deleteItem(item)"
-            :disabled="deletingItemId === item.id"
-            class="p-2 text-error-600 hover:text-error-700 hover:bg-error-50 dark:hover:bg-error-900/50 rounded-full transition-colors"
-            aria-label="Delete item"
-          >
-            <span v-if="deletingItemId === item.id" class="loading-spinner-small"></span>
-            <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-            </svg>
-          </button>
-        </li>
-      </ul>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <!-- Add Link section -->
-      <div>
-        <h2 class="text-xl font-semibold text-secondary-900 dark:text-white mb-4">Add Portfolio Link</h2>
-        <form @submit.prevent="handleAddLink" class="space-y-4">
-          <div>
-            <label for="link-url" class="form-label">Link URL</label>
-            <input v-model="newLink.url" id="link-url" type="url" required class="form-input w-full mt-1" placeholder="https://example.com">
-          </div>
-          <div>
-            <label for="link-description" class="form-label">Description</label>
-            <input v-model="newLink.description" id="link-description" type="text" required class="form-input w-full mt-1" placeholder="e.g., My personal portfolio website">
-          </div>
-          <button type="submit" :disabled="isAddingLink" class="btn-primary w-full">
-            <span v-if="isAddingLink" class="loading-spinner mr-2"></span>
-            {{ isAddingLink ? 'Adding...' : 'Add Link' }}
-          </button>
-        </form>
-      </div>
-
-      <!-- PDF Upload section -->
-      <div>
-        <h2 class="text-xl font-semibold text-secondary-900 dark:text-white mb-4">Upload File</h2>
-        <form @submit.prevent="handleFileUpload" class="space-y-4">
-           <div>
-            <label for="file-description" class="form-label">Description</label>
-            <input v-model="newFile.description" id="file-description" type="text" required class="form-input w-full mt-1" placeholder="e.g., My latest design case study">
-          </div>
-          <div>
-            <label for="file-upload" class="form-label">File (max 10MB)</label>
-            <input id="file-upload" type="file" @change="handleFileChange" required class="form-input mt-1">
-          </div>
-          <button type="submit" class="btn-primary w-full" :disabled="!newFile.file || !newFile.description || isUploadingFile">
-            <span v-if="isUploadingFile" class="loading-spinner mr-2"></span>
-            {{ isUploadingFile ? 'Uploading...' : 'Upload File' }}
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Error display -->
-    <div v-if="error" class="mt-8 bg-error-50 border border-error-200 text-error-700 dark:bg-error-900/20 dark:border-error-500/30 dark:text-error-300 px-4 py-3">
+    <!-- Error -->
+    <div v-if="error" class="mt-6 bg-error-50 border border-error-200 text-error-700 dark:bg-error-900/20 dark:border-error-500/30 dark:text-error-300 px-4 py-3">
       {{ error }}
     </div>
 
-    <!-- Actions -->
-    <div class="mt-8 flex justify-end">
-      <NuxtLink to="/training/dashboard" class="btn-secondary mt-4">
-        Back to Dashboard
-      </NuxtLink>
-    </div>
+    <!-- Add Modal -->
+    <transition name="fade-transform">
+      <div v-if="isAddModalOpen" class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/50" @click="closeAddModal" />
+        <div class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg shadow-lg p-6">
+          <h3 class="text-lg font-semibold mb-4 text-secondary-900 dark:text-white">Add portfolio item</h3>
+          <form @submit.prevent="handleAddSubmit" class="space-y-4">
+            <div class="flex gap-3">
+              <label class="inline-flex items-center gap-2 cursor-pointer">
+                <input type="radio" value="link" v-model="addType" class="form-radio" />
+                <span class="text-sm">Link</span>
+              </label>
+              <label class="inline-flex items-center gap-2 cursor-pointer">
+                <input type="radio" value="file" v-model="addType" class="form-radio" />
+                <span class="text-sm">File</span>
+              </label>
+            </div>
+
+            <div v-if="addType === 'link'">
+              <label for="add-link-url" class="form-label">Link URL</label>
+              <input id="add-link-url" v-model="addForm.url" type="url" placeholder="https://example.com" class="form-input w-full mt-1" required />
+            </div>
+
+            <div v-else>
+              <label for="add-file" class="form-label">File (max 10MB)</label>
+              <input id="add-file" type="file" class="form-input mt-1" @change="handleAddFileChange" required />
+            </div>
+
+            <div>
+              <label for="add-description" class="form-label">Description</label>
+              <input id="add-description" v-model="addForm.description" type="text" class="form-input w-full mt-1" placeholder="Brief description" required />
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" class="btn-secondary" @click="closeAddModal">Cancel</button>
+              <button type="submit" class="btn-primary" :disabled="isSaving">
+                <span v-if="isSaving" class="loading-spinner mr-2" />
+                {{ isSaving ? 'Saving...' : 'Add item' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </transition>
   </div>
+  
 </template>
 
 <script setup lang="ts">
+import ItemGrid from '~/components/common/ItemGrid.vue';
+import SectionHeader from '~/components/common/SectionHeader.vue';
 // Set page metadata
 definePageMeta({
   title: 'Portfolio Training',
@@ -102,10 +81,10 @@ interface PortfolioItem {
 }
 
 // State
-const newLink = reactive({ url: '', description: '' })
-const newFile = reactive<{ description: string; file: File | null }>({ description: '', file: null })
-const isAddingLink = ref(false)
-const isUploadingFile = ref(false)
+const isAddModalOpen = ref(false)
+const addType = ref<'link' | 'file'>('link')
+const addForm = reactive<{ description: string; url: string; file: File | null }>({ description: '', url: '', file: null })
+const isSaving = ref(false)
 const error = ref<string | null>(null)
 const deletingItemId = ref<string | null>(null)
 const user = useSupabaseUser()
@@ -127,78 +106,51 @@ const { data: portfolioItems, pending: isLoadingPortfolio, refresh: refreshPortf
   watch: [user]
 })
 
-const getFileName = (filePath: string) => {
-  const parts = filePath.split('/')
-  const fileName = parts.pop() || ''
-  // remove the timestamp and underscore
-  return fileName.substring(fileName.indexOf('_') + 1)
+// Add modal controls
+const openAddModal = () => { isAddModalOpen.value = true }
+const closeAddModal = () => { isAddModalOpen.value = false; resetAddForm() }
+const resetAddForm = () => { addType.value = 'link'; addForm.description = ''; addForm.url = ''; addForm.file = null }
+const handleAddFileChange = (e: Event) => {
+  const input = e.target as HTMLInputElement
+  if (input.files && input.files[0]) addForm.file = input.files[0]
 }
 
-const handleFileChange = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  if (target.files && target.files.length > 0) {
-    newFile.file = target.files[0]
-  }
-}
-
-const handleAddLink = async () => {
-  if (!newLink.url || !newLink.description) {
-    alert('Please fill in both URL and description.')
-    return
-  }
-
-  isAddingLink.value = true
+const handleAddSubmit = async () => {
   error.value = null
-
+  isSaving.value = true
   try {
-    await $fetch('/api/portfolio', {
-      method: 'POST',
-      body: { link: newLink.url, description: newLink.description }
-    })
-    newLink.url = ''
-    newLink.description = ''
-    await refreshPortfolioItems() // Refresh list
-  } catch (err: any) {
-    error.value = err.data?.message || 'Failed to add link.'
-    console.error(err)
-  } finally {
-    isAddingLink.value = false
-  }
-}
-
-const handleFileUpload = async () => {
-  if (!newFile.file || !newFile.description) {
-    alert('Please select a file and provide a description.')
-    return
-  }
-
-  const formData = new FormData()
-  formData.append('file', newFile.file)
-  formData.append('description', newFile.description)
-
-  isUploadingFile.value = true
-  error.value = null
-
-  try {
-    await $fetch('/api/portfolio', {
-      method: 'POST',
-      body: formData
-    })
-    newFile.description = ''
-    newFile.file = null
-    const fileInput = document.getElementById('file-upload') as HTMLInputElement
-    if(fileInput) fileInput.value = ''
+    if (addType.value === 'link') {
+      if (!addForm.url || !addForm.description) {
+        alert('Please provide a URL and description.')
+        return
+      }
+      await $fetch('/api/portfolio', {
+        method: 'POST',
+        body: { link: addForm.url, description: addForm.description }
+      })
+    } else {
+      if (!addForm.file || !addForm.description) {
+        alert('Please select a file and provide a description.')
+        return
+      }
+      const formData = new FormData()
+      formData.append('file', addForm.file)
+      formData.append('description', addForm.description)
+      await $fetch('/api/portfolio', { method: 'POST', body: formData })
+    }
     await refreshPortfolioItems()
+    closeAddModal()
   } catch (err: any) {
-    error.value = err.data?.message || 'Failed to upload file.'
+    error.value = err?.data?.message || 'Failed to add item.'
     console.error(err)
   } finally {
-    isUploadingFile.value = false
+    isSaving.value = false
   }
 }
 
-const deleteItem = async (item: PortfolioItem) => {
-  if (!confirm('Are you sure you want to delete this item?')) return
+const deleteItem = async (itemId: string) => {
+  const item = portfolioItems.value?.find(i => i.id === itemId);
+  if (!item || !confirm('Are you sure you want to delete this item?')) return
 
   deletingItemId.value = item.id
   error.value = null
@@ -222,4 +174,42 @@ const deleteItem = async (item: PortfolioItem) => {
 .loading-spinner-small {
   @apply w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin;
 }
-</style> 
+.fade-transform-enter-active,
+.fade-transform-leave-active {
+  @apply transition duration-150 ease-out;
+}
+.fade-transform-enter-from,
+.fade-transform-leave-to {
+  @apply opacity-0 scale-95;
+}
+
+/* X mask (primary) - may be used elsewhere */
+.x-mask {
+  background-color: hsl(var(--color-primary-500));
+  -webkit-mask: url("/svg/x.svg") center / contain no-repeat;
+  mask: url("/svg/x.svg") center / contain no-repeat;
+}
+
+/* Add-tile hover */
+.hover-primary-bg:hover {
+  background-color: hsl(var(--color-primary-500));
+  color: var(--header-nav-active-color);
+}
+
+/* Secondary-colored X mask for delete */
+.x-mask-secondary {
+  background-color: var(--header-nav-active-color);
+  -webkit-mask: url("/svg/x.svg") center / contain no-repeat;
+  mask: url("/svg/x.svg") center / contain no-repeat;
+}
+
+/* Tile behavior */
+.portfolio-tile { position: relative; }
+.portfolio-tile .tile-media { position: relative; z-index: 0; transition: opacity 150ms ease-out; }
+.portfolio-tile:hover { background-color: hsl(var(--color-primary-500)); }
+.portfolio-tile:hover .tile-media { opacity: 0; pointer-events: none; }
+.tile-title { opacity: 0; pointer-events: none; }
+.portfolio-tile:hover .tile-title { opacity: 1; color: var(--header-nav-active-color); }
+
+/* Add tile styling is now in ItemGrid */
+</style>

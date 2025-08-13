@@ -19,12 +19,14 @@ model UserProfile {
   datSubmissions           DATSubmission[]
   demographicsAnswers      DemographicsAnswer[]
   monologueRecordings      MonologueRecording[]
+  patterns                 Pattern[]                 @relation("UserPatterns")
   peerTrainingParticipants PeerTrainingParticipant[] @relation("Participants")
   portfolioItems           PortfolioItem[]
+  projects                 Project[]
   ratAnswers               RATAnswer[]
   preferences              UserPreferences?
   voiceAgentRecordings     VoiceAgentRecording[]
-  patterns                 Pattern[]
+  projectRuns              ProjectRun[]           @relation("UserProjectRuns")
 
   @@map("user_profiles")
 }
@@ -36,8 +38,8 @@ model UserPreferences {
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
   preferredLanguage String      @default("en") @map("preferred_language")
+  memory            String?
   voiceId           String?     @map("voice_id")
-  memory            String?     // <--- Add this line
   user              UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_preferences")
@@ -184,15 +186,133 @@ model VoiceAgentRecording {
 }
 
 model Pattern {
-  id         Int         @id @default(autoincrement())
-  userId     String      @map("user_id") @db.Uuid
-  messageId  String      @map("message_id")
-  method     String
-  competency String
-  spark      String
-  createdAt  DateTime    @default(now()) @map("created_at")
-  isPredefined Boolean @default(true) @map("is_predefined")
-  user       UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                     Int          @id @default(autoincrement())
+  userId                 String?      @map("user_id") @db.Uuid
+  messageId              String       @map("message_id")
+  method                 String
+  competency             String
+  spark                  String
+  createdAt              DateTime     @default(now()) @map("created_at")
+  isPredefined           Boolean      @default(true) @map("is_predefined")
+  sparkId                String?      @map("spark_id") @db.Uuid
+  isPredefinedMethod     Boolean      @default(false) @map("is_predefined_method")
+  isPredefinedCompetency Boolean      @default(false) @map("is_predefined_competency")
+  sparkRef               Spark?      @relation("SparkPatterns", fields: [sparkId], references: [id], onDelete: Cascade)
+  user                   UserProfile? @relation("UserPatterns", fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([isPredefinedCompetency], map: "idx_patterns_predefined_competency")
+  @@index([isPredefinedMethod], map: "idx_patterns_predefined_method")
   @@map("patterns")
+}
+
+model Spark {
+  id            String             @id @default(uuid()) @db.Uuid
+  name          String
+  description   String
+  systemPrompt  String             @map("system_prompt")
+  discipline    String
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+  outputs       Output[]
+  patterns      Pattern[]          @relation("SparkPatterns")
+  dendrograms   SparkDendrogram[]
+  projects      SparksOnProjects[]
+
+  @@map("sparks")
+}
+
+model Project {
+  id           String             @id @default(uuid()) @db.Uuid
+  userId       String             @map("user_id") @db.Uuid
+  name         String
+  task         String
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+  contextItems ContextItem[]
+  outputs      Output[]
+  user         UserProfile        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sparks       SparksOnProjects[]
+  runs         ProjectRun[]        @relation("ProjectRuns")
+
+  @@map("projects")
+}
+
+model ContextItem {
+  id          String   @id @default(uuid()) @db.Uuid
+  projectId   String   @map("project_id") @db.Uuid
+  description String?
+  link        String?
+  filePath    String?  @map("file_path")
+  text        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("context_items")
+}
+
+model SparksOnProjects {
+  projectId  String   @map("project_id") @db.Uuid
+  sparkId    String   @map("spark_id") @db.Uuid
+  assignedAt DateTime @default(now()) @map("assigned_at")
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  spark      Spark    @relation(fields: [sparkId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, sparkId])
+  @@map("sparks_on_projects")
+}
+
+model Output {
+  id        String   @id @default(uuid()) @db.Uuid
+  projectId String   @map("project_id") @db.Uuid
+  sparkId   String   @map("spark_id") @db.Uuid
+  text      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  runId     String?  @map("run_id") @db.Uuid
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  spark     Spark    @relation(fields: [sparkId], references: [id], onDelete: Cascade)
+  run       ProjectRun? @relation("RunOutputs", fields: [runId], references: [id], onDelete: SetNull)
+
+  @@map("outputs")
+}
+
+model SparkDendrogram {
+  id            String   @id @default(uuid()) @db.Uuid
+  sparkId       String   @unique @map("spark_id") @db.Uuid
+  dendrogramSvg String   @map("dendrogram_svg")
+  dendrogramPng Bytes?   @map("dendrogram_png")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  spark         Spark    @relation(fields: [sparkId], references: [id], onDelete: Cascade)
+
+  @@map("spark_dendrograms")
+}
+
+model ProjectRun {
+  id         String      @id @default(uuid()) @db.Uuid
+  projectId  String      @map("project_id") @db.Uuid
+  userId     String      @map("user_id") @db.Uuid
+  status     String      @default("running")
+  createdAt  DateTime    @default(now()) @map("created_at")
+  finishedAt DateTime?   @map("finished_at")
+  summary    String?
+  project    Project     @relation("ProjectRuns", fields: [projectId], references: [id], onDelete: Cascade)
+  user       UserProfile @relation("UserProjectRuns", fields: [userId], references: [id], onDelete: Cascade)
+  outputs    Output[]    @relation("RunOutputs")
+  events     ProjectRunEvent[] @relation("RunEvents")
+
+  @@map("project_runs")
+}
+
+model ProjectRunEvent {
+  id        Int         @id @default(autoincrement())
+  runId     String      @map("run_id") @db.Uuid
+  type      String
+  payload   Json
+  createdAt DateTime    @default(now()) @map("created_at")
+  run       ProjectRun  @relation("RunEvents", fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId, id])
+  @@map("project_run_events")
 }

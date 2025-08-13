@@ -4,139 +4,199 @@
       <XAnimation />
     </client-only>
     <!-- Header -->
-    <header
-      class="bg-white/50 dark:bg-secondary-800/50 backdrop-blur-md border-b border-secondary-200/50 dark:border-secondary-700/50 sticky top-0 z-40"
-    >
-      <div class="container-wide">
-        <div class="flex justify-between items-center h-16">
+    <header class="backdrop-blur-md sticky top-0 z-40" :style="headerStyle">
+      <div class="ps-4">
+        <div class="flex justify-between items-center h-16 relative">
           <!-- Logo -->
           <NuxtLink to="/training/dashboard" class="flex items-center space-x-3">
             <span
-              v-if="user && userProfile?.name && !isLoadingProfile"
-              class="font-bold text-xl text-secondary-900 dark:text-white hidden sm:inline"
+              class="font-bold text-xl hidden sm:inline"
+              :style="{ color: primaryColor.value }"
             >
-              Art<sup class="ml-1 text-base font-semibold">{{ userProfile.name }}</sup>
+              Art<sup class="ml-1 text-base font-semibold">{{ brandSupText }}</sup>
             </span>
             <span
-              v-else
-              class="font-bold text-xl text-secondary-900 dark:text-white hidden sm:inline"
+              class="text-xs font-semibold px-2 py-0.5 rounded-full ml-2"
+              :style="accentFgBgStyle"
+              >BETA</span
             >
-              Art<sup class="ml-1 text-base font-semibold">x</sup>
-            </span>
-            <span class="bg-primary-100 text-primary-800 text-xs font-semibold px-2 py-0.5 rounded-full dark:bg-primary-900 dark:text-primary-300 ml-2">BETA</span>
           </NuxtLink>
 
           <!-- Right Aligned Items -->
           <div class="flex items-center space-x-2 sm:space-x-4">
-            <ThemeSwitcher />
-
             <!-- Authenticated User Nav -->
             <div v-if="user" class="flex items-center space-x-2 sm:space-x-4">
-              <!-- User Menu -->
-              <div class="relative" ref="userMenuRef">
-                <button
-                  @click="toggleUserMenu"
-                  class="flex items-center space-x-2 focus:outline-none"
-                >
-                  <div
-                    class="w-9 h-9 bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm rounded-full dark:bg-primary-800/50 dark:text-primary-200 ring-2 ring-offset-2 ring-offset-white dark:ring-offset-secondary-800 ring-transparent group-hover:ring-primary-300 transition-shadow"
-                  >
-                    {{ userInitials }}
-                  </div>
-                </button>
-                <transition
-                  name="fade-transform"
-                  enter-active-class="transition ease-out duration-100"
-                  enter-from-class="transform opacity-0 scale-95"
-                  enter-to-class="transform opacity-100 scale-100"
-                  leave-active-class="transition ease-in duration-75"
-                  leave-from-class="transform opacity-100 scale-100"
-                  leave-to-class="transform opacity-0 scale-95"
-                >
-                  <div
-                    v-if="isUserMenuOpen"
-                    class="absolute right-0 mt-2 w-56 bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-md shadow-lg z-50 ring-1 ring-black ring-opacity-5 focus:outline-none"
-                  >
-                    <div class="py-1">
-                      <div
-                        class="px-4 py-3 border-b border-secondary-200 dark:border-secondary-600"
-                      >
-                        <p
-                          class="text-sm font-medium text-secondary-900 dark:text-white truncate"
-                        >
-                          {{ userProfile?.name || "User" }}
-                        </p>
-                        <p
-                          class="text-sm text-secondary-500 dark:text-secondary-400 truncate"
-                        >
-                          {{ user.email }}
-                        </p>
-                      </div>
-                      <NuxtLink
-                        to="/training/dashboard"
-                        class="dropdown-item"
-                        @click="closeUserMenu"
-                      >
-                        Training Dashboard
-                      </NuxtLink>
-                      <NuxtLink
-                        to="/training/mental-model"
-                        class="dropdown-item"
-                        @click="closeUserMenu"
-                      >
-                        Your Mental Model
-                      </NuxtLink>
-                      <button
-                        @click="handleSignOut"
-                        class="dropdown-item w-full text-left"
-                      >
-                        Sign Out
-                      </button>
-                      <div class="border-t border-secondary-100 dark:border-secondary-700 my-2"></div>
-                      <div class="flex flex-col space-y-1 px-4 pb-2">
-                        <template v-for="link in versionConfig?.footerLinks || []" :key="link.to">
-                          <NuxtLink
-                            v-if="!link.external"
-                            :to="link.to"
-                            class="dropdown-item px-0 text-xs"
-                            @click="closeUserMenu"
-                          >
-                            {{ link.text }}
-                          </NuxtLink>
-                          <a
-                            v-else
-                            :href="link.to"
-                            class="dropdown-item px-0 text-xs"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            @click="closeUserMenu"
-                          >
-                            {{ link.text }}
-                          </a>
-                        </template>
-                      </div>
-                    </div>
-                  </div>
-                </transition>
-              </div>
+              <ProfileDropdown />
             </div>
 
             <!-- Guest Nav -->
             <nav v-else class="flex items-center space-x-4">
-              <NuxtLink to="/login" class="nav-link">Sign In</NuxtLink>
-              <NuxtLink to="/register" class="btn-primary-sm sm:btn-primary"
-                >Get Started</NuxtLink
+              <NuxtLink
+                to="/login"
+                class="nav-link"
+                :class="{ active: route.path === '/login' }"
+                >Sign In</NuxtLink
               >
+              <NuxtLink
+                to="/register"
+                class="btn-primary-sm sm:btn-primary"
+                :style="{
+                  backgroundColor: primaryColor.value,
+                  color: secondaryColor.value,
+                }"
+              >
+                Get Started
+              </NuxtLink>
             </nav>
           </div>
         </div>
       </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-grow overflow-y-auto bg-white dark:bg-secondary-900">
-      <slot />
-    </main>
+    <!-- Main Content with Sidebar -->
+    <div class="flex flex-1 min-h-0">
+      <!-- Sidebar (authenticated only) -->
+      <aside
+        v-if="user"
+        class="hidden md:flex flex-col backdrop-blur-md transition-all duration-200 ease-in-out w-64"
+        :style="sidebarStyle"
+      >
+        <nav class="flex-1 overflow-y-auto">
+          <!-- You Group -->
+          <div class="mb-4 ">
+            <ul class="space-y-1">
+              <li>
+                <NuxtLink
+                  to="/training/portfolio"
+                  class="sidebar-link"
+                  :class="{ active: route.path.startsWith('/training/portfolio') }"
+                  :style="
+                    route.path.startsWith('/training/portfolio')
+                      ? sidebarLinkActiveStyle
+                      : sidebarLinkStyle
+                  "
+                >
+                  <span class="truncate">Portfolio</span>
+                </NuxtLink>
+              </li>
+              <li>
+                <NuxtLink
+                  :to="{ path: '/training/dashboard', query: { tab: 'chat' } }"
+                  class="sidebar-link"
+                  :class="{
+                    active:
+                      route.path === '/training/dashboard' &&
+                      (route.query.tab === 'chat' || !route.query.tab),
+                  }"
+                  :style="
+                    route.path === '/training/dashboard' &&
+                    (route.query.tab === 'chat' || !route.query.tab)
+                      ? sidebarLinkActiveStyle
+                      : sidebarLinkStyle
+                  "
+                >
+                  <span class="truncate">Chat</span>
+                </NuxtLink>
+              </li>
+              <!-- <li>
+                <div
+                  class="sidebar-link disabled"
+                  :style="{ color: primaryColor.value }"
+                  title="Peer Training (soon)"
+                >
+                  <span class="truncate">Peer Training (soon)</span>
+                </div>
+              </li>
+              <li>
+                <div
+                  class="sidebar-link disabled"
+                  :style="{ color: primaryColor.value }"
+                  title="Observation (soon)"
+                >
+                  <span class="truncate">Observation (soon)</span>
+                </div>
+              </li> -->
+              <li>
+                <NuxtLink
+                  :to="{ path: '/training/mental-model', query: { view: 'user' } }"
+                  class="sidebar-link"
+                  :class="{
+                    active:
+                      route.path === '/training/mental-model' &&
+                      (!route.query.view || route.query.view === 'user'),
+                  }"
+                  :style="
+                    route.path === '/training/mental-model' &&
+                    (!route.query.view || route.query.view === 'user')
+                      ? sidebarLinkActiveStyle
+                      : sidebarLinkStyle
+                  "
+                >
+                  <span class="truncate">Your model</span>
+                </NuxtLink>
+              </li>
+              <li>
+                <NuxtLink
+                  :to="{ path: '/training/mental-model', query: { view: 'all' } }"
+                  class="sidebar-link"
+                  :class="{
+                    active:
+                      route.path === '/training/mental-model' &&
+                      route.query.view === 'all',
+                  }"
+                  :style="
+                    route.path === '/training/mental-model' && route.query.view === 'all'
+                      ? sidebarLinkActiveStyle
+                      : sidebarLinkStyle
+                  "
+                >
+                  <span class="truncate">Creativity Map</span>
+                </NuxtLink>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Create Group -->
+          <div class="">
+            <ul class="space-y-1">
+              <li>
+                <NuxtLink
+                  to="/spark/personas"
+                  class="sidebar-link"
+                  :class="{ active: route.path.startsWith('/spark/personas') }"
+                  :style="
+                    route.path.startsWith('/spark/personas')
+                      ? sidebarLinkActiveStyle
+                      : sidebarLinkStyle
+                  "
+                >
+                  <span class="truncate">Sparks</span>
+                </NuxtLink>
+              </li>
+              <li>
+                <NuxtLink
+                  to="/spark/projects"
+                  class="sidebar-link"
+                  :class="{ active: route.path.startsWith('/spark/projects') }"
+                  :style="
+                    route.path.startsWith('/spark/projects')
+                      ? sidebarLinkActiveStyle
+                      : sidebarLinkStyle
+                  "
+                >
+                  <span class="truncate">Projects</span>
+                </NuxtLink>
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="flex-1 overflow-y-auto bg-white dark:bg-secondary-900">
+        <slot />
+      </main>
+    </div>
 
     <!-- Footer -->
     <Footer />
@@ -145,18 +205,21 @@
 
 <script setup lang="ts">
 import XAnimation from "~/components/XAnimation.vue";
-import ThemeSwitcher from "~/components/ThemeSwitcher.vue";
-import Footer from '~/components/Footer.vue';
+import Footer from "~/components/Footer.vue";
+import ProfileDropdown from "~/components/navigation/ProfileDropdown.vue";
 import { useAuth } from "~/composables/useAuth";
 import { useVersion } from "~/composables/useVersion";
 import { useUserProfile } from "~/composables/useUserProfile";
 import { useDynamicColors } from "~/composables/useDynamicColors";
+import { primaryColor, secondaryColor } from "~/composables/useDynamicColors";
 import { useHead } from "nuxt/app";
+import { useRoute } from "#imports";
 
-const { user, signOut } = useAuth();
+const { user } = useAuth();
 const { versionConfig } = useVersion();
 const { userProfile, isLoadingProfile } = useUserProfile();
 const { setColors } = useDynamicColors();
+const route = useRoute();
 
 onMounted(setColors);
 
@@ -173,58 +236,65 @@ useHead({
   },
 });
 
-// State
-const isUserMenuOpen = ref(false);
-
 // Computed
-const userInitials = computed(() => {
-  if (userProfile.value?.name) {
-    return userProfile.value.name.charAt(0).toUpperCase();
+const routeTitle = computed(() => (route.meta?.title as string) || "");
+
+const brandSupText = computed(() => {
+  if (user.value && userProfile.value?.name && !isLoadingProfile.value) {
+    return userProfile.value.name;
   }
-  if (user.value?.email) {
-    return user.value.email.charAt(0).toUpperCase();
-  }
-  return "U";
+  return "x";
 });
 
-// Methods
-const toggleUserMenu = () => {
-  isUserMenuOpen.value = !isUserMenuOpen.value;
-};
+const sidebarStyle = computed(() => ({
+  backgroundColor: secondaryColor.value,
+}));
 
-const closeUserMenu = () => {
-  isUserMenuOpen.value = false;
-};
+const headerStyle = computed(() => ({
+  backgroundColor: secondaryColor.value,
+}));
 
-const handleSignOut = async () => {
-  closeUserMenu();
-  await signOut();
-};
+const sidebarLinkStyle = computed(() => ({
+  color: primaryColor.value,
+}));
 
-// Close menus on route change
-watch(
-  () => useRoute().path,
-  () => {
-    closeUserMenu();
-  }
-);
+const sidebarLinkActiveStyle = computed(() => ({
+  backgroundColor: primaryColor.value,
+  color: secondaryColor.value,
+}));
+
+const accentFgBgStyle = computed(() => ({
+  backgroundColor: primaryColor.value,
+  color: secondaryColor.value,
+}));
 </script>
 
 <style>
 body {
-  @apply bg-white text-secondary-900;
-  @apply dark:bg-secondary-900 dark:text-secondary-100;
+  @apply bg-white;
 }
 
 .nav-link {
-  @apply text-base font-medium text-secondary-600 hover:text-secondary-900 dark:text-secondary-300 dark:hover:text-white transition-colors;
+  @apply text-base font-medium transition-colors;
+  color: var(--header-nav-color, rgb(100, 100, 100));
+}
+
+.nav-link:hover {
+  color: var(--header-nav-hover-color, rgb(75, 85, 99));
 }
 
 .nav-link.active {
-  @apply text-primary-600 dark:text-primary-400;
+  color: var(--header-nav-active-color, rgb(100, 100, 100));
+  background-color: var(--header-nav-active-bg, rgb(200, 200, 200));
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
 }
 
-.dropdown-item {
-  @apply block w-full px-4 py-2 text-sm text-left text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-700 transition-colors;
+.sidebar-link {
+  @apply flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors;
 }
-</style>
+
+.sidebar-link.disabled {
+  @apply cursor-not-allowed opacity-50 pointer-events-none;
+}
+</style> 

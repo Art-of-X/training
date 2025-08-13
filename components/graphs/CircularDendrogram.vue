@@ -11,7 +11,6 @@ import { ref, watch, onMounted, onUnmounted, nextTick, computed } from 'vue';
 import * as d3 from 'd3';
 import type { HierarchyNode, DisplayNodeInfo } from './types';
 import { getNodeColor } from './utils';
-import { useDynamicColors } from '~/composables/useDynamicColors';
 
 interface Props {
   hierarchyData: d3.HierarchyNode<HierarchyNode> | null;
@@ -60,10 +59,16 @@ const drawCircularDendrogram = () => {
   const root = tree(d3.hierarchy(props.hierarchyData.data)
     .sort((a, b) => d3.ascending(a.data.name, b.data.name)));
 
+  // Apply random rotation to the entire graph
+  const randomRotation = Math.random() * 2 * Math.PI;
+  root.each((d) => {
+    d.x += randomRotation;
+  });
+
   const links = mainGroup.append('g')
     .attr('fill', 'none')
-    .attr('stroke', isDark.value ? '#fff' : '#555')
-    .attr('stroke-width', 10)
+    .attr('stroke', 'hsl(var(--color-primary-500))')
+    .attr('stroke-width', 1.5)
     .selectAll('path')
     .data(root.links())
     .join('path')
@@ -166,7 +171,7 @@ const drawCircularDendrogram = () => {
   }
 
   const zoom = d3.zoom<SVGSVGElement, unknown>()
-    .scaleExtent([0.5, 3])
+    .scaleExtent([0.1, 2.5])
     .on('zoom', (event) => {
       const { transform } = event;
       mainGroup.attr('transform', transform);

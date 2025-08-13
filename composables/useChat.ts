@@ -1,7 +1,16 @@
 import { ref } from 'vue';
 import { type CoreMessage, type TextPart, type ImagePart, type FilePart } from 'ai';
 
-export const useChat = () => {
+type ChatMode = 'default' | 'spark';
+
+interface UseChatOptions {
+  mode?: ChatMode;
+  sparkId?: string;
+}
+
+export const useChat = (options: UseChatOptions = {}) => {
+  const mode: ChatMode = options.mode || 'default';
+  const sparkIdForChat: string | undefined = options.sparkId;
   const messages = ref<CoreMessage[]>([]);
   const isLoading = ref(false);
   const error = ref<any>(null);
@@ -27,6 +36,9 @@ export const useChat = () => {
   const audioStarted = ref(false);
   const audioPlaybackListeners = ref<(() => void)[]>([]);
 
+  const transcriptDraft = ref<string>('');
+  const isTranscribing = ref(false);
+
   const sendMessage = async (newMessages: CoreMessage[], currentSessionIdForRequest?: string) => {
     isLoading.value = true;
     error.value = null;
@@ -46,24 +58,35 @@ export const useChat = () => {
         return true;
       });
 
-      const payload: { messages: CoreMessage[]; sessionId?: string } = {
-        messages: messagesToSend,
-      };
-
-      if (currentSessionIdForRequest !== undefined) {
-        // Use the provided sessionId for this specific request
-        payload.sessionId = currentSessionIdForRequest;
-      } else if (currentSessionId.value) {
-        // Otherwise, use the composable's current sessionId
-        payload.sessionId = currentSessionId.value;
+      let response: Response;
+      if (mode === 'spark') {
+        // Spark chat: no tools, spark-specific system prompt, no session persistence
+        const sparkPayload: { sparkId?: string; messages: CoreMessage[] } = {
+          sparkId: sparkIdForChat,
+          messages: messagesToSend,
+        };
+        response = await fetch('/api/spark/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sparkPayload),
+          signal: abortController.signal,
+        });
+      } else {
+        const payload: { messages: CoreMessage[]; sessionId?: string } = {
+          messages: messagesToSend,
+        };
+        if (currentSessionIdForRequest !== undefined) {
+          payload.sessionId = currentSessionIdForRequest;
+        } else if (currentSessionId.value) {
+          payload.sessionId = currentSessionId.value;
+        }
+        response = await fetch('/api/chat/message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: abortController.signal,
+        });
       }
-
-      const response = await fetch('/api/chat/message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: abortController.signal,
-      });
 
       if (!response.ok) {
         throw new Error(await response.text());
@@ -71,9 +94,9 @@ export const useChat = () => {
 
       const { content, sessionId: returnedSessionId } = await response.json();
       
-      // Always update the currentSessionId if a new one is returned
-      if (returnedSessionId) {
-          currentSessionId.value = returnedSessionId;
+      // Only update session for default mode
+      if (mode === 'default' && returnedSessionId) {
+        currentSessionId.value = returnedSessionId;
       }
       
       // Update the last assistant message with the actual content if it's a placeholder
@@ -115,16 +138,45 @@ export const useChat = () => {
     
     // Only reset for truly new chats (when no session exists and no messages)
     // Don't reset on re-initialization if we already have a session
-    const isNewChat = !currentSessionId.value && messages.value.length === 0;
+    const isNewChat = (mode === 'spark') ? (messages.value.length === 0) : (!currentSessionId.value && messages.value.length === 0);
     
     if (isNewChat) {
       messages.value = []; // Reset messages for a new chat
-      currentSessionId.value = undefined; // Reset session ID for a new chat
+      if (mode === 'default') {
+        currentSessionId.value = undefined; // Reset session ID for a new chat
+      }
     }
     
     abortController = new AbortController();
 
-    // For a new chat, send an empty array to trigger the assistant greeting from the backend
+    if (mode === 'spark') {
+      try {
+        const response = await fetch('/api/spark/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sparkId: sparkIdForChat, messages: [] }),
+          signal: abortController.signal,
+        });
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+        const { content } = await response.json();
+        if (content) {
+          messages.value.push({ role: 'assistant', content });
+        }
+      } catch (e: any) {
+        if (e.name === 'AbortError') {
+          return;
+        }
+        error.value = e;
+        messages.value.push({ role: 'assistant', content: 'Hello! How can I assist you with this spark?' });
+      } finally {
+        isLoading.value = false;
+      }
+      return;
+    }
+
+    // Default mode: For a new chat, send an empty array to trigger the assistant greeting from the backend
     const initialPayload = { messages: [], sessionId: currentSessionId.value };
 
     try {
@@ -190,7 +242,7 @@ export const useChat = () => {
     }
 
     // Send all current messages (including the new user message) to the server
-    // The server will handle fetching the full history based on sessionId
+    // The server will handle fetching the full history based on sessionId (default mode)
     await sendMessage(messages.value);
   };
 
@@ -381,10 +433,14 @@ export const useChat = () => {
 
   const processAudioInput = async (audioBlob: Blob) => {
     try {
-      isLoading.value = true;
+      isTranscribing.value = true;
+      isTranscribing.value = true;
       
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
+      if (currentSessionId.value) {
+        formData.append('sessionId', currentSessionId.value);
+      }
       
       const response = await fetch('/api/voice/stt', {
         method: 'POST',
@@ -397,14 +453,12 @@ export const useChat = () => {
       
       const { text } = await response.json();
       
-      if (text && text.trim()) {
-        await handleSubmit(text.trim());
-      }
+      transcriptDraft.value = (text || '').trim();
     } catch (e) {
       error.value = e;
       console.error('Error processing audio:', e);
-    } finally {
-      isLoading.value = false;
+        } finally {
+      isTranscribing.value = false;
     }
   };
 
@@ -503,5 +557,7 @@ export const useChat = () => {
     toggleTTS,
     stopTTS,
     stop, // Expose stop function
+    transcriptDraft, // Expose transcriptDraft
+    isTranscribing,
   };
 }; 

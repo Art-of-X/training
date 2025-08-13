@@ -20,7 +20,6 @@
             <span class="bg-primary-100 text-primary-800 text-xs font-semibold px-2 py-0.5 rounded-full dark:bg-primary-900 dark:text-primary-300 ml-2">BETA</span>
           </NuxtLink>
           <div class="flex items-center space-x-2 sm:space-x-4">
-            <ThemeSwitcher />
             <div class="flex items-center space-x-2 sm:space-x-4">
               <div class="relative" ref="userMenuRef">
                 <button
@@ -115,7 +114,6 @@
             </span>
           </NuxtLink>
           <div class="flex items-center space-x-2 sm:space-x-4">
-            <ThemeSwitcher />
             <nav class="flex items-center space-x-2 sm:space-x-4">
               <NuxtLink to="/login" class="btn-outline px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm">Sign In</NuxtLink>
               <NuxtLink to="/register" class="btn-primary px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm">Get Started</NuxtLink>
@@ -134,7 +132,6 @@
 </template>
 
 <script setup lang="ts">
-import ThemeSwitcher from '~/components/ThemeSwitcher.vue';
 import Footer from '~/components/Footer.vue';
 import { useAuth } from '~/composables/useAuth';
 import { useUserProfile } from '~/composables/useUserProfile';

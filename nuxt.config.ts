@@ -47,6 +47,16 @@ export default defineNuxtConfig({
     '~/assets/css/main.css', // For Tailwind and custom base styles
   ],
   
+  // PostCSS configuration
+  postcss: {
+    plugins: {
+      tailwindcss: {},
+      autoprefixer: {},
+    },
+    // Ensure PostCSS only processes CSS files
+    config: false,
+  },
+  
   // App configuration
   app: {
     head: {

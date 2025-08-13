@@ -16,10 +16,31 @@ export default defineEventHandler(async (event) => {
   try {
     console.log('Prisma client in patterns API:', prisma);
     const patterns = await prisma.pattern.findMany({
-      where: { userId: userId },
+      where: { 
+        userId: userId,
+        // Only include patterns with complete data
+        method: { not: '' },
+        competency: { not: '' },
+        spark: { not: '' }
+      },
+      include: {
+        user: {
+          select: {
+            name: true
+          }
+        }
+      },
       orderBy: { createdAt: 'asc' },
     })
-    return { data: patterns }
+    
+    // Format patterns to include source information for consistency
+    const formattedPatterns = patterns.map(p => ({
+      ...p,
+      source: 'user' as const,
+      sourceName: p.user?.name || 'Unknown User'
+    }));
+    
+    return { data: formattedPatterns }
   } catch (error: any) {
     console.error(`Error fetching patterns for user ${userId}:`, error)
     throw createError({
