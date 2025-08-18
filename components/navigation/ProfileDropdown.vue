@@ -41,7 +41,14 @@
               {{ user.email }}
             </p>
           </div>
-          
+          <NuxtLink
+            to="/training/settings"
+            class="dropdown-item"
+            :style="{ color: primaryColor.value }"
+            @click="closeUserMenu"
+          >
+            Settings
+          </NuxtLink>
           <NuxtLink
             to="/training/dashboard"
             class="dropdown-item"
@@ -57,7 +64,7 @@
             :style="{ color: primaryColor.value }"
             @click="closeUserMenu"
           >
-            Your Mental Model
+            Your Spark
           </NuxtLink>
           
           <NuxtLink
@@ -72,6 +79,7 @@
           <button
             @click="handleSignOut"
             class="dropdown-item w-full text-left"
+            :style="{ color: primaryColor.value }"
           >
             Sign Out
           </button>
@@ -170,6 +178,12 @@ watch(
 
 <style scoped>
 .dropdown-item {
-  @apply block w-full px-4 py-2 text-sm text-left text-secondary-700 dark:text-secondary-200 hover:bg-secondary-100 dark:hover:bg-secondary-700 transition-colors;
+  @apply block w-full px-4 py-2 text-sm text-left transition-colors;
+  color: var(--dropdown-item-color);
+}
+
+.dropdown-item:hover {
+  background-color: var(--dropdown-item-hover-bg);
+  color: var(--dropdown-item-hover-color);
 }
 </style> 

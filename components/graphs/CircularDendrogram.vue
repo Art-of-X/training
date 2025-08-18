@@ -2,7 +2,6 @@
   <div 
     ref="circularContainer" 
     class="w-full h-full overflow-hidden"
-    @click="$emit('nodeClick', null)"
   ></div>
 </template>
 
@@ -11,6 +10,7 @@ import { ref, watch, onMounted, onUnmounted, nextTick, computed } from 'vue';
 import * as d3 from 'd3';
 import type { HierarchyNode, DisplayNodeInfo } from './types';
 import { getNodeColor } from './utils';
+import { useDynamicColors } from '~/composables/useDynamicColors';
 
 interface Props {
   hierarchyData: d3.HierarchyNode<HierarchyNode> | null;
@@ -19,12 +19,14 @@ interface Props {
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  nodeClick: [nodeInfo: DisplayNodeInfo | null];
+  nodeClick: [nodeInfo: DisplayNodeInfo | null, event?: MouseEvent];
+  'node-click': [nodeInfo: DisplayNodeInfo | null, event?: MouseEvent];
 }>();
 
 const circularContainer = ref<HTMLElement | null>(null);
 const colorMode = useColorMode();
 const isDark = computed(() => colorMode.value === 'dark');
+const { secondaryColor } = useDynamicColors();
 
 let resizeObserver: ResizeObserver;
 
@@ -34,6 +36,9 @@ const drawCircularDendrogram = () => {
     if (!container.empty()) container.html('');
     return;
   }
+
+  console.log('Drawing dendrogram with data:', props.hierarchyData);
+  console.log('Hierarchy descendants:', props.hierarchyData.descendants());
 
   const container = d3.select(circularContainer.value!);
   container.html('');
@@ -59,16 +64,12 @@ const drawCircularDendrogram = () => {
   const root = tree(d3.hierarchy(props.hierarchyData.data)
     .sort((a, b) => d3.ascending(a.data.name, b.data.name)));
 
-  // Apply random rotation to the entire graph
-  const randomRotation = Math.random() * 2 * Math.PI;
-  root.each((d) => {
-    d.x += randomRotation;
-  });
+  // No random rotation - keep consistent orientation
 
   const links = mainGroup.append('g')
     .attr('fill', 'none')
     .attr('stroke', 'hsl(var(--color-primary-500))')
-    .attr('stroke-width', 1.5)
+    .attr('stroke-width', 3)
     .selectAll('path')
     .data(root.links())
     .join('path')
@@ -83,47 +84,55 @@ const drawCircularDendrogram = () => {
     .data(root.descendants())
     .join('rect')
     .attr('transform', d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0)`)
-    .attr('fill', (d: any) => getNodeColor(d))
+    .attr('fill', () => secondaryColor.value)
     .attr('width', (d: any) => {
-      if (d.data.type === 'user' || d.data.type === 'method' || d.data.type === 'competency') return 16;
+      if (d.data.type === 'user' || d.data.type === 'ai_spark' || d.data.type === 'method' || d.data.type === 'competency') return 16;
       if (d.data.type === 'spark') return 10;
       return 7;
     })
     .attr('height', (d: any) => {
-      if (d.data.type === 'user' || d.data.type === 'method' || d.data.type === 'competency') return 16;
+      if (d.data.type === 'user' || d.data.type === 'ai_spark' || d.data.type === 'method' || d.data.type === 'competency') return 16;
       if (d.data.type === 'spark') return 10;
       return 7;
     })
     .attr('x', (d: any) => {
-      if (d.data.type === 'user' || d.data.type === 'method' || d.data.type === 'competency') return -8;
+      if (d.data.type === 'user' || d.data.type === 'ai_spark' || d.data.type === 'method' || d.data.type === 'competency') return -8;
       if (d.data.type === 'spark') return -5;
       return -3.5;
     })
     .attr('y', (d: any) => {
-      if (d.data.type === 'user' || d.data.type === 'method' || d.data.type === 'competency') return -8;
+      if (d.data.type === 'user' || d.data.type === 'ai_spark' || d.data.type === 'method' || d.data.type === 'competency') return -8;
       if (d.data.type === 'spark') return -5;
       return -3.5;
     })
-    .style('cursor', 'grab')
+    .style('cursor', 'default')
     .call(d3.drag()
       .on('start', dragstarted)
       .on('drag', dragged)
       .on('end', dragended))
-    .on('click', (event, d) => {
+    .on('mouseenter', (event, d) => {
       event.stopPropagation();
-      emit('nodeClick', {
+      const nodeInfo = {
         label: d.data.name,
         type: d.data.type,
         predefined: d.data.predefined,
+        predefinedMethod: d.data.predefinedMethod,
+        predefinedCompetency: d.data.predefinedCompetency,
         content: d.data.content
-      });
+      };
+      emit('nodeClick', nodeInfo, event);
+      emit('node-click', nodeInfo, event);
+    })
+    .on('mouseleave', () => {
+      emit('nodeClick', null);
+      emit('node-click', null);
     });
 
   const labels = mainGroup.append('g')
     .attr('stroke-linejoin', 'round')
     .attr('stroke-width', 3)
     .selectAll('text')
-    .data(root.descendants())
+    .data(root.descendants().filter(d => d.data.type !== 'spark'))
     .join('text')
     .attr('transform', d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y},0) rotate(${d.x >= Math.PI ? 180 : 0})`)
     .attr('dy', '0.31em')
@@ -134,11 +143,11 @@ const drawCircularDendrogram = () => {
     .attr('fill', isDark.value ? 'white' : 'currentColor')
     .text(d => d.data.name)
     .attr('font-size', (d: any) => {
-      if (d.data.type === 'user') return '14px';
+      if (d.data.type === 'user' || d.data.type === 'ai_spark') return '14px';
       if (d.data.type === 'spark') return '10px';
       return '8px';
     })
-    .attr('font-weight', (d: any) => d.data.type === 'user' ? 'bold' : 'normal');
+    .attr('font-weight', (d: any) => d.data.type === 'user' || d.data.type === 'ai_spark' ? 'bold' : 'normal');
 
   function dragstarted(event: any) {
     d3.select(event.sourceEvent.target).raise();

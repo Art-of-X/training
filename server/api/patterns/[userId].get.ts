@@ -15,32 +15,69 @@ export default defineEventHandler(async (event) => {
 
   try {
     console.log('Prisma client in patterns API:', prisma);
-    const patterns = await prisma.pattern.findMany({
-      where: { 
-        userId: userId,
-        // Only include patterns with complete data
-        method: { not: '' },
-        competency: { not: '' },
-        spark: { not: '' }
-      },
-      include: {
-        user: {
-          select: {
-            name: true
+    
+    // Fetch both user patterns and patterns from user's sparks
+    const [userPatterns, sparkPatterns] = await Promise.all([
+      prisma.pattern.findMany({
+        where: { 
+          userId: userId,
+          // Only include patterns with complete data
+          method: { not: '' },
+          competency: { not: '' },
+          spark: { not: '' }
+        },
+        include: {
+          user: {
+            select: {
+              name: true
+            }
           }
-        }
-      },
-      orderBy: { createdAt: 'asc' },
-    })
+        },
+        orderBy: { createdAt: 'asc' },
+      }),
+      prisma.pattern.findMany({
+        where: { 
+          userId: null, // Predefined patterns
+          sparkId: {
+            in: await prisma.spark.findMany({
+              where: { userId: userId },
+              select: { id: true }
+            }).then(sparks => sparks.map(s => s.id))
+          },
+          // Only include patterns with complete data
+          method: { not: '' },
+          competency: { not: '' },
+          spark: { not: '' }
+        },
+        include: {
+          sparkRef: {
+            select: {
+              name: true,
+              description: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'asc' },
+      })
+    ]);
     
-    // Format patterns to include source information for consistency
-    const formattedPatterns = patterns.map(p => ({
-      ...p,
-      source: 'user' as const,
-      sourceName: p.user?.name || 'Unknown User'
-    }));
+    // Combine and format the patterns
+    const allPatterns = [
+      ...userPatterns.map(p => ({
+        ...p,
+        source: 'user' as const,
+        sourceName: p.user?.name || 'Unknown User'
+      })),
+      ...sparkPatterns.map(p => ({
+        ...p,
+        source: 'spark' as const,
+        sourceName: p.sparkRef?.name || 'Unnamed Spark'
+      }))
+    ];
     
-    return { data: formattedPatterns }
+    console.log(`Returning ${allPatterns.length} patterns (${userPatterns.length} user, ${sparkPatterns.length} spark)`);
+    
+    return { data: allPatterns }
   } catch (error: any) {
     console.error(`Error fetching patterns for user ${userId}:`, error)
     throw createError({

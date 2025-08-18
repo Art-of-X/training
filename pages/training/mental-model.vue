@@ -77,7 +77,7 @@ import AllUsersNetwork from '~/components/AllUsersNetwork.vue';
 import { useUserProfile } from '~/composables/useUserProfile';
 
 definePageMeta({
-  title: 'Your Mental Model'
+  title: 'Your Spark'
 })
 
 const { userProfile } = useUserProfile();

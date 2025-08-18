@@ -21,6 +21,19 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    // Idempotency: if a project with the same name already exists for this user, return it
+    const existing = await prisma.project.findFirst({
+      where: {
+        userId: user.id,
+        name: data.name,
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    if (existing) {
+      return { data: existing }
+    }
+
     const newProject = await prisma.project.create({
       data: {
         userId: user.id,

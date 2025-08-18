@@ -1,0 +1,409 @@
+{
+    "competencies": [
+        {
+            "id": "C1-1",
+            "name": "Pausing, Taking a Break",
+            "description": "John Cage's 4'33 (1952) is a famous piece performed without intentional sound; musicians are simply present for the duration. The content is shaped by ambient sounds, leading Cage to believe 'there's no such thing as silence.' Friedrich von Borries also offered a 'Doing Nothing' scholarship in 2021, re-coding unproductivity during the pandemic into something positive and worthy of support. Participants decided what they wouldn't do, why it was meaningful, for how long, and why they were the right person for it, receiving €1,600.",
+            "type": "competency",
+            "parent": "C1",
+            "examples": [
+                {
+                    "name": "John Cage's 4'33",
+                    "description": "John Cage's 4'33 (1952) is a famous piece performed without intentional sound; musicians are simply present for the duration. The content is shaped by ambient sounds, leading Cage to believe 'there's no such thing as silence.'",
+                    "link": null
+                },
+                {
+                    "name": "Doing Nothing Scholarship",
+                    "description": "Friedrich von Borries also offered a 'Doing Nothing' scholarship in 2021, re-coding unproductivity during the pandemic into something positive and worthy of support. Participants decided what they wouldn't do, why it was meaningful, for how long, and why they were the right person for it, receiving €1,600.",
+                    "link": null
+                }
+            ]
+        },
+        {
+            "id": "C1-2", 
+            "name": "Cancelling, Discarding",
+            "description": "A crucial skill for artists is discarding or aborting projects. Not every path must lead to a result. It's important to recognize if an idea is not good, and if so, to abandon it. Every artist has experiences with unfinished, aborted experiments, though these rarely see the light of day as they are not meant for public viewing. If something is not working, it is better to break it off than to hold onto it just because of the time already invested.",
+            "type": "competency",
+            "parent": "C1",
+            "examples": []
+        },
+        {
+            "id": "C1-3",
+            "name": "Destroying",
+            "description": "Art is repeatedly destroyed. Sometimes by those who dislike the political message of art, like the Protestant 'iconoclasts' during the Reformation who destroyed numerous images and statues in Catholic churches, or the Afghan Taliban in 2001 who destroyed the famous Buddha statues of Bamiyan. Art is also accidentally destroyed because it is not recognized as art. Famous stories include museum cleaning staff accidentally destroying a work by a famous artist – such as Joseph Beuys' 'Fettecke' (Grease Corner) – because they mistook it for trash or dirt. Artists also destroy their own art if they don't consider it good enough. More recently, the destruction of one's own work is understood as a conceptual act, a deliberate means of escaping the overproduction of the present and freeing oneself from one's own production of significance.\n\nExample 1: Lucio Fontana became famous from 1947 for slashing or piercing colored canvases with a knife – an act of violence and destruction that perhaps reflected the post-war zeitgeist.\nExample 2: In 2019, Banksy, known for his graffiti, auctioned 'Girl with Balloon.' The winning bid was 1.2 million Euros, but immediately after the auction, a built-in mini-shredder destroyed the work, and the buyer received only the scraps.\nExample 3: The commercially very successful artist Damien Hirst destroyed 5,000 small paper works because this overproduction had caused the prices of his works on the art market to fall.\nExample 4: Roman Signer makes destruction itself an art form, filming explosions.\nExample 5: Christoph Büchel decided to destroy all his art and press it into an artificial diamond. Destruction, it becomes clear, can be the prelude to creating something extremely valuable.",
+            "type": "competency",
+            "parent": "C1",
+            "examples": [
+                {
+                    "name": "Lucio Fontana",
+                    "description": "Lucio Fontana became famous from 1947 for slashing or piercing colored canvases with a knife – an act of violence and destruction that perhaps reflected the post-war zeitgeist.",
+                    "link": "https://www.ndr.de/kultur/kunst/Wenn-Kuenstler-ihre-Kunst-selbst-zerstoeren,kunstzerstoeren100.html"
+                },
+                {
+                    "name": "Banksy's Girl with Balloon",
+                    "description": "In 2019, Banksy, known for his graffiti, auctioned 'Girl with Balloon.' The winning bid was 1.2 million Euros, but immediately after the auction, a built-in mini-shredder destroyed the work, and the buyer received only the scraps.",
+                    "link": null
+                },
+                {
+                    "name": "Damien Hirst",
+                    "description": "The commercially very successful artist Damien Hirst destroyed 5,000 small paper works because this overproduction had caused the prices of his works on the art market to fall.",
+                    "link": null
+                },
+                {
+                    "name": "Roman Signer",
+                    "description": "Roman Signer makes destruction itself an art form, filming explosions.",
+                    "link": null
+                },
+                {
+                    "name": "Christoph Büchel",
+                    "description": "Christoph Büchel decided to destroy all his art and press it into an artificial diamond. Destruction, it becomes clear, can be the prelude to creating something extremely valuable.",
+                    "link": null
+                }
+            ]
+        },
+        {
+            "id": "C1-4",
+            "name": "Seeing Failure as Part of the Process",
+            "description": "Many artists have non-linear life paths. What is often considered 'failure' in everyday life can be understood as the most important resource in the art world. This is not just about understanding setbacks as learning opportunities and mistakes as important steps on the path to success, or using them as starting points for changes and improvements from which one emerges stronger and with new insights, as is now even recognized in the business world. In art, however, failure becomes an opportunity to rethink everything: individual perception, action, biography.\n\nExample: Director Christoph Schlingensief was a master of indeterminate situations, plunging audiences and actors into irresolvable disorientation, making failure inevitable. The goal was to disrupt the staging of the supposed 'normal state,' making the usually invisible—unemployed, migrants—visible within the system. Instead of risk-minimized productions, open-ended situations emerged that could not be defined as art or reality, and whose dynamics were unpredictable. In 1998, he even founded the small party 'Chance 2000' to bring this artistic discourse into general effectiveness.",
+            "type": "competency",
+            "parent": "C1",
+            "examples": [
+                {
+                    "name": "Christoph Schlingensief",
+                    "description": "Director Christoph Schlingensief was a master of indeterminate situations, plunging audiences and actors into irresolvable disorientation, making failure inevitable. The goal was to disrupt the staging of the supposed 'normal state,' making the usually invisible—unemployed, migrants—visible within the system. Instead of risk-minimized productions, open-ended situations emerged that could not be defined as art or reality, and whose dynamics were unpredictable. In 1998, he even founded the small party 'Chance 2000' to bring this artistic discourse into general effectiveness.",
+                    "link": null
+                }
+            ]
+        },
+        {
+            "id": "C3-1",
+            "name": "Trying Out",
+            "description": "The introduction of new technologies (photography, film, computers, AI) and materials (aluminum, acrylic paint, plastic) repeatedly leads to the emergence of new art forms because artists appropriate these new media and materials and experiment with them.",
+            "type": "competency",
+            "parent": "C3",
+            "examples": []
+        },
+        {
+            "id": "C3-2",
+            "name": "Chance",
+            "description": "Chance can be an important factor. The essential thing then is to recognize the quality of the spontaneously created result.\n\nExample 1: Max Ernst used chance to overcome his 'fear' of the white canvas and the first brushstroke. He laid paper on the wooden floorboards of his vacation home. With a piece of charcoal, he rubbed the grain through, and the randomly emerging structures inspired him to create his famous series 'Histoire naturelle.'\nExample 2: A random generator determined the arrangement of the color panels on Gerhard Richter's painting '4096 Colors.'\nExample 3: Marcel Duchamp dropped three 'standard threads' of one meter length from a height of one meter and fixed the newly formed figures (and measurements) for eternity.\nExample 4: Jean Arp accepted the ad-hoc position of paper scraps as the final composition of a work.",
+            "type": "competency",
+            "parent": "C3",
+            "examples": [
+                {
+                    "name": "Max Ernst",
+                    "description": "Max Ernst used chance to overcome his 'fear' of the white canvas and the first brushstroke. He laid paper on the wooden floorboards of his vacation home. With a piece of charcoal, he rubbed the grain through, and the randomly emerging structures inspired him to create his famous series 'Histoire naturelle.'",
+                    "link": null
+                },
+                {
+                    "name": "Gerhard Richter",
+                    "description": "A random generator determined the arrangement of the color panels on Gerhard Richter's painting '4096 Colors.'",
+                    "link": null
+                },
+                {
+                    "name": "Marcel Duchamp",
+                    "description": "Marcel Duchamp dropped three 'standard threads' of one meter length from a height of one meter and fixed the newly formed figures (and measurements) for eternity.",
+                    "link": null
+                },
+                {
+                    "name": "Jean Arp",
+                    "description": "Jean Arp accepted the ad-hoc position of paper scraps as the final composition of a work.",
+                    "link": null
+                }
+            ]
+        },
+        {
+            "id": "C3-3",
+            "name": "Research",
+            "description": "More and more artists see themselves as researchers. They adopt methods from scientific practice—for example, ethnological observation, but also the exploration of materials—but transform them into something of their own; sometimes, the sometimes rigid routines of science are also criticized. Collaborations with science are also popular because they open up new sources for inspiration and engagement. Thus, it is not about adopting methods, but about learning from other fields of knowledge—which can then be freely appropriated.",
+            "type": "competency",
+            "parent": "C3",
+            "examples": []
+        },
+        {
+            "id": "C3-4",
+            "name": "Loss of Control",
+            "description": "We live in a controlled society, and art is a space for—controlled—outbreaks, or a social field where the breakout from control can be addressed. An important aspect here is self-control—that is, the control we exercise over ourselves out of fear, convention, or convenience. The opposite is to engage with the unknown. The gain: we can discover the new. The price: we lose control.\n\nExample: The most extreme example certainly comes from the Dutch artist Bas Jan Ader. He repeatedly plunged into the unknown—literally. For example, he deliberately rode his bicycle into a canal in Amsterdam or rolled off a roof. His last work is the most famous. He attempted to cross the Atlantic in a small sailboat; since then, he has been missing, presumed drowned. The title of the work was: 'In Search of the Miraculous.'",
+            "type": "competency",
+            "parent": "C3",
+            "examples": [
+                {
+                    "name": "Bas Jan Ader",
+                    "description": "The most extreme example certainly comes from the Dutch artist Bas Jan Ader. He repeatedly plunged into the unknown—literally. For example, he deliberately rode his bicycle into a canal in Amsterdam or rolled off a roof. His last work is the most famous. He attempted to cross the Atlantic in a small sailboat; since then, he has been missing, presumed drowned. The title of the work was: 'In Search of the Miraculous.'",
+                    "link": null
+                }
+            ]
+        },
+        {
+            "id": "C4-1",
+            "name": "Refusal",
+            "description": "Refusal is a central model of action for artists. They deliberately subvert expectations placed upon them or their work—thus creating new models of thought and action. This can concern economic customs (I don't sell), or the object (which may not be an artfully produced object, but an industrial readymade), or the refusal of established ideals of beauty. In all cases, refusal is a conscious act of criticism to expose prevailing conditions and free oneself from them.\n\nExample 1: In 'Bartleby, the Scrivener' (1853), Herman Melville describes a law clerk who responds to every task given to him with 'I would prefer not to.' He is the antithesis of the obedient employee whose performance generates profit for the office owner.\nExample 2: In 1917, Marcel Duchamp exhibited a normal, industrially produced urinal titled 'The Fountain.'\nExample 3: The artist and musician Bill Drummond publicly burned 1 million British pounds. This action, also with smaller amounts, has been imitated repeatedly, for example, Jonathan Harris invited people to a collective money burning in a London theater in 2018.",
+            "type": "competency",
+            "parent": "C4",
+            "examples": [
+                {
+                    "name": "Bartleby",
+                    "description": "In 'Bartleby, the Scrivener' (1853), Herman Melville describes a law clerk who responds to every task given to him with 'I would prefer not to.' He is the antithesis of the obedient employee whose performance generates profit for the office owner.",
+                    "link": null
+                },
+                {
+                    "name": "Marcel Duchamp",
+                    "description": "In 1917, Marcel Duchamp exhibited a normal, industrially produced urinal titled 'The Fountain.'",
+                    "link": null
+                },
+                {
+                    "name": "Bill Drummond",
+                    "description": "The artist and musician Bill Drummond publicly burned 1 million British pounds. This action, also with smaller amounts, has been imitated repeatedly, for example, Jonathan Harris invited people to a collective money burning in a London theater in 2018.",
+                    "link": null
+                }
+            ]
+        },
+        {
+            "id": "C4-2",
+            "name": "Paradox",
+            "description": "Many artists believe that what we think we see, know, and understand does not correspond to reality, but is determined by our expectations, preconceptions, and imprints.\n\nExample 1: The Surrealist René Magritte paints a pipe and writes: 'Ceci n'est pas une pipe' (This is not a pipe).\nExample 2: The graphic artist M.C. Escher paints diagrams with optical illusions, such as a staircase that always leads back to its beginning, even though it graphically always goes upwards.",
+            "type": "competency",
+            "parent": "C4",
+            "examples": [
+                {
+                    "name": "René Magritte",
+                    "description": "The Surrealist René Magritte paints a pipe and writes: 'Ceci n'est pas une pipe' (This is not a pipe).",
+                    "link": null
+                },
+                {
+                    "name": "M.C. Escher",
+                    "description": "The graphic artist M.C. Escher paints diagrams with optical illusions, such as a staircase that always leads back to its beginning, even though it graphically always goes upwards.",
+                    "link": null
+                }
+            ]
+        },
+        {
+            "id": "C4-3",
+            "name": "Expenditure",
+            "description": "Many artworks have no obvious practical use. They do not directly serve to satisfy material needs or solve practical problems. This purposelessness is seen by some as wasteful, as resources (money, time, material) are spent on something that has no immediate added value. Furthermore, artists often waste their energy, as criteria such as efficiency or economic viability often play no role for them.",
+            "type": "competency",
+            "parent": "C4",
+            "examples": []
+        },
+        {
+            "id": "C4-4",
+            "name": "Expressivity",
+            "description": "Expressivity in art refers to an artwork's ability to convey emotions, moods, or inner states, often through distortion of reality or the use of strong colors and forms. Expressive artworks are often characterized by strong emotions such as fear, joy, or sadness.\n\nExample: A famous example is Edvard Munch's 'The Scream.'",
+            "type": "competency",
+            "parent": "C4",
+            "examples": [
+                {
+                    "name": "The Scream",
+                    "description": "A famous example is Edvard Munch's 'The Scream.'",
+                    "link": null
+                }
+            ]
+        },
+        {
+            "id": "C4-5",
+            "name": "Provocation/Crossing Boundaries",
+            "description": "A central figure in artistic thinking is provocation. Boundaries are consciously crossed or at least approached, testing the limits of what can be shown or said. Whether it was the breastfeeding Mary showing her bare breast or the reference to voluptuous Greek mythology legitimizing the depiction of complete nudity and erotic scenes in the Baroque period—artists in European art have long sought ways to deliberately provoke. Where art aims to critically and corrective, even enlightening, intervene in society and draw attention to grievances, breaking taboos and scandal are particularly suited to attract attention, provoke, and elicit counter-reactions—scandal is an integral part of the intended effect.\n\nExample 1: In his 1971 work 'Shoot,' American artist Chris Burden had a friend shoot him with a rifle. The bullet was only supposed to graze his arm, but accidentally passed through it. Burden felt he 'became a sculpture' himself. The boundary between 'artist' and 'artwork' was dissolved; his own body became the artwork. 'Shoot' was considered one of the most spectacular performances of the 1970s. Controversies surrounding 'Shoot' were fueled by the fantasies and fears triggered by gunshots and injuries—and also read as a critical commentary on the Vietnam War.\nExample 2: The Femen artist group, a radical feminist movement, fought against patriarchy and oppression with bare breasts starting in the 2010s. Their most famous action took place in Paris in March 2013. In front of the altar of Notre-Dame, eight Femen activists bared their torsos. On their breasts were written: 'Pope No More!' and 'Crisis of Faith.' With cowbells and megaphones, they loudly celebrated Pope Benedict XVI's resignation. The Baroque church interior echoed with the noise of protest. Those present were stunned, and security forces intervened. The protest was radical, calculated—and sparked worldwide debates.\nExample 3: About 100 years after Duchamp's 'Fountain,' Italian artist Maurizio Cattelan created a 'golden toilet' in 2016. The fully functional toilet made of 18-karat gold, titled 'America,' was accessible to the public at the Guggenheim Museum in New York and could be used. In 2019, it was stolen from an exhibition in England; its insured value was 5.64 million Euros.",
+            "type": "competency",
+            "parent": "C4",
+            "examples": [
+                {
+                    "name": "Chris Burden's Shoot",
+                    "description": "In his 1971 work 'Shoot,' American artist Chris Burden had a friend shoot him with a rifle. The bullet was only supposed to graze his arm, but accidentally passed through it. Burden felt he 'became a sculpture' himself. The boundary between 'artist' and 'artwork' was dissolved; his own body became the artwork. 'Shoot' was considered one of the most spectacular performances of the 1970s. Controversies surrounding 'Shoot' were fueled by the fantasies and fears triggered by gunshots and injuries—and also read as a critical commentary on the Vietnam War.",
+                    "link": null
+                },
+                {
+                    "name": "Femen Protest",
+                    "description": "The Femen artist group, a radical feminist movement, fought against patriarchy and oppression with bare breasts starting in the 2010s. Their most famous action took place in Paris in March 2013. In front of the altar of Notre-Dame, eight Femen activists bared their torsos. On their breasts were written: 'Pope No More!' and 'Crisis of Faith.' With cowbells and megaphones, they loudly celebrated Pope Benedict XVI's resignation. The Baroque church interior echoed with the noise of protest. Those present were stunned, and security forces intervened. The protest was radical, calculated—and sparked worldwide debates.",
+                    "link": null
+                },
+                {
+                    "name": "Maurizio Cattelan's America",
+                    "description": "About 100 years after Duchamp's 'Fountain,' Italian artist Maurizio Cattelan created a 'golden toilet' in 2016. The fully functional toilet made of 18-karat gold, titled 'America,' was accessible to the public at the Guggenheim Museum in New York and could be used. In 2019, it was stolen from an exhibition in England; its insured value was 5.64 million Euros.",
+                    "link": null
+                }
+            ]
+        },
+        {
+            "id": "C4-6",
+            "name": "Reduction",
+            "description": "Another form of boundary crossing is reduction. An artist uses only one color, paints only one motif, thus deliberately limiting their possibilities.\n\nExample 1: The artist Pyotr Pavlensky is known for sewing his mouth shut to protest state repression. This action is part of his radical and political art, where he uses his body as a 'weapon against the state.' Another artist, Niko Nikolaidis, also had his mouth sewn shut as part of a nine-month silence experiment. He is a pop artist and refers to his action as a 'vow of silence.'\nExample 2: With bare eyesight, Opałka wrote the number '1' in titan white paint and the smallest available brush on a dark ground in the upper left corner of a specially prepared canvas in 1965, and thus began to count towards infinity, from left to right and top to bottom, according to Latin script. The size of the script primarily corresponds to the extent and nature of the canvas. At the beginning of his project, the artist placed great emphasis on this crucial component—the individual canvas, which Opałka henceforth referred to as a 'Detail.' After consistently using equally sized canvases (196 × 135 cm) with an initially unchanged dark gray ground, he began to lighten the background of 'Detail' to 'Detail' from 1972 by adding one percent more white. In this way, he succeeded in strengthening the progressive momentum of his artistic action beyond continuous counting: not only do the numerical values in Opałka's work become ever higher, but the pictures also become ever lighter. By the time of his death, 233 'Details' had been created, up to the number 5,607,249.",
+            "type": "competency",
+            "parent": "C4",
+            "examples": [
+                {
+                    "name": "Pyotr Pavlensky",
+                    "description": "The artist Pyotr Pavlensky is known for sewing his mouth shut to protest state repression. This action is part of his radical and political art, where he uses his body as a 'weapon against the state.'",
+                    "link": null
+                },
+                {
+                    "name": "Niko Nikolaidis",
+                    "description": "Another artist, Niko Nikolaidis, also had his mouth sewn shut as part of a nine-month silence experiment. He is a pop artist and refers to his action as a 'vow of silence.'",
+                    "link": null
+                },
+                {
+                    "name": "Roman Opałka",
+                    "description": "With bare eyesight, Opałka wrote the number '1' in titan white paint and the smallest available brush on a dark ground in the upper left corner of a specially prepared canvas in 1965, and thus began to count towards infinity, from left to right and top to bottom, according to Latin script. The size of the script primarily corresponds to the extent and nature of the canvas. At the beginning of his project, the artist placed great emphasis on this crucial component—the individual canvas, which Opałka henceforth referred to as a 'Detail.' After consistently using equally sized canvases (196 × 135 cm) with an initially unchanged dark gray ground, he began to lighten the background of 'Detail' to 'Detail' from 1972 by adding one percent more white. In this way, he succeeded in strengthening the progressive momentum of his artistic action beyond continuous counting: not only do the numerical values in Opałka's work become ever higher, but the pictures also become ever lighter. By the time of his death, 233 'Details' had been created, up to the number 5,607,249.",
+                    "link": null
+                }
+            ]
+        },
+        {
+            "id": "C4-7",
+            "name": "Humor",
+            "description": "Humor is an important artistic tool because laughter always has a liberating effect. Additionally, wit is a subversive hole through which one can penetrate the consciousness of the recipients. Another reason artists use humor is that criticism can be disguised within it.\n\nExample 1: Marcel Duchamp draws a mustache on a reprint of Leonardo da Vinci's Mona Lisa.\nExample 2: Maurizio Cattelan's work 'La Nona Ora' is a hyperrealistic sculpture of former Pope John Paul II, who appears to have been struck by a meteorite. With humor, the artist questions the papal institution. Maurizio Cattelan's humor is far from the liberated, playful mindset for which Dadaists and Surrealists were praised. His biting, dark humor aims to shake society to its foundations and stems from a kind of profound disillusionment. Maurizio Cattelan once said in an interview that he has done nothing more provocative or brutal than what we see around us every day. Compared to daily news, his works are not as cynical. In other words, they are simply strong enough to wake people up.",
+            "type": "competency",
+            "parent": "C4",
+            "examples": [
+                {
+                    "name": "Duchamp's L.H.O.O.Q.",
+                    "description": "Marcel Duchamp draws a mustache on a reprint of Leonardo da Vinci's Mona Lisa.",
+                    "link": null
+                },
+                {
+                    "name": "La Nona Ora",
+                    "description": "Maurizio Cattelan's work 'La Nona Ora' is a hyperrealistic sculpture of former Pope John Paul II, who appears to have been struck by a meteorite. With humor, the artist questions the papal institution. Maurizio Cattelan's humor is far from the liberated, playful mindset for which Dadaists and Surrealists were praised. His biting, dark humor aims to shake society to its foundations and stems from a kind of profound disillusionment. Maurizio Cattelan once said in an interview that he has done nothing more provocative or brutal than what we see around us every day. Compared to daily news, his works are not as cynical. In other words, they are simply strong enough to wake people up.",
+                    "link": null
+                }
+            ]
+        },
+        {
+            "id": "C4-8",
+            "name": "Breaking Frames (Rahmensprengung)",
+            "description": "Artists always operate within frameworks given by society. Part of the fascination emanating from art is that it repeatedly violates and breaks these frameworks. It leaves the space, context, and meaning structure assigned to it in order to open up new contexts, spaces, and structures.\n\nExample 1: Land Art, which emerged in the late 1960s, left the exhibition space of galleries or museums and opened up the landscape—free nature, such as deserts, meadows, or mountains—as a field of design. Artists began to use the landscape itself as material and created artworks that were often site-specific and ephemeral.\nExample 2: Artists repeatedly opened up new media that were previously not understood as art materials—whether photography, video, or, most recently, artificial intelligence. They often also engaged with mass cultural phenomena, thus opening up target groups that had not previously engaged with art.",
+            "type": "competency",
+            "parent": "C4",
+            "examples": [
+                {
+                    "name": "Land Art",
+                    "description": "Land Art, which emerged in the late 1960s, left the exhibition space of galleries or museums and opened up the landscape—free nature, such as deserts, meadows, or mountains—as a field of design. Artists began to use the landscape itself as material and created artworks that were often site-specific and ephemeral.",
+                    "link": null
+                },
+                {
+                    "name": "New Media Exploration",
+                    "description": "Artists repeatedly opened up new media that were previously not understood as art materials—whether photography, video, or, most recently, artificial intelligence. They often also engaged with mass cultural phenomena, thus opening up target groups that had not previously engaged with art.",
+                    "link": null
+                }
+            ]
+        },
+        {
+            "id": "C4-9",
+            "name": "Rule Breaking (Regelbruch)",
+            "description": "Artists use the means of provocation not only to provoke, but to break rules and thereby expand boundaries. Scandal and public outrage are conscious means to create space for the new. Artists deliberately violate established rules, norms, or expectations and thereby trigger public controversy or scandal. These rule breaks can take various forms, such as violating moral or ethical standards, crossing boundaries of tastelessness, or disregarding institutional or legal regulations. Rule breaking is a conscious means to create attention. At the same time, art becomes a motor for social innovation. Through art, what was previously unspeakable and unthinkable becomes possible and imaginable.\n\nExample 1: Historically, repeatedly and in many gradations, the representation or thematization of sexuality has been the subject of these rule breaks. A good example is 'The Origin of the World' by Gustave Courbet from 1866. The painting shows a close-up view of the hairy vulva of a lying, naked woman with spread thighs. The rest of the body, except for the belly and one breast with an uncovered nipple, is not depicted.",
+            "type": "competency",
+            "parent": "C4",
+            "examples": [
+                {
+                    "name": "Gustave Courbet's The Origin of the World",
+                    "description": "Historically, repeatedly and in many gradations, the representation or thematization of sexuality has been the subject of these rule breaks. A good example is 'The Origin of the World' by Gustave Courbet from 1866. The painting shows a close-up view of the hairy vulva of a lying, naked woman with spread thighs. The rest of the body, except for the belly and one breast with an uncovered nipple, is not depicted.",
+                    "link": null
+                }
+            ]
+        },
+        {
+            "id": "C7-1",
+            "name": "Criticism",
+            "description": "Many (but not all) artists use their works to criticize existing social conditions. As soon as art deals with the frightening aspects of society, it allies itself with the subterranean and simultaneously suspends the notion that art is exclusively identifiable with the beautiful, the sublime. Art gradually alienates itself from the attributes 'beautiful' and 'good' traditionally ascribed to it – as a medium, it is instead capable of exposing social ills on a stage, the world, which at that moment are no longer presented as unchangeable, uninfluenceable, but as variable, negotiable. To do this, artists must take a position.",
+            "type": "competency",
+            "parent": "C7",
+            "examples": []
+        },
+        {
+            "id": "C7-2",
+            "name": "Affirmation",
+            "description": "Art, however, does not always have to actively oppose social conditions; it can also affirm them. Affirmative art, for example, refers to art that supports existing political conditions, as is often demanded of art in totalitarian regimes. But it also occurs in capitalism (which is also seen by some as a total system).\n\nExample 1: The Austrian painter Hubert Lanzinger painted Hitler in 1934–36 as a modern Dürer knight, as a 'great German artist-soldier' who claimed to unite the nation. The painting was exhibited in 1938 at the Great German Art Exhibition in the House of German Art in Munich.\nExample 2: The artist Anselm Reyle designed a special edition of nail polish for Dior, which was held in camouflage optics. With this, he did not criticize Dior, but celebrated the world of fashion.",
+            "type": "competency",
+            "parent": "C7",
+            "examples": [
+                {
+                    "name": "Hubert Lanzinger",
+                    "description": "The Austrian painter Hubert Lanzinger painted Hitler in 1934–36 as a modern Dürer knight, as a 'great German artist-soldier' who claimed to unite the nation. The painting was exhibited in 1938 at the Great German Art Exhibition in the House of German Art in Munich.",
+                    "link": null
+                },
+                {
+                    "name": "Anselm Reyle",
+                    "description": "The artist Anselm Reyle designed a special edition of nail polish for Dior, which was held in camouflage optics. With this, he did not criticize Dior, but celebrated the world of fashion.",
+                    "link": null
+                }
+            ]
+        },
+        {
+            "id": "C7-3",
+            "name": "Empathy",
+            "description": "According to Aristotle, it (especially drama) serves to evoke affects: pity/compassion and terror/shudder, or, in Lessing's interpretation, compassion and fear.\n\nExample: The British artist Clare Patey founded the 'Museum of Empathy,' with mobile exhibitions where one can literally walk a mile in another's shoes: Visitors choose a pair of shoes, take a walk, and listen to a stranger's story through headphones.",
+            "type": "competency",
+            "parent": "C7",
+            "examples": [
+                {
+                    "name": "Museum of Empathy",
+                    "description": "The British artist Clare Patey founded the 'Museum of Empathy,' with mobile exhibitions where one can literally walk a mile in another's shoes: Visitors choose a pair of shoes, take a walk, and listen to a stranger's story through headphones.",
+                    "link": null
+                }
+            ]
+        }
+    ],
+    "methods": [
+        {
+            "id": "M1",
+            "name": "Intuition",
+            "description": "The artist has a somewhat vaguely definable feeling, a vague idea, which he/she follows in the further work process and sharpens if necessary through the decision-making structure.\n\nExample: The artist has a vague idea or feeling that guides them through the creative process, shaping decisions as they go.",
+            "type": "method",
+            "examples": []
+        },
+        {
+            "id": "M2",
+            "name": "Innovation",
+            "description": "For many artists, it is important that the path they take with a topic/material is new and unique. Whether something is original—meaning it has not been done before—is an important decision criterion, unlike in the commodity economy, where competition among almost identical products (from washing machines to sneakers) is seen as stimulating.\n\nExample: Artists often prioritize novelty, seeking unique approaches to themes and materials, a stark contrast to consumer markets where imitation is common.",
+            "type": "method",
+            "examples": []
+        },
+        {
+            "id": "M3",
+            "name": "Conceptual Stringency",
+            "description": "An important tool for reviewing – intuitive – (pre-)decisions is conceptual stringency, i.e., whether the decision path is internally coherent. Strict adherence to conceptual stringency often contradicts intuition and thus leads to results that were previously unimaginable. This can include, for example, the artist not producing the artwork themselves, but delegating it to others – thereby relinquishing control for reasons of consistency.\n\nExample: Conceptual stringency ensures internal consistency in the creative process, sometimes leading to unexpected outcomes that challenge initial intuition. This might even involve delegating production to maintain conceptual purity.",
+            "type": "method",
+            "examples": []
+        },
+        {
+            "id": "M4",
+            "name": "Work Rationality",
+            "description": "The work becomes independent of the author; in art, there is also the idea that artists surrender their autonomy of action to the work, that the work is more important than the human who created it. Then decisions are no longer made based on the interests of the artist's personality, but on the logic/stringency of the work. The work itself has an inherent logic that requires certain actions.\n\nExample: Work rationality implies the artwork dictates its own creation, prioritizing its inherent logic over the artist's personal interests.",
+            "type": "method",
+            "examples": []
+        },
+        {
+            "id": "M5",
+            "name": "Process Openness",
+            "description": "Many decisions are made only during the process; sometimes the process itself is the artwork, and then the background of its creation is consciously made perceptible within the artwork. The decision is then handed over by the artist to the process.\n\nExample: Process openness means decisions evolve as the artwork unfolds, with the creative process often becoming an integral part of the final piece.",
+            "type": "method",
+            "examples": []
+        },
+        {
+            "id": "M6",
+            "name": "Material Process",
+            "description": "Materieller Arbeitsprozess",
+            "type": "method",
+            "examples": []
+        },
+        {
+            "id": "M7",
+            "name": "Aesthetic Experience",
+            "description": "And finally, an important decision criterion is the aesthetic experience – maliciously, one could also say: the effect – that the artist wants to convey/enable. The instruments – whether simplification, dramatization, or conscious provocation – are then chosen with a view to the desired effect.\n\nExample: Aesthetic experience prioritizes the emotional or sensory impact on the viewer, guiding artistic choices like simplification, dramatization, or provocation.",
+            "type": "method",
+            "examples": []
+        },
+        {
+            "id": "M8",
+            "name": "Effect Calculation",
+            "description": "Simplification, dramatization, exaggeration, provocation",
+            "type": "method",
+            "examples": []
+        },
+        {
+            "id": "M9",
+            "name": "Materiality",
+            "description": "Sometimes decisions arise from the material itself. Art, in this sense, is not free but dependent on the medium it works with.",
+            "type": "method",
+            "examples": []
+        }
+    ]
+}

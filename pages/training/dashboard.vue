@@ -9,6 +9,7 @@
               :embedded="true"
               v-if="activeTab === 'chat'"
               :key="activeTab"
+              :spark-id="sparkId"
               class="h-full flex flex-col"
             />
             <VoiceAgent
@@ -25,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, nextTick } from "vue";
+import { ref, watch, onMounted, nextTick, computed } from "vue";
 import ChatComponent from "~/components/Chat.vue";
 import VoiceAgent from "~/components/VoiceAgent.vue";
 import { useUserProfile } from "~/composables/useUserProfile";
@@ -39,6 +40,7 @@ const { userProfile } = useUserProfile();
 const route = useRoute();
 const router = useRouter();
 const activeTab = ref<"chat" | "voice">("chat");
+const sparkId = computed(() => (route.query.spark as string) || undefined)
 
 function syncTabFromQuery() {
   const q = (route.query.tab as string) || "chat";
@@ -78,7 +80,6 @@ const loadSession = async (sessionMessages: any[], sessionId: string) => {
   });
 
   if (chatRef.value?.loadSession) {
-    console.log(`[Dashboard] Loading session ${sessionId} into ChatComponent.`);
     chatRef.value.loadSession(normalizedMessages, sessionId);
   } else {
     console.error(

@@ -4,7 +4,14 @@ import { prisma } from '~/server/utils/prisma'
 export default defineEventHandler(async (event) => {
   try {
     const sparks = await prisma.spark.findMany({
-      include: {
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        discipline: true,
+        userId: true,
+        createdAt: true,
+        updatedAt: true,
         dendrograms: {
           select: {
             id: true,

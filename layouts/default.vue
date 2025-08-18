@@ -5,7 +5,7 @@
     </client-only>
     <!-- Header -->
     <header class="backdrop-blur-md sticky top-0 z-40" :style="headerStyle">
-      <div class="ps-4">
+      <div class="px-8">
         <div class="flex justify-between items-center h-16 relative">
           <!-- Logo -->
           <NuxtLink to="/training/dashboard" class="flex items-center space-x-3">
@@ -67,75 +67,50 @@
             <ul class="space-y-1">
               <li>
                 <NuxtLink
-                  to="/training/portfolio"
+                  to="/training/mental-model"
                   class="sidebar-link"
-                  :class="{ active: route.path.startsWith('/training/portfolio') }"
-                  :style="
-                    route.path.startsWith('/training/portfolio')
-                      ? sidebarLinkActiveStyle
-                      : sidebarLinkStyle
-                  "
+                  :class="{ active: route.path.startsWith('/training/mental-model') }"
                 >
-                  <span class="truncate">Portfolio</span>
+                  <span class="truncate">Your Spark</span>
                 </NuxtLink>
+                
+                <!-- Your Spark Submenu -->
+                <div class="ml-4 mt-2 space-y-1">
+                  <NuxtLink
+                    to="/training/portfolio"
+                    class="sidebar-link"
+                    :class="{ active: route.path.startsWith('/training/portfolio') }"
+                  >
+                    <span class="truncate">Portfolio</span>
+                  </NuxtLink>
+                  
+                  <NuxtLink
+                    :to="{ path: '/training/dashboard', query: { tab: 'chat' } }"
+                    class="sidebar-link"
+                    :class="{
+                      active:
+                        route.path === '/training/dashboard' &&
+                        (route.query.tab === 'chat' || !route.query.tab),
+                    }"
+                  >
+                    <span class="truncate">Train</span>
+                  </NuxtLink>
+                  
+                  <NuxtLink
+                    :to="{ path: '/training/mental-model', query: { view: 'user' } }"
+                    class="sidebar-link"
+                    :class="{
+                      active:
+                        route.path === '/training/mental-model' &&
+                        (!route.query.view || route.query.view === 'user'),
+                    }"
+                  >
+                    <span class="truncate">Your model</span>
+                  </NuxtLink>
+                </div>
               </li>
-              <li>
-                <NuxtLink
-                  :to="{ path: '/training/dashboard', query: { tab: 'chat' } }"
-                  class="sidebar-link"
-                  :class="{
-                    active:
-                      route.path === '/training/dashboard' &&
-                      (route.query.tab === 'chat' || !route.query.tab),
-                  }"
-                  :style="
-                    route.path === '/training/dashboard' &&
-                    (route.query.tab === 'chat' || !route.query.tab)
-                      ? sidebarLinkActiveStyle
-                      : sidebarLinkStyle
-                  "
-                >
-                  <span class="truncate">Chat</span>
-                </NuxtLink>
-              </li>
+              
               <!-- <li>
-                <div
-                  class="sidebar-link disabled"
-                  :style="{ color: primaryColor.value }"
-                  title="Peer Training (soon)"
-                >
-                  <span class="truncate">Peer Training (soon)</span>
-                </div>
-              </li>
-              <li>
-                <div
-                  class="sidebar-link disabled"
-                  :style="{ color: primaryColor.value }"
-                  title="Observation (soon)"
-                >
-                  <span class="truncate">Observation (soon)</span>
-                </div>
-              </li> -->
-              <li>
-                <NuxtLink
-                  :to="{ path: '/training/mental-model', query: { view: 'user' } }"
-                  class="sidebar-link"
-                  :class="{
-                    active:
-                      route.path === '/training/mental-model' &&
-                      (!route.query.view || route.query.view === 'user'),
-                  }"
-                  :style="
-                    route.path === '/training/mental-model' &&
-                    (!route.query.view || route.query.view === 'user')
-                      ? sidebarLinkActiveStyle
-                      : sidebarLinkStyle
-                  "
-                >
-                  <span class="truncate">Your model</span>
-                </NuxtLink>
-              </li>
-              <li>
                 <NuxtLink
                   :to="{ path: '/training/mental-model', query: { view: 'all' } }"
                   class="sidebar-link"
@@ -144,15 +119,10 @@
                       route.path === '/training/mental-model' &&
                       route.query.view === 'all',
                   }"
-                  :style="
-                    route.path === '/training/mental-model' && route.query.view === 'all'
-                      ? sidebarLinkActiveStyle
-                      : sidebarLinkStyle
-                  "
                 >
                   <span class="truncate">Creativity Map</span>
                 </NuxtLink>
-              </li>
+              </li> -->
             </ul>
           </div>
 
@@ -164,11 +134,6 @@
                   to="/spark/personas"
                   class="sidebar-link"
                   :class="{ active: route.path.startsWith('/spark/personas') }"
-                  :style="
-                    route.path.startsWith('/spark/personas')
-                      ? sidebarLinkActiveStyle
-                      : sidebarLinkStyle
-                  "
                 >
                   <span class="truncate">Sparks</span>
                 </NuxtLink>
@@ -178,14 +143,46 @@
                   to="/spark/projects"
                   class="sidebar-link"
                   :class="{ active: route.path.startsWith('/spark/projects') }"
-                  :style="
-                    route.path.startsWith('/spark/projects')
-                      ? sidebarLinkActiveStyle
-                      : sidebarLinkStyle
-                  "
                 >
                   <span class="truncate">Projects</span>
                 </NuxtLink>
+                
+                <!-- Projects Submenu -->
+                <div class="ml-4 mt-2 space-y-1">
+                  <!-- Project List -->
+                  <div v-if="isLoadingProjects" class="px-8 py-1.5">
+                    <div class="text-xs text-secondary-500">Loading projects...</div>
+                  </div>
+                  
+                  <div v-else-if="projects.length === 0" class="px-8 py-1.5">
+                    <div class="text-xs text-secondary-500">No projects yet</div>
+                  </div>
+                  
+                  <NuxtLink
+                    v-else
+                    v-for="project in projects"
+                    :key="project.id"
+                    :to="`/spark/projects?id=${project.id}`"
+                    class="sidebar-link"
+                    :class="{ 
+                      'active': route.path === '/spark/projects' && route.query.id === project.id 
+                    }"
+                  >
+                    <span class="truncate">{{ project.name }}</span>
+                  </NuxtLink>
+                  
+                  <!-- New Project Button at bottom -->
+                  <button
+                    @click="openCreateProjectModal"
+                    class="sidebar-sub-link new-project-btn w-full mt-2"
+                    :style="{
+                      backgroundColor: primaryColor.value,
+                      color: secondaryColor.value,
+                    }"
+                  >
+                    <span class="truncate">+ New Project</span>
+                  </button>
+                </div>
               </li>
             </ul>
           </div>
@@ -200,6 +197,58 @@
 
     <!-- Footer -->
     <Footer />
+
+    <!-- Create Project Modal -->
+    <transition name="fade-transform">
+      <div
+        v-if="isCreateModalOpen"
+        class="fixed inset-0 z-50 flex items-center justify-center"
+      >
+        <div class="absolute inset-0 bg-black/50" @click="closeCreateModal" />
+        <div
+          class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg"
+        >
+          <h3 class="text-lg font-semibold mb-4 text-secondary-900 dark:text-white">
+            Create New Project
+          </h3>
+          <form @submit.prevent="handleCreateProject" class="space-y-4">
+            <div>
+              <label for="project-name" class="form-label">Project Name</label>
+              <input
+                id="project-name"
+                v-model="newProjectForm.name"
+                type="text"
+                class="form-input w-full mt-1"
+                required
+              />
+            </div>
+            <div>
+              <label for="project-task" class="form-label">Task</label>
+              <textarea
+                id="project-task"
+                v-model="newProjectForm.task"
+                class="form-input w-full mt-1"
+                rows="3"
+                required
+              ></textarea>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                class="btn-secondary"
+                @click="closeCreateModal"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn-primary" :disabled="isCreatingProject">
+                <span v-if="isCreatingProject" class="loading-spinner mr-2" />
+                {{ isCreatingProject ? "Creating..." : "Create Project" }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -213,28 +262,140 @@ import { useUserProfile } from "~/composables/useUserProfile";
 import { useDynamicColors } from "~/composables/useDynamicColors";
 import { primaryColor, secondaryColor } from "~/composables/useDynamicColors";
 import { useHead } from "nuxt/app";
-import { useRoute } from "#imports";
+import { useRoute, useRouter, watch, onUnmounted } from "#imports";
 
 const { user } = useAuth();
 const { versionConfig } = useVersion();
 const { userProfile, isLoadingProfile } = useUserProfile();
 const { setColors } = useDynamicColors();
 const route = useRoute();
+const router = useRouter();
 
-onMounted(setColors);
+// Projects state
+const projects = ref<any[]>([]);
+const isLoadingProjects = ref(false);
+const isCreateModalOpen = ref(false);
+const isCreatingProject = ref(false);
+const newProjectForm = reactive({
+  name: "",
+  task: "",
+});
+
+onMounted(async () => {
+  setColors();
+  if (user.value) {
+    await fetchProjects();
+    // Set up auto-refresh every 30 seconds
+    startAutoRefresh();
+  }
+});
+
+// Watch for user changes to refresh projects
+watch(user, async (newUser) => {
+  if (newUser) {
+    await fetchProjects();
+    startAutoRefresh();
+  } else {
+    projects.value = [];
+    stopAutoRefresh();
+  }
+});
+
+// Auto-refresh functionality
+let autoRefreshInterval: NodeJS.Timeout | null = null;
+
+function startAutoRefresh() {
+  stopAutoRefresh(); // Clear any existing interval
+  autoRefreshInterval = setInterval(async () => {
+    if (user.value) {
+      await fetchProjects();
+    }
+  }, 30000); // Refresh every 30 seconds
+}
+
+function stopAutoRefresh() {
+  if (autoRefreshInterval) {
+    clearInterval(autoRefreshInterval);
+    autoRefreshInterval = null;
+  }
+}
+
+// Clean up interval on unmount
+onUnmounted(() => {
+  stopAutoRefresh();
+});
+
+// Fetch projects for sidebar
+async function fetchProjects() {
+  isLoadingProjects.value = true;
+  try {
+    const response = await $fetch<{ data: any[] }>("/api/spark/projects");
+    projects.value = response.data;
+  } catch (error) {
+    console.error("Failed to fetch projects:", error);
+  } finally {
+    isLoadingProjects.value = false;
+  }
+}
+
+// Listen for project changes from other components
+if (process.client) {
+  window.addEventListener('project-changed', () => {
+    fetchProjects();
+  });
+}
+
+// Create project modal functions
+function openCreateProjectModal() {
+  isCreateModalOpen.value = true;
+}
+
+function closeCreateModal() {
+  isCreateModalOpen.value = false;
+  newProjectForm.name = "";
+  newProjectForm.task = "";
+}
+
+async function handleCreateProject() {
+  if (isCreatingProject.value) return;
+  
+  isCreatingProject.value = true;
+  try {
+    const response = await $fetch<{ data: any }>("/api/spark/projects", {
+      method: "POST",
+      body: newProjectForm,
+    });
+    
+    // Add new project to sidebar list
+    projects.value.push(response.data);
+    
+    // Close modal and reset form
+    closeCreateModal();
+    
+    // Navigate to the new project
+    await router.push(`/spark/projects?id=${response.data.id}`);
+  } catch (error: any) {
+    console.error("Failed to create project:", error);
+    alert(error.data?.message || "Failed to create project");
+  } finally {
+    isCreatingProject.value = false;
+  }
+}
 
 const pageTitle = computed(() => {
-  if (userProfile.value?.name) {
-    return `Art of ${userProfile.value.name}`;
-  }
-  return "Artx";
+  const supabaseUser = user.value as any;
+  const displayName =
+    userProfile.value?.name ||
+    supabaseUser?.user_metadata?.display_name ||
+    supabaseUser?.user_metadata?.name ||
+    (supabaseUser?.email ? supabaseUser.email.split('@')[0] : '');
+  return `Art of ${displayName || 'X'}`;
 });
 
-useHead({
-  titleTemplate: (titleChunk) => {
-    return titleChunk ? `${titleChunk} - ${pageTitle.value}` : pageTitle.value;
-  },
-});
+useHead(() => ({
+  title: pageTitle.value,
+  titleTemplate: () => pageTitle.value,
+}));
 
 // Computed
 const routeTitle = computed(() => (route.meta?.title as string) || "");
@@ -254,15 +415,6 @@ const headerStyle = computed(() => ({
   backgroundColor: secondaryColor.value,
 }));
 
-const sidebarLinkStyle = computed(() => ({
-  color: primaryColor.value,
-}));
-
-const sidebarLinkActiveStyle = computed(() => ({
-  backgroundColor: primaryColor.value,
-  color: secondaryColor.value,
-}));
-
 const accentFgBgStyle = computed(() => ({
   backgroundColor: primaryColor.value,
   color: secondaryColor.value,
@@ -270,6 +422,11 @@ const accentFgBgStyle = computed(() => ({
 </script>
 
 <style>
+:root {
+  /* Header height: matches h-16 (4rem = 64px) */
+  --app-header-height: 64px;
+}
+
 body {
   @apply bg-white;
 }
@@ -291,10 +448,76 @@ body {
 }
 
 .sidebar-link {
-  @apply flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors;
+  @apply flex items-center gap-2 px-8 py-2 text-sm rounded-md transition-colors;
+  color: var(--sidebar-link-color);
+}
+
+.sidebar-link:hover {
+  background-color: var(--sidebar-link-hover-bg);
+  color: var(--sidebar-link-hover-color);
+}
+
+.sidebar-link.active {
+  background-color: var(--sidebar-link-active-bg);
+  color: var(--sidebar-link-active-color);
 }
 
 .sidebar-link.disabled {
   @apply cursor-not-allowed opacity-50 pointer-events-none;
+}
+
+.sidebar-sub-link {
+  @apply flex items-center gap-2 px-8 py-1.5 text-xs rounded-md transition-colors;
+  color: var(--sidebar-link-color);
+  opacity: 0.8;
+}
+
+.sidebar-sub-link:hover {
+  background-color: var(--sidebar-link-hover-bg);
+  color: var(--sidebar-link-hover-color);
+  opacity: 1;
+}
+
+.sidebar-sub-link.active {
+  background-color: var(--sidebar-link-active-bg);
+  color: var(--sidebar-link-active-color);
+  opacity: 1;
+}
+
+.new-project-btn {
+  @apply font-medium text-xs px-3 py-1.5 rounded-md transition-all duration-200;
+  opacity: 1;
+}
+
+.new-project-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+ 
+
+/* Form styles */
+.form-label {
+  @apply block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1;
+}
+
+.form-input {
+  @apply w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-md shadow-sm;
+  @apply bg-white dark:bg-secondary-800 text-secondary-900 dark:text-white;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+}
+
+.btn-primary {
+  @apply px-4 py-2 bg-primary-500 text-white font-medium rounded-md transition-colors;
+  @apply hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+}
+
+.btn-secondary {
+  @apply px-4 py-2 bg-secondary-200 dark:bg-secondary-700 text-secondary-700 dark:text-secondary-300 font-medium rounded-md transition-colors;
+  @apply hover:bg-secondary-300 dark:hover:bg-secondary-600 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2;
+}
+
+.loading-spinner {
+  @apply inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin;
 }
 </style> 

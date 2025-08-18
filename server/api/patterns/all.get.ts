@@ -15,9 +15,7 @@ export default defineEventHandler(async (event) => {
       prisma.pattern.findMany({
         where: {
           userId: { not: null },
-          // Only include patterns with complete data
-          method: { not: '' },
-          competency: { not: '' },
+          // Only require spark content to be present
           spark: { not: '' }
         },
         include: {
@@ -31,10 +29,8 @@ export default defineEventHandler(async (event) => {
       }),
       prisma.pattern.findMany({
         where: {
-          sparkId: { not: null },
-          // Only include patterns with complete data
-          method: { not: '' },
-          competency: { not: '' },
+          userId: null,
+          // Only require spark content to be present
           spark: { not: '' }
         },
         include: {
@@ -64,6 +60,18 @@ export default defineEventHandler(async (event) => {
     ];
 
     console.log(`Returning ${allPatterns.length} patterns (${userPatterns.length} user, ${sparkPatterns.length} spark)`);
+    
+    // Debug: Log a few sample patterns to see their structure
+    if (allPatterns.length > 0) {
+      console.log('Sample patterns:', allPatterns.slice(0, 3).map(p => ({
+        id: p.id,
+        method: p.method,
+        competency: p.competency,
+        spark: p.spark?.substring(0, 50),
+        sparkId: p.sparkId,
+        userId: p.userId
+      })));
+    }
     
     return { data: allPatterns }
   } catch (error: any) {

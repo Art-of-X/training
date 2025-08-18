@@ -2,6 +2,8 @@ import { prisma } from '~/server/utils/prisma'
 import { createOpenAI } from '@ai-sdk/openai'
 import { generateText } from 'ai'
 import { createAnalyzeLinkTool, createDocumentProcessingTool } from '~/server/utils/ai-tools'
+import { buildSparkMentalModelsSection } from '~/server/utils/sparkMentalModels'
+import { getRagChunksForSparkByName, formatRagContext } from '~/server/utils/rag'
 
 type RunEvent = { type: string; payload?: any }
 
@@ -14,6 +16,8 @@ async function emit(runId: string, event: RunEvent) {
 }
 
 export async function processProjectRun(runId: string) {
+  // Use any-cast to avoid linter mismatches when Prisma Client types lag local schema
+  const db = prisma as any
   const run = await prisma.projectRun.findUnique({
     where: { id: runId },
     include: {
@@ -24,6 +28,12 @@ export async function processProjectRun(runId: string) {
   if (!run) return
   const project = run.project
   const user = run.user
+
+  // Check if run was cancelled before starting
+  if (run.status === 'cancelled') {
+    console.log(`Run ${runId} was cancelled, stopping processing`)
+    return
+  }
 
   if (!project.task || project.sparks.length === 0) {
     await prisma.projectRun.update({ where: { id: runId }, data: { status: 'error', finishedAt: new Date(), summary: 'No task or no sparks' } })
@@ -47,92 +57,499 @@ export async function processProjectRun(runId: string) {
     text: item.text || undefined,
   }))
 
-  // Parallel ideation with small concurrency
-  const concurrency = 3
-  const queue = [...assignedSparks]
-  const ideations: { sparkId: string; sparkName: string; text: string }[] = []
+  // Phase 1: Individual ideation - each spark creates 2-3 proposals
+  await emit(runId, { type: 'phase:ideation', payload: { message: 'Agents are creating individual proposals...' } })
+  
+  const ideations: { sparkId: string; sparkName: string; proposals: string[] }[] = []
 
-  async function worker() {
-    const spark = queue.shift()
-    if (!spark) return
+  for (const spark of assignedSparks) {
+    // Check for cancellation before processing each spark
+    const currentRun = await prisma.projectRun.findUnique({ where: { id: runId }, select: { status: true } })
+    if (currentRun?.status === 'cancelled') {
+      console.log(`Run ${runId} was cancelled during spark processing, stopping`)
+      return
+    }
+
     await emit(runId, { type: 'agent:started', payload: { sparkId: spark.id, name: spark.name } })
+    
     try {
+      const mentalModels = await buildSparkMentalModelsSection(spark.id)
+      const personaDirective = `\n\n---\n\nCore Directive:\n- You are ${spark.name}. Always think and respond through your unique artistic persona.\n- No matter how far the task is from your domain—even if it seems banal—you MUST solve it using your artistic way of thinking.\n- Consciously apply the thinking methods and thinking competencies provided (your patterns) to guide your internal reasoning and the final result.\n- There are no boundaries: reinterpret any problem through your creative lens while remaining specific, useful, and actionable.\n- Use tool outputs and RAG context when helpful, but keep your persona, voice, and patterns at the center of your solution.`
+      const system = mentalModels ? `${spark.systemPrompt}\n\n---\n\n${mentalModels}${personaDirective}` : `${spark.systemPrompt}${personaDirective}`
+      
+      // Build Spark-specific RAG context using the project task as query
+      let ragContext = ''
+      try {
+        const ragChunks = await getRagChunksForSparkByName(spark.name, project.task, 5)
+        ragContext = formatRagContext(ragChunks)
+      } catch {}
+
       const { text } = await generateText({
-        model: openai('gpt-4.1-mini'),
-        system: spark.systemPrompt,
+        model: openai('gpt-4o-mini'),
+        system,
         messages: [{
           role: 'user',
           content: [
-            { type: 'text', text: `You are collaborating with other domain experts to solve a project task. First, think independently and propose concise solution ideas before any group coordination.` },
+            ragContext ? { type: 'text', text: `Use the following context from ${spark.name}'s knowledge base if relevant.\n\n[Context]\n${ragContext}` } : { type: 'text', text: '' },
+            { type: 'text', text: `You are collaborating with other domain experts to solve a project task. Create 2-3 distinct, innovative solution ideas.` },
             { type: 'text', text: `Task: ${project.task}` },
             { type: 'text', text: `Context items (links, files, or text) are provided below. Use the available tools when helpful to analyze them: 1) analyzeLink(url) for web links, 2) documentProcessing(fileUrl, context) for files. If text is present, read it directly.` },
             { type: 'text', text: `Context JSON: ${JSON.stringify(structuredContext).substring(0, 7500)}` },
-            { type: 'text', text: `Instructions: Propose 2-3 distinct solution ideas specific to the task. Numbered list, each under 120 words.` },
+            { type: 'text', text: `Instructions:\n- Propose 2-3 distinct solution ideas specific to the task.\n- Numbered list, each under 150 words.\n- Explicitly channel your artistic way of thinking and your thinking patterns (methods + competencies).\n- Make each proposal unique and innovative.` },
           ],
         }],
         tools,
         maxSteps: 6,
         temperature: 0.8,
       })
-      ideations.push({ sparkId: spark.id, sparkName: spark.name, text })
-      await emit(runId, { type: 'agent:result', payload: { sparkId: spark.id, name: spark.name, text } })
+
+      // Parse the proposals into an array
+      const proposals = text.split(/\n\s*(?:\d+\.|-\s)\s+/).map(s => s.trim()).filter(Boolean)
+      const validProposals = proposals.slice(0, 3) // Ensure max 3 proposals
+      
+      ideations.push({ 
+        sparkId: spark.id, 
+        sparkName: spark.name, 
+        proposals: validProposals 
+      })
+      
+      await emit(runId, { type: 'agent:result', payload: { sparkId: spark.id, name: spark.name, text: validProposals.join('\n\n') } })
     } catch (e: any) {
       await emit(runId, { type: 'agent:error', payload: { sparkId: spark.id, name: spark.name, error: e?.message || 'Failed to ideate' } })
     } finally {
       await emit(runId, { type: 'agent:finished', payload: { sparkId: spark.id, name: spark.name } })
-      await worker()
     }
   }
 
-  await Promise.all(Array.from({ length: Math.min(concurrency, queue.length) }, () => worker()))
+  // Check for cancellation before evaluation phase
+  const currentRun = await prisma.projectRun.findUnique({ where: { id: runId }, select: { status: true } })
+  if (currentRun?.status === 'cancelled') {
+    console.log(`Run ${runId} was cancelled before evaluation, stopping processing`)
+    return
+  }
 
-  await emit(runId, { type: 'coordination:started' })
-  let consolidated = ''
-  try {
-    const { text } = await generateText({
-      model: openai('gpt-4.1-mini'),
-      system: `You are a neutral coordinator synthesizing proposals from multiple expert agents. Consolidate and produce the strongest, diverse options.`,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'text', text: `Task: ${project.task}` },
-          { type: 'text', text: `Agent proposals as JSON array of {sparkName, text}.` },
-          { type: 'text', text: JSON.stringify(ideations).substring(0, 12000) },
-          { type: 'text', text: `Output strictly as a numbered list of 4-5 proposals.` },
-        ],
-      }],
-      temperature: 0.7,
+  // Special case: Single agent scenario
+  if (assignedSparks.length === 1) {
+    await emit(runId, { type: 'phase:single_agent', payload: { message: 'Single agent detected - skipping collaborative evaluation...' } })
+    
+    // For single agent, directly select top 3 proposals and create outputs
+    const singleSpark = assignedSparks[0]
+    const singleIdeation = ideations[0]
+    
+    if (singleIdeation && singleIdeation.proposals.length > 0) {
+      // Take up to 3 proposals from the single agent
+      const selectedProposals = singleIdeation.proposals.slice(0, 3).map((proposal, index) => ({
+        sparkId: singleSpark.id,
+        sparkName: singleSpark.name,
+        proposal,
+        proposalIndex: index
+      }))
+
+      await emit(runId, { type: 'single_agent:selected', payload: { 
+        message: `Selected ${selectedProposals.length} proposals from ${singleSpark.name}`,
+        proposals: selectedProposals.map(p => ({ sparkName: p.sparkName, proposal: p.proposal }))
+      } })
+
+      // Skip to output creation phase
+      await emit(runId, { type: 'phase:outputs', payload: { message: 'Creating outputs with artist-generated titles and cover prompts...' } })
+      
+      // Process each selected proposal
+      for (const selectedProposal of selectedProposals) {
+        if (currentRun?.status === 'cancelled') return
+
+        try {
+          // Let the artist create title and cover prompt for their own idea
+          const mentalModels = await buildSparkMentalModelsSection(singleSpark.id)
+          const titlePrompt = `\n\n---\n\nCore Directive:\n- You are ${singleSpark.name} creating a title and visual description for YOUR creative idea.\n- This is YOUR proposal that you've selected to develop.\n- Create a title and cover prompt that captures YOUR artistic vision.`
+          const system = mentalModels ? `${singleSpark.systemPrompt}\n\n---\n\n${mentalModels}${titlePrompt}` : `${singleSpark.systemPrompt}${titlePrompt}`
+
+          const { text: titleAndCover } = await generateText({
+            model: openai('gpt-4o-mini'),
+            system,
+            messages: [{
+              role: 'user',
+              content: `This is YOUR creative idea. Create:
+1. A concise, catchy title (max 8 words) that captures your artistic vision
+2. A visual cover prompt (max 25 words) that represents your idea visually
+
+Your idea: ${selectedProposal.proposal}
+
+IMPORTANT: The cover prompt should describe simple, clear visual elements that work well as a minimalistic line drawing. Focus on:
+- Main subject or object (1-2 key elements)
+- Simple shapes and forms
+- Clean, recognizable imagery
+- Avoid complex details or textures
+
+Format your response exactly as:
+Title: [title here]
+Cover: [visual prompt here]`
+            }],
+            temperature: 0.8,
+          })
+
+          // Parse the response to extract title and cover prompt
+          const titleMatch = titleAndCover.match(/Title:\s*(.+?)(?:\n|$)/i)
+          const coverMatch = titleAndCover.match(/Cover:\s*(.+?)(?:\n|$)/i)
+          
+          const title = titleMatch ? titleMatch[1].trim() : selectedProposal.proposal.split('\n')[0].substring(0, 50)
+          const coverPrompt = coverMatch ? coverMatch[1].trim() : null
+
+          // Save the output
+          const created = await db.output.create({
+            data: { 
+              projectId: project.id, 
+              sparkId: selectedProposal.sparkId,
+              title,
+              text: selectedProposal.proposal,
+              coverPrompt,
+              runId
+            },
+            include: { spark: true },
+          })
+
+          // Auto-generate cover image using the artist's cover prompt
+          if (coverPrompt) {
+            try {
+              // Check cancellation before starting image generation
+              const imgRun = await prisma.projectRun.findUnique({ where: { id: runId }, select: { status: true } })
+              if (imgRun?.status === 'cancelled') return
+
+              await emit(runId, { 
+                type: 'image:generating', 
+                payload: { 
+                  outputId: created.id, 
+                  sparkId: selectedProposal.sparkId,
+                  sparkName: singleSpark.name
+                } 
+              })
+              
+              const openaiClient = new (await import('openai')).default({
+                apiKey: process.env.OPENAI_API_KEY
+              })
+              
+              // Add consistent minimalistic line drawing styling
+              const styledPrompt = `minimalistic line drawing, clean sketch, simple black lines on white background, artistic illustration, ${coverPrompt}`
+              
+              const imageResponse = await openaiClient.images.generate({
+                model: 'dall-e-3',
+                prompt: styledPrompt,
+                n: 1,
+                size: '1024x1024',
+                quality: 'standard',
+                response_format: 'url'
+              })
+
+              const imageUrl = imageResponse.data[0]?.url
+              if (imageUrl) {
+                await db.output.update({
+                  where: { id: created.id },
+                  data: { coverImageUrl: imageUrl }
+                })
+                
+                await emit(runId, { 
+                  type: 'image:completed', 
+                  payload: { 
+                    outputId: created.id, 
+                    imageUrl,
+                    sparkId: selectedProposal.sparkId,
+                    sparkName: singleSpark.name
+                  } 
+                })
+              }
+            } catch (imageError) {
+              console.error('Failed to auto-generate cover image:', imageError)
+              await emit(runId, { 
+                type: 'image:failed', 
+                payload: { 
+                  outputId: created.id, 
+                  error: imageError.message,
+                  sparkId: selectedProposal.sparkId,
+                  sparkName: singleSpark.name
+                } 
+              })
+            }
+          }
+
+          await emit(runId, { 
+            type: 'output:created', 
+            payload: { 
+              id: created.id, 
+              text: created.text, 
+              title: (created as any).title || '', 
+              coverPrompt: (created as any).coverPrompt || '', 
+              coverImageUrl: (created as any).coverImageUrl || '', 
+              sparkId: created.sparkId, 
+              sparkName: (created as any).spark.name 
+            } 
+          })
+        } catch (e: any) {
+          await emit(runId, { type: 'outputs:error', payload: { error: (e as any)?.message || 'Failed to save output' } })
+        }
+      }
+
+      // Mark as finished for single agent
+      await prisma.projectRun.update({ where: { id: runId }, data: { status: 'finished', finishedAt: new Date() } })
+      await emit(runId, { type: 'outputs:saved', payload: { count: selectedProposals.length } })
+      await emit(runId, { type: 'run:finished' })
+      return
+    }
+  }
+
+  // Phase 2: Collaborative evaluation - agents present and evaluate each other's proposals
+  await emit(runId, { type: 'phase:evaluation', payload: { message: 'Agents are evaluating each other\'s proposals...' } })
+  
+  const allProposals: { sparkId: string; sparkName: string; proposal: string; proposalIndex: number }[] = []
+  
+  // Flatten all proposals with attribution
+  ideations.forEach((ideation, ideationIndex) => {
+    ideation.proposals.forEach((proposal, proposalIndex) => {
+      allProposals.push({
+        sparkId: ideation.sparkId,
+        sparkName: ideation.sparkName,
+        proposal,
+        proposalIndex
+      })
     })
-    consolidated = text
-    await emit(runId, { type: 'coordination:result', payload: { text } })
-  } catch (e: any) {
-    await emit(runId, { type: 'coordination:error', payload: { error: e?.message || 'Failed to consolidate' } })
-  }
+  })
 
-  await emit(runId, { type: 'outputs:saving' })
-  const outputsText = (consolidated && consolidated.trim()) ? consolidated : ideations.map(i => i.text).join('\n')
-  let proposals = outputsText.split(/\n\s*(?:\d+\.|-\s)\s+/).map(s => s.trim()).filter(Boolean)
-  if (proposals.length > 5 || proposals.length < 2) {
-    const alt = outputsText.split(/\n\n+/).map(s => s.trim()).filter(Boolean)
-    if (alt.length >= 2) proposals = alt
-  }
-  const chosen = proposals.slice(0, 5)
+  // Each spark evaluates all proposals and votes for top 3
+  const evaluations: { sparkId: string; sparkName: string; votes: string[]; reasoning: string }[] = []
 
-  const attributionSparkId = assignedSparks[0]?.id
-  for (const text of chosen) {
+  for (const spark of assignedSparks) {
+    // Re-check cancellation for each evaluation iteration
+    const evalRun = await prisma.projectRun.findUnique({ where: { id: runId }, select: { status: true } })
+    if (evalRun?.status === 'cancelled') return
+
     try {
-      const created = await prisma.output.create({
-        data: { projectId: project.id, sparkId: attributionSparkId, text, runId },
+      const mentalModels = await buildSparkMentalModelsSection(spark.id)
+      const evaluationPrompt = `\n\n---\n\nCore Directive:\n- You are ${spark.name} evaluating creative proposals from your peers.\n- Apply your artistic perspective and thinking patterns to assess each proposal.\n- Be constructive but honest in your evaluation.`
+      const system = mentalModels ? `${spark.systemPrompt}\n\n---\n\n${mentalModels}${evaluationPrompt}` : `${spark.systemPrompt}${evaluationPrompt}`
+
+      const { text: evaluation } = await generateText({
+        model: openai('gpt-4o-mini'),
+        system,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: `Task: ${project.task}` },
+            { type: 'text', text: `You are evaluating ${allProposals.length} creative proposals from your peers. Each proposal is numbered and attributed to its creator.` },
+            { type: 'text', text: `Proposals to evaluate:\n${allProposals.map((p, i) => `${i + 1}. [${p.sparkName}]: ${p.proposal}`).join('\n\n')}` },
+            { type: 'text', text: `Instructions:\n- Evaluate each proposal from your artistic perspective\n- Consider creativity, feasibility, and alignment with the task\n- Select your TOP 3 proposals (by number)\n- Provide brief reasoning for your top 3 choices\n\nFormat your response as:\nTop 3: [numbers separated by commas]\nReasoning: [your artistic assessment of why these are the strongest]` },
+          ],
+        }],
+        temperature: 0.7,
+      })
+
+      // Parse the evaluation
+      const top3Match = evaluation.match(/Top 3:\s*([\d,\s]+)/i)
+      const reasoningMatch = evaluation.match(/Reasoning:\s*(.+?)(?:\n|$)/is)
+      
+      const top3Numbers = top3Match ? top3Match[1].split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n) && n > 0 && n <= allProposals.length) : []
+      const reasoning = reasoningMatch ? reasoningMatch[1].trim() : 'No reasoning provided'
+      
+      // Get the actual proposals based on the numbers
+      const votes = top3Numbers.map(num => allProposals[num - 1]?.proposal).filter(Boolean)
+      
+      evaluations.push({
+        sparkId: spark.id,
+        sparkName: spark.name,
+        votes,
+        reasoning
+      })
+
+      await emit(runId, { type: 'agent:evaluated', payload: { sparkId: spark.id, name: spark.name, votes: votes.length, reasoning } })
+    } catch (e: any) {
+      await emit(runId, { type: 'agent:evaluation_error', payload: { sparkId: spark.id, name: spark.name, error: e?.message || 'Failed to evaluate' } })
+    }
+  }
+
+  // Phase 3: Voting aggregation - determine top 3 proposals by vote count
+  await emit(runId, { type: 'phase:voting', payload: { message: 'Aggregating votes to determine top 3 proposals...' } })
+  
+  const proposalVotes: { [key: string]: number } = {}
+  
+  // Count votes for each proposal
+  allProposals.forEach((proposal, index) => {
+    const proposalKey = `${proposal.sparkName}: ${proposal.proposal.substring(0, 100)}...`
+    proposalVotes[proposalKey] = 0
+    
+    evaluations.forEach(evaluation => {
+      if (evaluation.votes.includes(proposal.proposal)) {
+        proposalVotes[proposalKey]++
+      }
+    })
+  })
+
+  // Sort by vote count and select top 3
+  const sortedProposals = Object.entries(proposalVotes)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 3)
+    .map(([proposalKey]) => {
+      const originalProposal = allProposals.find(p => 
+        `${p.sparkName}: ${p.proposal.substring(0, 100)}...` === proposalKey
+      )
+      return originalProposal
+    })
+    .filter(Boolean)
+
+  await emit(runId, { type: 'voting:result', payload: { 
+    topProposals: sortedProposals.map(p => ({ sparkName: p!.sparkName, proposal: p!.proposal })),
+    voteCounts: proposalVotes
+  } })
+
+  // Phase 4: Output creation - each selected proposal gets processed by its creator
+  await emit(runId, { type: 'phase:outputs', payload: { message: 'Creating final outputs with artist-generated titles and cover prompts...' } })
+
+  for (const selectedProposal of sortedProposals) {
+    if (!selectedProposal) continue
+    
+    // Re-check cancellation for each output creation iteration
+    const outRun = await prisma.projectRun.findUnique({ where: { id: runId }, select: { status: true } })
+    if (outRun?.status === 'cancelled') return
+
+    try {
+      // Find the original spark who created this proposal
+      const originalSpark = assignedSparks.find(s => s.id === selectedProposal.sparkId)
+      if (!originalSpark) continue
+
+      // Let the original artist create title and cover prompt for their own idea
+      const mentalModels = await buildSparkMentalModelsSection(originalSpark.id)
+      const titlePrompt = `\n\n---\n\nCore Directive:\n- You are ${originalSpark.name} creating a title and visual description for YOUR creative idea.\n- This is YOUR proposal that was selected by the group.\n- Create a title and cover prompt that captures YOUR artistic vision.`
+      const system = mentalModels ? `${originalSpark.systemPrompt}\n\n---\n\n${mentalModels}${titlePrompt}` : `${originalSpark.systemPrompt}${titlePrompt}`
+
+      const { text: titleAndCover } = await generateText({
+        model: openai('gpt-4o-mini'),
+        system,
+        messages: [{
+          role: 'user',
+          content: `This is YOUR creative idea that was selected by the group. Create:
+1. A concise, catchy title (max 8 words) that captures your artistic vision
+2. A visual cover prompt (max 25 words) that represents your idea visually
+
+Your idea: ${selectedProposal.proposal}
+
+IMPORTANT: The cover prompt should describe simple, clear visual elements that work well as a minimalistic line drawing. Focus on:
+- Main subject or object (1-2 key elements)
+- Simple shapes and forms
+- Clean, recognizable imagery
+- Avoid complex details or textures
+
+Format your response exactly as:
+Title: [title here]
+Cover: [visual prompt here]`
+        }],
+        temperature: 0.8,
+      })
+
+      // Parse the response to extract title and cover prompt
+      const titleMatch = titleAndCover.match(/Title:\s*(.+?)(?:\n|$)/i)
+      const coverMatch = titleAndCover.match(/Cover:\s*(.+?)(?:\n|$)/i)
+      
+      const title = titleMatch ? titleMatch[1].trim() : selectedProposal.proposal.split('\n')[0].substring(0, 50)
+      const coverPrompt = coverMatch ? coverMatch[1].trim() : null
+
+      // Save the entire proposal for reference
+      const created = await db.output.create({
+        data: { 
+          projectId: project.id, 
+          sparkId: selectedProposal.sparkId, // Original creator gets attribution
+          title,
+          text: selectedProposal.proposal, // Full proposal text
+          coverPrompt,
+          runId
+        },
         include: { spark: true },
       })
-      await emit(runId, { type: 'output:created', payload: { id: created.id, text: created.text, sparkId: created.sparkId, sparkName: created.spark.name } })
-    } catch (e) {
+
+      // Auto-generate cover image using the artist's cover prompt
+      if (coverPrompt) {
+        try {
+          // Check cancellation before starting image generation
+          const imgRun = await prisma.projectRun.findUnique({ where: { id: runId }, select: { status: true } })
+          if (imgRun?.status === 'cancelled') return
+
+          await emit(runId, { 
+            type: 'image:generating', 
+            payload: { 
+              outputId: created.id, 
+              sparkId: selectedProposal.sparkId,
+              sparkName: originalSpark.name
+            } 
+          })
+          
+          const openaiClient = new (await import('openai')).default({
+            apiKey: process.env.OPENAI_API_KEY
+          })
+          
+          // Add consistent minimalistic line drawing styling
+          const styledPrompt = `minimalistic line drawing, clean sketch, simple black lines on white background, artistic illustration, ${coverPrompt}`
+          
+          const imageResponse = await openaiClient.images.generate({
+            model: 'dall-e-3',
+            prompt: styledPrompt,
+            n: 1,
+            size: '1024x1024',
+            quality: 'standard',
+            response_format: 'url'
+          })
+
+          const imageUrl = imageResponse.data[0]?.url
+          if (imageUrl) {
+            await db.output.update({
+              where: { id: created.id },
+              data: { coverImageUrl: imageUrl }
+            })
+            
+            await emit(runId, { 
+              type: 'image:completed', 
+              payload: { 
+                outputId: created.id, 
+                imageUrl,
+                sparkId: selectedProposal.sparkId,
+                sparkName: originalSpark.name
+              } 
+            })
+          }
+        } catch (imageError) {
+          console.error('Failed to auto-generate cover image:', imageError)
+          await emit(runId, { 
+            type: 'image:failed', 
+            payload: { 
+              outputId: created.id, 
+              error: imageError.message,
+              sparkId: selectedProposal.sparkId,
+              sparkName: originalSpark.name
+            } 
+          })
+        }
+      }
+
+      await emit(runId, { 
+        type: 'output:created', 
+        payload: { 
+          id: created.id, 
+          text: created.text, 
+          title: (created as any).title || '', 
+          coverPrompt: (created as any).coverPrompt || '', 
+          coverImageUrl: (created as any).coverImageUrl || '', 
+          sparkId: created.sparkId, 
+          sparkName: (created as any).spark.name 
+        } 
+      })
+    } catch (e: any) {
       await emit(runId, { type: 'outputs:error', payload: { error: (e as any)?.message || 'Failed to save output' } })
     }
   }
 
+  // Final cancellation check before marking as finished
+  const finalRun = await prisma.projectRun.findUnique({ where: { id: runId }, select: { status: true } })
+  if (finalRun?.status === 'cancelled') {
+    console.log(`Run ${runId} was cancelled before completion, stopping`)
+    return
+  }
+
   await prisma.projectRun.update({ where: { id: runId }, data: { status: 'finished', finishedAt: new Date() } })
-  await emit(runId, { type: 'outputs:saved', payload: { count: chosen.length } })
+  await emit(runId, { type: 'outputs:saved', payload: { count: sortedProposals.length } })
   await emit(runId, { type: 'run:finished' })
 }
 

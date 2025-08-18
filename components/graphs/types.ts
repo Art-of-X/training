@@ -10,6 +10,8 @@ export interface Pattern {
   isPredefined: boolean;
   isPredefinedMethod: boolean;
   isPredefinedCompetency: boolean;
+  source?: 'user' | 'spark';
+  sourceName?: string;
 }
 
 export interface HierarchyNode {

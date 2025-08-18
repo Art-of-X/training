@@ -139,6 +139,18 @@ export function useDynamicColors() {
     root.style.setProperty('--header-nav-hover-color', secondaryCss)
     root.style.setProperty('--header-nav-active-color', secondaryCss)
     root.style.setProperty('--header-nav-active-bg', secondaryCss)
+
+    // Dropdown item styles
+    root.style.setProperty('--dropdown-item-color', secondaryCss)
+    root.style.setProperty('--dropdown-item-hover-bg', secondaryCss)
+    root.style.setProperty('--dropdown-item-hover-color', primaryCss)
+
+    // Sidebar link styles
+    root.style.setProperty('--sidebar-link-color', primaryCss)
+    root.style.setProperty('--sidebar-link-hover-bg', primaryCss)
+    root.style.setProperty('--sidebar-link-hover-color', secondaryCss)
+    root.style.setProperty('--sidebar-link-active-bg', primaryCss)
+    root.style.setProperty('--sidebar-link-active-color', secondaryCss)
   }
 
   return { setColors, primaryColor, secondaryColor, generateColors }

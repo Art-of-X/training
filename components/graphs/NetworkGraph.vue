@@ -2,7 +2,6 @@
   <div 
     ref="chartContainer" 
     class="w-full h-full overflow-hidden"
-    @click="$emit('nodeClick', null)"
   ></div>
 </template>
 
@@ -21,7 +20,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  nodeClick: [nodeInfo: DisplayNodeInfo | null];
+  nodeClick: [nodeInfo: DisplayNodeInfo | null, event?: MouseEvent];
 }>();
 
 const chartContainer = ref<HTMLElement | null>(null);
@@ -59,15 +58,18 @@ const drawNetworkGraph = () => {
       .selectAll('g')
       .data(props.graphNodes)
       .join('g')
-      .style('cursor', 'grab')
-      .on('click', (event, d: GraphNode) => {
+      .style('cursor', 'default')
+      .on('mouseenter', (event, d: GraphNode) => {
         event.stopPropagation();
         emit('nodeClick', {
           label: d.name,
           type: d.type,
           predefined: d.predefined,
           content: d.content,
-        });
+        }, event);
+      })
+      .on('mouseleave', () => {
+        emit('nodeClick', null);
       })
       .call(d3.drag()
         .on('start', (event, d: any) => {
@@ -217,16 +219,19 @@ const drawNetworkGraph = () => {
     .enter().append('g')
     .attr('class', d => `node ${d.children ? 'node--internal' : 'node--leaf'}`)
     .attr('transform', d => `rotate(${d.x * 180 / Math.PI - 90}) translate(${d.y}, 0)`)
-    .style('cursor', 'pointer')
+    .style('cursor', 'default')
     .attr('visibility', d => d.depth === 0 ? 'hidden' : 'visible')
-    .on('click', (event, d) => {
+    .on('mouseenter', (event, d) => {
       event.stopPropagation();
       emit('nodeClick', {
         label: d.data.name,
         type: d.data.type,
         predefined: d.data.predefined,
         content: d.data.content
-      });
+      }, event);
+    })
+    .on('mouseleave', () => {
+      emit('nodeClick', null);
     });
 
   const leafNodes = node.filter(d => !d.children);

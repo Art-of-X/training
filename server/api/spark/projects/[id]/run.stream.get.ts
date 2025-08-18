@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
         res.end()
         return
       }
-      if (r.status === 'finished' || r.status === 'error') {
+      if (r.status === 'finished' || r.status === 'error' || r.status === 'cancelled') {
         send('run:status', { status: r.status })
         clearInterval(interval)
         res.end()

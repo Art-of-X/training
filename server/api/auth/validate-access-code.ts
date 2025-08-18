@@ -4,7 +4,8 @@ import { defineEventHandler, readBody } from 'h3'
 const VALID_CODES = [
   'ARTX2024',
   'HFBKAI',
-  'TRAININGACCESS'
+  'TRAININGACCESS',
+  'ARTOFAUGUST'
 ]
 
 export default defineEventHandler(async (event) => {

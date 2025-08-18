@@ -15,12 +15,15 @@
     </div>
 
     <!-- Node Info Display -->
-    <div v-if="displayNodeInfo" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-secondary-900 p-4 rounded-lg shadow-lg border border-secondary-200 dark:border-secondary-700 max-w-sm z-50">
-      <h3 class="font-bold text-secondary-900 dark:text-white mb-2">{{ displayNodeInfo.type === 'spark' ? 'Spark' : displayNodeInfo.label }}</h3>
-      <p v-if="displayNodeInfo.content" class="text-sm text-secondary-700 dark:text-secondary-300 italic mb-2">"{{ displayNodeInfo.content }}"</p>
-      <p class="text-sm text-secondary-700 dark:text-secondary-300">Type: {{ displayNodeInfo.type }}</p>
-      <p v-if="displayNodeInfo.predefined !== undefined" class="text-sm text-secondary-700 dark:text-secondary-300">Predefined: {{ displayNodeInfo.predefined ? 'Yes' : 'No' }}</p>
-      <button @click="displayNodeInfo = null" class="mt-4 btn-secondary text-sm">Close</button>
+    <div v-if="displayNodeInfo" class="absolute pointer-events-none p-3 rounded-lg shadow-lg border max-w-sm z-50 transition-opacity duration-200" :style="{ 
+      backgroundColor: primaryColor,
+      borderColor: primaryColor,
+      color: secondaryColor
+    }">
+      <h3 class="font-bold mb-2">{{ displayNodeInfo.type === 'spark' ? 'Spark' : displayNodeInfo.label }}</h3>
+      <p v-if="displayNodeInfo.content" class="text-sm italic mb-2">"{{ displayNodeInfo.content }}"</p>
+      <p class="text-sm">Type: {{ displayNodeInfo.type }}</p>
+      <p v-if="displayNodeInfo.predefined !== undefined" class="text-sm">Predefined: {{ displayNodeInfo.predefined ? 'Yes' : 'No' }}</p>
     </div>
 
     <!-- Color Legend -->
@@ -41,12 +44,18 @@ import { computed, ref } from 'vue';
 import NetworkGraph from '~/components/graphs/NetworkGraph.vue';
 import type { Pattern, DisplayNodeInfo } from '~/components/graphs/types';
 import { legendItems } from '~/components/graphs/utils';
+import { useDynamicColors } from '~/composables/useDynamicColors';
 
 const { data, pending, error } = useFetch<{ data: Pattern[] }>(() => '/api/patterns/all');
+const { primaryColor, secondaryColor } = useDynamicColors();
 
 const displayNodeInfo = ref<DisplayNodeInfo | null>(null);
-const handleNodeClick = (nodeInfo: DisplayNodeInfo | null) => {
+const handleNodeClick = (nodeInfo: DisplayNodeInfo | null, event?: MouseEvent) => {
   displayNodeInfo.value = nodeInfo;
+  if (event && nodeInfo) {
+    // For now, just use the nodeInfo without mouse tracking
+    // You can add mouse tracking here if needed
+  }
 };
 
 const graphNodes = computed(() => {

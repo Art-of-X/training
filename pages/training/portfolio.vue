@@ -1,14 +1,91 @@
 <template>
   <div class="p-8">
-    <SectionHeader title="Portfolio" @add="openAddModal" />
+    <section class="border-b-4 border-primary-500 pb-4">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <h1 class="text-3xl font-bold">Portfolio</h1>
+        <button @click="openAddModal" class="btn-primary">
+          Add Item
+        </button>
+      </div>
+    </section>
 
     <!-- Grid of portfolio items -->
-    <ItemGrid 
-      :items="portfolioItems || []" 
-      @delete="deleteItem"
-    />
     <div v-if="!portfolioItems || portfolioItems.length === 0" class="text-center py-12 text-secondary-500">
-      <p>No portfolio items yet. Click the '+' button to add your first one.</p>
+      <p class="text-lg font-medium">No portfolio items yet</p>
+      <p class="text-sm">Click the '+' button to add your first one.</p>
+    </div>
+    
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-stretch">
+      <div
+        v-for="item in portfolioItems"
+        :key="item.id"
+        class="group relative aspect-square w-full rounded-lg bg-secondary-100 dark:bg-secondary-800 overflow-hidden portfolio-tile"
+        style="aspect-ratio: 1 / 1;"
+      >
+        <!-- Remove button (visible on hover) -->
+        <button
+          @click="deleteItem(item.id)"
+          :disabled="deletingItemId === item.id"
+          class="absolute top-2 right-2 w-6 h-6 rounded-full bg-secondary-500 dark:bg-secondary-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          :aria-label="deletingItemId === item.id ? 'Deleting...' : 'Delete item'"
+          :title="deletingItemId === item.id ? 'Deleting...' : 'Delete item'"
+        >
+          <span v-if="deletingItemId === item.id" class="loading-spinner w-4 h-4" />
+          <span v-else class="x-mask-primary w-4 h-4" aria-hidden="true"></span>
+        </button>
+
+        <!-- Media preview -->
+        <template v-if="item.filePath">
+          <div class="tile-media absolute inset-0 w-full h-full">
+            <img 
+              :src="item.filePath" 
+              :alt="item.description"
+              class="w-full h-full object-cover"
+            />
+          </div>
+        </template>
+        
+        <!-- Link preview -->
+        <template v-else-if="item.link">
+          <div class="tile-media absolute inset-0 w-full h-full">
+            <!-- Try to show preview image first -->
+            <img 
+              v-if="getLinkPreview(item.link)"
+              :src="getLinkPreview(item.link)" 
+              :alt="item.description"
+              class="w-full h-full object-cover"
+              @error="handleImageError"
+            />
+            <!-- Fallback to iframe for supported sites -->
+            <iframe 
+              v-else-if="isIframeSupported(item.link)"
+              :src="getIframeUrl(item.link)"
+              class="w-full h-full border-0"
+              frameborder="0"
+              allowfullscreen
+              loading="lazy"
+            ></iframe>
+            <!-- Final fallback to text -->
+            <div v-else class="w-full h-full flex items-center justify-center">
+              <div class="text-center text-secondary-500 text-sm">
+                Link
+              </div>
+            </div>
+          </div>
+        </template>
+        
+        <!-- Fallback -->
+        <div v-else class="tile-media absolute inset-0 w-full h-full flex items-center justify-center">
+          <div class="text-center text-secondary-500 text-sm">
+            Item
+          </div>
+        </div>
+
+        <!-- Always-visible name bar -->
+        <div class="absolute bottom-0 left-0 right-0 p-3 text-sm font-medium z-20 bg-primary-500" :style="{ color: secondaryColor }">
+          <div class="truncate w-full text-start">{{ item.description }}</div>
+        </div>
+      </div>
     </div>
 
     <!-- Error -->
@@ -65,13 +142,14 @@
 </template>
 
 <script setup lang="ts">
-import ItemGrid from '~/components/common/ItemGrid.vue';
-import SectionHeader from '~/components/common/SectionHeader.vue';
+
 // Set page metadata
 definePageMeta({
   title: 'Portfolio Training',
   description: 'Share your creative portfolio for AI training'
 })
+
+import { secondaryColor } from '~/composables/useDynamicColors'
 
 interface PortfolioItem {
   id: string
@@ -165,6 +243,101 @@ const deleteItem = async (itemId: string) => {
     deletingItemId.value = null
   }
 }
+
+// Link preview and iframe helper functions
+const getLinkPreview = (url: string): string | null => {
+  try {
+    const urlObj = new URL(url)
+    const domain = urlObj.hostname.toLowerCase()
+    
+    // Common social media and content platforms
+    if (domain.includes('youtube.com') || domain.includes('youtu.be')) {
+      const videoId = urlObj.searchParams.get('v') || urlObj.pathname.split('/').pop()
+      return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+    }
+    if (domain.includes('vimeo.com')) {
+      const videoId = urlObj.pathname.split('/').pop()
+      return `https://vumbnail.com/${videoId}.jpg`
+    }
+    if (domain.includes('github.com')) {
+      return `https://opengraph.githubassets.com/1/${urlObj.pathname}`
+    }
+    if (domain.includes('behance.net')) {
+      // Behance doesn't have direct image API, but we can try to extract from URL
+      return null
+    }
+    if (domain.includes('dribbble.com')) {
+      return `https://dribbble.com/shots/${urlObj.pathname.split('/').pop()}/og-image`
+    }
+    
+    // Try to get Open Graph image if available
+    return null
+  } catch {
+    return null
+  }
+}
+
+const isIframeSupported = (url: string): boolean => {
+  try {
+    const urlObj = new URL(url)
+    const domain = urlObj.hostname.toLowerCase()
+    
+    // Sites that support iframe embedding
+    const iframeSupported = [
+      'youtube.com',
+      'youtu.be',
+      'vimeo.com',
+      'spotify.com',
+      'soundcloud.com',
+      'codepen.io',
+      'jsfiddle.net',
+      'codesandbox.io'
+    ]
+    
+    return iframeSupported.some(supported => domain.includes(supported))
+  } catch {
+    return false
+  }
+}
+
+const getIframeUrl = (url: string): string => {
+  try {
+    const urlObj = new URL(url)
+    const domain = urlObj.hostname.toLowerCase()
+    
+    if (domain.includes('youtube.com') || domain.includes('youtu.be')) {
+      const videoId = urlObj.searchParams.get('v') || urlObj.pathname.split('/').pop()
+      return `https://www.youtube.com/embed/${videoId}`
+    }
+    if (domain.includes('vimeo.com')) {
+      const videoId = urlObj.pathname.split('/').pop()
+      return `https://player.vimeo.com/video/${videoId}`
+    }
+    if (domain.includes('spotify.com')) {
+      // Convert Spotify track/album URLs to embed format
+      const path = urlObj.pathname
+      if (path.includes('/track/') || path.includes('/album/')) {
+        return url.replace('open.spotify.com', 'open.spotify.com/embed')
+      }
+    }
+    if (domain.includes('codepen.io')) {
+      return url.replace('/pen/', '/embed/')
+    }
+    if (domain.includes('jsfiddle.net')) {
+      return url.replace('/jsfiddle/', '/embed/')
+    }
+    
+    return url
+  } catch {
+    return url
+  }
+}
+
+const handleImageError = (event: Event) => {
+  // Hide the image if it fails to load
+  const img = event.target as HTMLImageElement
+  img.style.display = 'none'
+}
 </script>
 
 <style scoped>
@@ -174,17 +347,20 @@ const deleteItem = async (itemId: string) => {
 .loading-spinner-small {
   @apply w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin;
 }
-.fade-transform-enter-active,
-.fade-transform-leave-active {
-  @apply transition duration-150 ease-out;
+
+.loading-spinner {
+  @apply w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin;
 }
-.fade-transform-enter-from,
-.fade-transform-leave-to {
-  @apply opacity-0 scale-95;
-}
+ 
 
 /* X mask (primary) - may be used elsewhere */
 .x-mask {
+  background-color: hsl(var(--color-primary-500));
+  -webkit-mask: url("/svg/x.svg") center / contain no-repeat;
+  mask: url("/svg/x.svg") center / contain no-repeat;
+}
+
+.x-mask-primary {
   background-color: hsl(var(--color-primary-500));
   -webkit-mask: url("/svg/x.svg") center / contain no-repeat;
   mask: url("/svg/x.svg") center / contain no-repeat;
@@ -203,9 +379,23 @@ const deleteItem = async (itemId: string) => {
   mask: url("/svg/x.svg") center / contain no-repeat;
 }
 
-/* Tile behavior */
-.portfolio-tile { position: relative; }
-.portfolio-tile .tile-media { position: relative; z-index: 0; transition: opacity 150ms ease-out; }
+/* Tile behavior - ensure always square */
+.portfolio-tile { 
+  position: relative; 
+  aspect-ratio: 1 / 1; 
+  width: 100%;
+  height: 0;
+  padding-bottom: 100%; /* Ensures square aspect ratio */
+}
+.portfolio-tile .tile-media { 
+  position: absolute; 
+  z-index: 0; 
+  transition: opacity 150ms ease-out; 
+  width: 100%; 
+  height: 100%; 
+  top: 0;
+  left: 0;
+}
 .portfolio-tile:hover { background-color: hsl(var(--color-primary-500)); }
 .portfolio-tile:hover .tile-media { opacity: 0; pointer-events: none; }
 .tile-title { opacity: 0; pointer-events: none; }

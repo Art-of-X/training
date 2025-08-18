@@ -34,16 +34,20 @@
         </a>
       </div>
     </div>
-    <p v-else-if="typeof message.content === 'string'" class="whitespace-pre-wrap">
-      {{ displayedText !== null ? displayedText : message.content }}
-    </p>
+    <div v-else-if="typeof message.content === 'string'" class="markdown-content">
+      <div v-if="displayedText !== null" class="whitespace-pre-wrap">
+        {{ displayedText }}
+      </div>
+      <div v-else v-html="renderedMarkdown"></div>
+    </div>
     <div v-else class="blinking-cursor w-3 h-6"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from 'vue';
+import { ref, watch, onUnmounted, computed } from 'vue';
 import { type CoreMessage } from 'ai';
+import { renderMarkdown } from '~/utils/markdown';
 
 interface Props {
   message: CoreMessage;
@@ -54,6 +58,12 @@ const props = defineProps<Props>();
 // Typewriter state for string content
 const displayedText = ref<string | null>(null);
 let typingTimer: number | null = null;
+
+// Markdown rendering using unified utility
+const renderedMarkdown = computed(() => {
+  if (typeof props.message.content !== 'string') return '';
+  return renderMarkdown(props.message.content as string);
+});
 
 const stopTyping = () => {
   if (typingTimer !== null) {
@@ -111,6 +121,73 @@ onUnmounted(() => {
   50% {
     opacity: 0;
   }
+}
+
+/* Enhanced scrolling for embedded mode */
+.chat-wrapper:deep(.embedded) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-wrapper:deep(.embedded .flex-1) {
+  overflow: hidden;
+}
+
+.chat-wrapper:deep(.embedded .overflow-y-auto) {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--color-secondary-400)) transparent;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.chat-wrapper:deep(.embedded .overflow-y-auto::-webkit-scrollbar) {
+  width: 6px;
+}
+
+.chat-wrapper:deep(.embedded .overflow-y-auto::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+.chat-wrapper:deep(.embedded .overflow-y-auto::-webkit-scrollbar-thumb) {
+  background-color: hsl(var(--color-secondary-400));
+  border-radius: 3px;
+}
+
+.chat-wrapper:deep(.embedded .overflow-y-auto::-webkit-scrollbar-thumb:hover) {
+  background-color: hsl(var(--color-secondary-500));
+}
+
+/* Ensure proper height distribution in embedded mode */
+.chat-wrapper.embedded {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-wrapper.embedded > div:first-child {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-wrapper.embedded .flex-1 {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chat-wrapper.embedded .overflow-y-auto {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure smooth scrolling on all browsers */
+.chat-wrapper .overflow-y-auto {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 </style>
 

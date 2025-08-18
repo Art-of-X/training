@@ -1,11 +1,11 @@
 <template>
-  <div class="w-full space-y-8">
+  <div class="space-y-8">
     <!-- Header -->
     <div class="text-center">
-      <h2 class="text-3xl font-bold text-secondary-900">
+      <h2 class="text-3xl font-bold text-secondary-900 dark:text-white">
         Create your account
       </h2>
-      <p class="mt-2 text-sm text-secondary-600">
+      <p class="mt-2 text-sm text-secondary-600 dark:text-secondary-400">
         Start your training journey
       </p>
     </div>
@@ -14,7 +14,7 @@
     <form class="mt-8 space-y-6" @submit.prevent="handleSignUp">
       <div class="space-y-4">
         <div>
-          <label for="name" class="form-label">
+          <label for="name" class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
             Full Name
           </label>
           <input
@@ -24,17 +24,17 @@
             type="text"
             autocomplete="name"
             required
-            class="form-input"
-            :class="{ 'border-error-300': errors.name }"
+            class="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-white placeholder-secondary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            :class="{ 'border-error-300 dark:border-error-600': errors.name }"
             placeholder="Enter your full name"
           />
-          <p v-if="errors.name" class="form-error">
+          <p v-if="errors.name" class="mt-1 text-sm text-error-600 dark:text-error-400">
             {{ errors.name }}
           </p>
         </div>
 
         <div>
-          <label for="email" class="form-label">
+          <label for="email" class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
             Email address
           </label>
           <input
@@ -44,17 +44,17 @@
             type="email"
             autocomplete="email"
             required
-            class="form-input"
-            :class="{ 'border-error-300': errors.email }"
+            class="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-white placeholder-secondary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            :class="{ 'border-error-300 dark:border-error-600': errors.email }"
             placeholder="Enter your email"
           />
-          <p v-if="errors.email" class="form-error">
+          <p v-if="errors.email" class="mt-1 text-sm text-error-600 dark:text-error-400">
             {{ errors.email }}
           </p>
         </div>
 
         <div>
-          <label for="password" class="form-label">
+          <label for="password" class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
             Password
           </label>
           <input
@@ -64,17 +64,17 @@
             type="password"
             autocomplete="new-password"
             required
-            class="form-input"
-            :class="{ 'border-error-300': errors.password }"
+            class="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-white placeholder-secondary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            :class="{ 'border-error-300 dark:border-error-600': errors.password }"
             placeholder="Create a strong password"
           />
-          <p v-if="errors.password" class="form-error">
+          <p v-if="errors.password" class="mt-1 text-sm text-error-600 dark:text-error-400">
             {{ errors.password }}
           </p>
         </div>
 
         <div>
-          <label for="confirmPassword" class="form-label">
+          <label for="confirmPassword" class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
             Confirm Password
           </label>
           <input
@@ -84,17 +84,17 @@
             type="password"
             autocomplete="new-password"
             required
-            class="form-input"
-            :class="{ 'border-error-300': errors.confirmPassword }"
+            class="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-white placeholder-secondary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            :class="{ 'border-error-300 dark:border-error-600': errors.confirmPassword }"
             placeholder="Confirm your password"
           />
-          <p v-if="errors.confirmPassword" class="form-error">
+          <p v-if="errors.confirmPassword" class="mt-1 text-sm text-error-600 dark:text-error-400">
             {{ errors.confirmPassword }}
           </p>
         </div>
 
         <div>
-          <label for="accessCode" class="form-label">
+          <label for="accessCode" class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
             Access Code
           </label>
           <input
@@ -103,23 +103,23 @@
             name="accessCode"
             type="text"
             required
-            class="form-input"
-            :class="{ 'border-error-300': errors.accessCode }"
+            class="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-white placeholder-secondary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            :class="{ 'border-error-300 dark:border-error-600': errors.accessCode }"
             placeholder="Enter your access code"
           />
-          <p v-if="errors.accessCode" class="form-error">
+          <p v-if="errors.accessCode" class="mt-1 text-sm text-error-600 dark:text-error-400">
             {{ errors.accessCode }}
           </p>
         </div>
       </div>
 
       <!-- Error display -->
-      <div v-if="authError" class="bg-error-50/80 border border-error-200 text-error-700 px-4 py-3">
+      <div v-if="authError" class="bg-error-50/80 dark:bg-error-900/80 border border-error-200 dark:border-error-700 text-error-700 dark:text-error-300 px-4 py-3 rounded-lg">
         {{ authError }}
       </div>
 
       <!-- Terms notice -->
-      <div class="text-xs text-secondary-500">
+      <div class="text-xs text-secondary-500 dark:text-secondary-400">
         By creating an account, you agree to our secure data handling practices for AI training purposes.
       </div>
 
@@ -128,7 +128,7 @@
         <button
           type="submit"
           :disabled="isLoading"
-          class="w-full btn-primary"
+          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <span v-if="isLoading" class="loading-spinner mr-2"></span>
           {{ isLoading ? 'Creating account...' : 'Create account' }}
@@ -137,9 +137,9 @@
 
       <!-- Link to sign in -->
       <div class="text-center">
-        <p class="text-sm text-secondary-600">
+        <p class="text-sm text-secondary-600 dark:text-secondary-400">
           Already have an account?
-          <NuxtLink to="/login" class="font-medium text-primary-600 hover:text-primary-500">
+          <NuxtLink to="/login" class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
             Sign in
           </NuxtLink>
         </p>

@@ -1,97 +1,51 @@
 <template>
-  <div class="chat-wrapper">
-    <div :class="!embedded ? 'py-8 container-wide' : ''">
+  <div class="chat-wrapper h-full flex flex-col">
+    <!-- ======================================================================= -->
+    <!-- Full-page (non-embedded) layout -->
+    <!-- ======================================================================= -->
+    <div v-if="!embedded" class="py-8 container-wide">
       <div
-        :class="
-          !embedded
-            ? 'flex flex-col h-[75vh] bg-transparent dark:bg-transparent dark:text-white border-4 border-primary-500 p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg shadow-sm'
-            : 'flex flex-col h-full w-full'
-        "
+        class="flex flex-col h-[75vh] bg-transparent dark:bg-transparent dark:text-white border-4 border-primary-500 p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg shadow-sm"
       >
-        <div class="flex flex-col flex-1">
+        <div class="flex flex-col flex-1 min-h-0">
           <!-- Messages -->
           <div
             ref="chatContainer"
-            :class="
-              embedded
-                ? 'flex-1 overflow-y-auto text-base'
-                : 'flex-1 overflow-y-auto p-4 space-y-4'
-            "
+            class="flex-1 overflow-y-auto p-4 space-y-4"
             style="scroll-behavior: smooth"
           >
             <div
               v-for="(message, index) in displayMessages"
               :key="index"
-              :class="[
-                embedded ? 'mb-4 flex' : 'flex',
-                message.role === 'user'
-                  ? embedded
-                    ? 'justify-end'
-                    : 'justify-end'
-                  : embedded
-                  ? 'justify-start'
-                  : 'justify-start',
-              ]"
+              :class="['flex', message.role === 'user' ? 'justify-end' : 'justify-start']"
             >
               <div
                 v-if="shouldShowAssistantAvatar(message, index)"
-                :class="
-                  embedded
-                    ? 'flex-shrink-0 w-12 h-12 flex items-center justify-center mr-2 overflow-hidden'
-                    : 'flex-shrink-0 w-12 h-12 flex items-center justify-start mr-2 overflow-hidden'
-                "
+                class="flex-shrink-0 w-12 h-12 flex items-center justify-start mr-2 overflow-hidden"
               >
-                <div
-                  :class="embedded ? 'x-mask w-12 h-12' : 'x-mask'"
-                  aria-hidden="true"
-                ></div>
+                <div class="x-mask" aria-hidden="true"></div>
               </div>
 
               <div
-                :class="
-                  embedded
-                    ? 'max-w-[65%]'
-                    : [
-                        'rounded-lg max-w-lg',
-                        message.role === 'user'
-                          ? 'bg-transparent border '
-                          : 'bg-secondary-200 dark:bg-secondary-700 text-primary-500',
-                      ]
-                "
+                :class="[
+                  'rounded-lg max-w-lg',
+                  message.role === 'user'
+                    ? 'bg-transparent border '
+                    : 'bg-secondary-200 dark:bg-secondary-700 text-primary-500',
+                ]"
               >
                 <MessageContent :message="message" />
               </div>
             </div>
 
             <!-- Loading indicator -->
-            <div :class="embedded ? 'mb-4 flex justify-start' : 'flex'" v-if="isLoading">
-              <div
-                :class="
-                  embedded
-                    ? 'flex-shrink-0 w-12 h-12 flex items-center justify-center mr-2 overflow-hidden'
-                    : 'flex-shrink-0 w-12 h-12 flex items-center justify-start mr-2 overflow-hidden'
-                "
-              >
-                <div
-                  :class="embedded ? 'x-mask w-12 h-12' : 'x-mask'"
-                  aria-hidden="true"
-                ></div>
+            <div class="flex" v-if="isLoading">
+              <div class="flex-shrink-0 w-12 h-12 flex items-center justify-start mr-2 overflow-hidden">
+                <div class="x-mask" aria-hidden="true"></div>
               </div>
-              <div
-                :class="
-                  embedded
-                    ? 'inline-block px-3 rounded-lg max-w-[65%] dark:bg-secondary-700 text-primary-500'
-                    : 'rounded-lg max-w-lg bg-secondary-200 dark:bg-secondary-700 text-primary-500'
-                "
-              >
-                <div :class="embedded ? 'flex items-center' : 'flex items-center p-4'">
-                  <div
-                    :class="
-                      embedded
-                        ? 'blinking-cursor w-3 h-12 bg-primary-500'
-                        : 'blinking-cursor w-3 h-6 bg-primary-500'
-                    "
-                  ></div>
+              <div class="rounded-lg max-w-lg bg-secondary-200 dark:bg-secondary-700 text-primary-500">
+                <div class="flex items-center p-4">
+                  <div class="blinking-cursor w-3 h-6 bg-primary-500"></div>
                 </div>
               </div>
             </div>
@@ -102,22 +56,11 @@
             </div>
 
             <!-- Upload Progress Indicator -->
-            <div v-if="isUploadingFile" class="mb-4 flex justify-start">
-              <div
-                :class="
-                  embedded
-                    ? 'flex-shrink-0 w-12 h-12 flex items-center justify-center mr-2 overflow-hidden'
-                    : 'flex-shrink-0 w-12 h-12 flex items-center justify-start mr-2 overflow-hidden'
-                "
-              >
-                <div
-                  :class="embedded ? 'x-mask w-12 h-12' : 'x-mask'"
-                  aria-hidden="true"
-                ></div>
+            <div v-if="isUploadingFile" class="flex justify-start">
+              <div class="flex-shrink-0 w-12 h-12 flex items-center justify-start mr-2 overflow-hidden">
+                <div class="x-mask" aria-hidden="true"></div>
               </div>
-              <div
-                class="inline-block py-2 px-3 rounded-lg max-w-[65%] bg-secondary-200 dark:bg-secondary-700 text-primary-500"
-              >
+              <div class="inline-block py-2 px-3 rounded-lg max-w-[65%] bg-secondary-200 dark:bg-secondary-700 text-primary-500">
                 <div class="flex items-center">
                   <div class="blinking-cursor w-3 h-6 bg-primary-500"></div>
                 </div>
@@ -129,27 +72,9 @@
           </div>
 
           <!-- Input area -->
-          <div
-            :class="
-              embedded
-                ? 'flex-shrink-0 bg-transparent dark:bg-transparent dark:text-white border-3 border-primary-500'
-                : 'p-4 border-t border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-900/50 rounded-b-lg'
-            "
-          >
-            <form
-              @submit.prevent="handleSubmit"
-              :class="
-                embedded
-                  ? 'flex flex-col space-y-3 bg-transparent dark:bg-transparent dark:text-white border-4 border-primary-500 p-4 '
-                  : 'flex flex-col space-y-3'
-              "
-            >
-              <input
-                type="file"
-                ref="fileInput"
-                @change="handleFileUpload"
-                class="hidden"
-              />
+          <div class="p-4 border-t border-secondary-200 dark:border-secondary-700 bg-secondary-50 dark:bg-secondary-900/50 rounded-b-lg">
+            <form @submit.prevent="handleSubmit" class="flex flex-col space-y-3">
+              <input type="file" ref="fileInput" @change="handleFileUpload" class="hidden" />
 
               <div class="relative">
                 <textarea
@@ -158,11 +83,7 @@
                   @keydown.enter.shift.exact="handleShiftEnter"
                   @focus="initializeChat"
                   :placeholder="isTranscribing ? 'Transcribing…' : 'Type your message...'"
-                  :class="
-                    embedded
-                      ? 'bg-transparent dark:text-white w-full resize-none min-h-[120px] text-base border-0 focus:outline-none focus:ring-0'
-                      : 'w-full p-4 border rounded-lg bg-none border-secondary-300 dark:border-secondary-700 focus:outline-none focus:ring-0 focus:border-secondary-400 dark:focus:border-secondary-600 resize-none min-h-[120px] text-base'
-                  "
+                  class="w-full p-4 border rounded-lg bg-none border-secondary-300 dark:border-secondary-700 focus:outline-none focus:ring-0 focus:border-secondary-400 dark:focus:border-secondary-600 resize-none min-h-[120px] text-base"
                   :disabled="isLoading"
                   rows="4"
                   ref="messageInput"
@@ -211,6 +132,127 @@
             </p>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- Embedded layout (for sidebar) -->
+    <!-- ======================================================================= -->
+    <div v-else class="flex-1 flex flex-col min-h-0">
+      <!-- Messages -->
+      <div
+        ref="chatContainer"
+        class="flex-1 min-h-0 overflow-y-auto text-base pr-8"
+        style="scroll-behavior: smooth"
+      >
+        <div
+          v-for="(message, index) in displayMessages"
+          :key="index"
+          :class="['mb-4 flex', message.role === 'user' ? 'justify-end' : 'justify-start']"
+        >
+          <div
+            v-if="shouldShowAssistantAvatar(message, index)"
+            class="flex-shrink-0 w-12 h-12 flex items-center justify-center mr-2 overflow-hidden"
+          >
+            <div class="x-mask w-12 h-12" aria-hidden="true"></div>
+          </div>
+
+          <div class="max-w-[65%]">
+            <MessageContent :message="message" />
+          </div>
+        </div>
+
+        <!-- Loading indicator -->
+        <div class="mb-4 flex justify-start" v-if="isLoading">
+          <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center mr-2 overflow-hidden">
+            <div class="x-mask w-12 h-12" aria-hidden="true"></div>
+          </div>
+          <div class="inline-block px-3 rounded-lg max-w-[65%] dark:bg-secondary-700 text-primary-500">
+            <div class="flex items-center">
+              <div class="blinking-cursor w-3 h-12 bg-primary-500"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error message -->
+        <div v-if="error" class="mb-4 text-center text-red-500">
+          {{ error.message }}
+        </div>
+
+        <!-- Upload Progress Indicator -->
+        <div v-if="isUploadingFile" class="mb-4 flex justify-start">
+          <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center mr-2 overflow-hidden">
+            <div class="x-mask w-12 h-12" aria-hidden="true"></div>
+          </div>
+          <div class="inline-block py-2 px-3 rounded-lg max-w-[65%] bg-secondary-200 dark:bg-secondary-700 text-primary-500">
+            <div class="flex items-center">
+              <div class="blinking-cursor w-3 h-6 bg-primary-500"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Spacer to ensure last message is visible above input -->
+        <div class="h-4"></div>
+      </div>
+
+      <!-- Input area -->
+      <div class="flex-shrink-0 bg-white dark:bg-secondary-900">
+        <form
+          @submit.prevent="handleSubmit"
+          class="flex flex-col space-y-3 bg-transparent dark:bg-transparent dark:text-white border-4 border-primary-500 p-4"
+        >
+          <input type="file" ref="fileInput" @change="handleFileUpload" class="hidden" />
+
+          <div class="relative">
+            <textarea
+              v-model="inputProxy"
+              @keydown.enter.exact.prevent="handleSubmit"
+              @keydown.enter.shift.exact="handleShiftEnter"
+              @focus="initializeChat"
+              :placeholder="isTranscribing ? 'Transcribing…' : 'Type your message...'"
+              class="bg-transparent dark:text-white w-full resize-none min-h-[120px] text-base border-0 focus:outline-none focus:ring-0"
+              :disabled="isLoading"
+              rows="4"
+              ref="messageInput"
+            />
+            <div v-if="isTranscribing" class="pointer-events-none absolute bottom-3 right-3">
+              <span class="inline-block w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin"></span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <button
+                type="button"
+                @click="onRecordClick"
+                :disabled="isLoading || isUploadingFile"
+                :class="[actionButtonClass, isRecording ? 'bg-red-500 text-white' : '']"
+                aria-label="Record a voice memo"
+              >
+                <div :class="isRecording ? 'stop-icon-mask w-5 h-5' : 'record-icon-mask w-5 h-5'" aria-hidden="true"></div>
+                <span>{{ isRecording ? 'Stop' : 'Record' }}</span>
+              </button>
+
+              <button
+                type="button"
+                @click="triggerFileUpload"
+                :disabled="isLoading || isUploadingFile || isRecording"
+                :class="actionButtonClass"
+                aria-label="Upload a file"
+              >
+                <div class="upload-icon-mask w-5 h-5" aria-hidden="true"></div>
+                <span>Attach</span>
+              </button>
+            </div>
+
+            <button type="submit" :class="actionButtonClass" :disabled="isLoading || !canSubmit">
+              <div class="send-icon-mask w-5 h-5" aria-hidden="true"></div>
+            </button>
+          </div>
+        </form>
+        <p v-if="uploadError" class="text-xs text-red-500 mt-1 pl-2">
+          {{ uploadError }}
+        </p>
       </div>
     </div>
   </div>
