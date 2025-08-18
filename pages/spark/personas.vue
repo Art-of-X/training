@@ -27,9 +27,7 @@
           </button>
         </div>
       </div>
-      <div class="mt-4 text-sm text-secondary-600 dark:text-secondary-400">
-        Showing {{ filteredSparks.length }} of {{ sparks.length }} sparks.
-      </div>
+
     </section>
 
     <section>
@@ -70,6 +68,8 @@ type Spark = {
   discipline: string;
   dendrograms: SparkDendrogram[];
   userId?: string | null; // Add userId field for filtering
+  isPublic?: boolean;
+  profitSplitOptIn?: boolean;
 };
 
 const { data, pending, error } = useFetch<{ data: Spark[] }>("/api/spark");
@@ -96,6 +96,9 @@ const hasActiveFilters = computed(() => {
 // Filtered sparks based on current filters
 const filteredSparks = computed(() => {
   return sparks.value.filter(spark => {
+    // Hide user-associated sparks unless they've opted into profit sharing (visible in Personas)
+    if (spark.userId && !spark.profitSplitOptIn) return false;
+    
     // Name keyword filter
     if (filters.value.nameKeyword && !spark.name.toLowerCase().includes(filters.value.nameKeyword.toLowerCase())) {
       return false;

@@ -132,7 +132,7 @@
 
       <!-- Navigation -->
       <div class="flex justify-between">
-        <NuxtLink to="/training/dashboard" class="btn-secondary mt-4">
+        <NuxtLink to="/training/chat" class="btn-secondary mt-4">
           Back to Dashboard
         </NuxtLink>
       </div>
@@ -159,7 +159,7 @@ const markAsCompleted = async () => {
     await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
     
     // Navigate to dashboard
-    await navigateTo('/training/dashboard')
+    await navigateTo('/training/chat')
   } catch (error) {
     console.error('Error marking peer training as completed:', error)
   } finally {

@@ -8,7 +8,7 @@
       <div class="px-8">
         <div class="flex justify-between items-center h-16 relative">
           <!-- Logo -->
-          <NuxtLink to="/training/dashboard" class="flex items-center space-x-3">
+          <NuxtLink to="/training/chat" class="flex items-center space-x-3">
             <span
               class="font-bold text-xl hidden sm:inline"
               :style="{ color: primaryColor.value }"
@@ -85,11 +85,11 @@
                   </NuxtLink>
                   
                   <NuxtLink
-                    :to="{ path: '/training/dashboard', query: { tab: 'chat' } }"
+                    :to="{ path: '/training/chat', query: { tab: 'chat' } }"
                     class="sidebar-link"
                     :class="{
                       active:
-                        route.path === '/training/dashboard' &&
+                        route.path === '/training/chat' &&
                         (route.query.tab === 'chat' || !route.query.tab),
                     }"
                   >
@@ -147,8 +147,8 @@
                   <span class="truncate">Projects</span>
                 </NuxtLink>
                 
-                <!-- Projects Submenu -->
-                <div class="ml-4 mt-2 space-y-1">
+                <!-- Projects Submenu - Only show when projects is active -->
+                <div v-if="route.path.startsWith('/spark/projects')" class="ml-4 mt-2 space-y-1">
                   <!-- Project List -->
                   <div v-if="isLoadingProjects" class="px-8 py-1.5">
                     <div class="text-xs text-secondary-500">Loading projects...</div>
@@ -174,7 +174,7 @@
                   <!-- New Project Button at bottom -->
                   <button
                     @click="openCreateProjectModal"
-                    class="sidebar-sub-link new-project-btn w-full mt-2"
+                    class="sidebar-link w-full mt-2"
                     :style="{
                       backgroundColor: primaryColor.value,
                       color: secondaryColor.value,
@@ -484,15 +484,7 @@ body {
   opacity: 1;
 }
 
-.new-project-btn {
-  @apply font-medium text-xs px-3 py-1.5 rounded-md transition-all duration-200;
-  opacity: 1;
-}
 
-.new-project-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
 
  
 

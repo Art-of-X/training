@@ -60,12 +60,9 @@ Your goal is to embody these principles, making your responses a direct product 
 
 export default defineEventHandler(async (event) => {
   try {
-    const user = await serverSupabaseUser(event)
-    if (!user) {
-      throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
-    }
-
-    const { sparkId, messages }: { sparkId: string; messages: CoreMessage[] } = await readBody(event)
+    const body = await readBody(event)
+    const { sparkId, messages, isPublic } = body
+    
     if (!sparkId) {
       throw createError({ statusCode: 400, statusMessage: 'sparkId is required' })
     }
@@ -73,6 +70,24 @@ export default defineEventHandler(async (event) => {
     const spark = await prisma.spark.findUnique({ where: { id: sparkId } })
     if (!spark) {
       throw createError({ statusCode: 404, statusMessage: 'Spark not found' })
+    }
+
+    // For public users, check if spark is publicly shared
+    if (isPublic) {
+      if (!spark.isPublic) {
+        throw createError({ statusCode: 403, statusMessage: 'This spark is not publicly shared' })
+      }
+      
+      // Limit public users to 3 messages
+      if (messages && messages.length > 3) {
+        throw createError({ statusCode: 429, statusMessage: 'Message limit exceeded for public users' })
+      }
+    } else {
+      // For authenticated users, require authentication
+      const user = await serverSupabaseUser(event)
+      if (!user) {
+        throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
+      }
     }
 
     const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY })

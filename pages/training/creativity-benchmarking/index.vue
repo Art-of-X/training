@@ -68,7 +68,7 @@
 
     <!-- Navigation -->
     <div class="flex justify-between mt-8">
-      <NuxtLink to="/training/dashboard" class="btn-secondary">
+      <NuxtLink to="/training/chat" class="btn-secondary">
         Back to Dashboard
       </NuxtLink>
     </div>

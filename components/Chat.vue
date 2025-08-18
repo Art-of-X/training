@@ -4,6 +4,18 @@
     <!-- Full-page (non-embedded) layout -->
     <!-- ======================================================================= -->
     <div v-if="!embedded" class="py-8 container-wide">
+      <!-- Header with progress like portfolio/projects -->
+      <section class="border-b-4 border-secondary-200 dark:border-secondary-700 pb-4 mb-4 relative">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <h1 class="text-3xl font-bold">Chat</h1>
+          <div v-if="progressPercent < 100" class="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+            <span>{{ displayPercent }}% until your own spark</span>
+          </div>
+        </div>
+        <div class="absolute left-0 right-0 bottom-0 h-1 bg-secondary-200 dark:bg-secondary-700">
+          <div class="h-full bg-primary-500 transition-all duration-500" :style="{ width: progressPercent + '%' }"></div>
+        </div>
+      </section>
       <div
         class="flex flex-col h-[75vh] bg-transparent dark:bg-transparent dark:text-white border-4 border-primary-500 p-4 border border-secondary-200 dark:border-secondary-700 rounded-lg shadow-sm"
       >
@@ -269,6 +281,7 @@ import {
   computed,
   defineExpose,
 } from "vue";
+import { useTrainingProgress } from "~/composables/useTrainingProgress";
 
 // Props
 interface Props {
@@ -297,6 +310,10 @@ const {
   currentSessionId,
   transcriptDraft,
 } = useChat({ mode: props.sparkId ? 'spark' : 'default', sparkId: props.sparkId });
+
+// Training progress (scoped to spark if provided)
+const { progressPercent } = useTrainingProgress(computed(() => props.sparkId))
+const displayPercent = computed(() => String(progressPercent.value).padStart(2, '0'))
 
 // State to track if initial message has been sent
 const hasInitialized = ref(false);

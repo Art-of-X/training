@@ -30,7 +30,7 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: '/login',
       callback: '/confirm',
-      exclude: ['/', '/login', '/register', '/confirm', '/password-reset', '/legal/**', '/hfbk/**']
+      exclude: ['/', '/login', '/register', '/confirm', '/password-reset', '/legal/**', '/hfbk/**', '/spark/shared/**']
     },
     clientOptions: {
       auth: {

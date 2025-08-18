@@ -4,7 +4,7 @@
       <div class="container-wide">
         <div class="flex justify-between items-center h-16">
           <!-- Logo -->
-          <NuxtLink to="/training/dashboard" class="flex items-center space-x-3">
+          <NuxtLink to="/training/chat" class="flex items-center space-x-3">
             <span
               v-if="user && userProfile?.name && !isLoadingProfile"
               class="font-bold text-xl text-secondary-900 dark:text-white hidden sm:inline"
@@ -61,7 +61,7 @@
                         </p>
                       </div>
                       <NuxtLink
-                        to="/training/dashboard"
+                        to="/training/chat"
                         class="dropdown-item"
                         @click="closeUserMenu"
                       >

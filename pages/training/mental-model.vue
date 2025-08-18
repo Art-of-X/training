@@ -32,7 +32,13 @@
     
     <!-- Graph section full width -->
     <div class="flex-grow relative min-h-0 overflow-hidden w-full">
-      <div v-if="userProfile?.id" class="absolute inset-0">
+      <div v-if="!isEligible" class="container-wide py-8">
+        <div class="bg-secondary-50 dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-lg p-6 text-secondary-800 dark:text-secondary-200">
+          <h2 class="text-lg font-semibold mb-2">Keep training to unlock your spark</h2>
+          <p class="text-sm">You need at least 3 methods and 3 competencies analyzed. Current: {{ uniqueMethodsCount }}/3 methods, {{ uniqueCompetenciesCount }}/3 competencies.</p>
+        </div>
+      </div>
+      <div v-else-if="userProfile?.id" class="absolute inset-0">
         <UserPatternGraph v-if="viewMode === 'user'" :userId="userProfile.id" />
         <AllUsersNetwork v-else />
       </div>
@@ -75,6 +81,7 @@ import { ref, watch, onMounted } from 'vue';
 import UserPatternGraph from '~/components/UserPatternGraph.vue';
 import AllUsersNetwork from '~/components/AllUsersNetwork.vue';
 import { useUserProfile } from '~/composables/useUserProfile';
+import { useTrainingProgress } from '~/composables/useTrainingProgress';
 
 definePageMeta({
   title: 'Your Spark'
@@ -91,6 +98,9 @@ const viewTabs = [
 ] as const;
 const viewMode = ref<ViewMode>('user');
 const isFullscreen = ref(false);
+
+// Progress
+const { progressPercent, isEligible, uniqueMethodsCount, uniqueCompetenciesCount } = useTrainingProgress()
 
 function syncFromQuery() {
   const q = (route.query.view as string) || 'user'

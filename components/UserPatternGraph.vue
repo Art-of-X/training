@@ -4,7 +4,7 @@
     <section class="border-b-4 border-primary-500 pb-4 mb-4">
       <div class="flex items-center justify-between">
         <h1 class="text-3xl font-bold">Your Spark</h1>
-        <div class="flex gap-2">
+        <div class="flex gap-2 items-center">
           <button
             class="px-3 py-1.5 rounded-md text-sm transition-colors"
             :class="activeTab === 'chart' ? 'bg-primary-500 text-white' : 'bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-200'"
@@ -25,6 +25,13 @@
             @click="activeTab = 'report'"
           >
             Report
+          </button>
+          <button
+            v-if="userProfile?.id"
+            class="ml-2 px-3 py-1.5 rounded-md text-sm transition-colors bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-200 hover:bg-secondary-200 dark:hover:bg-secondary-700"
+            @click="isShareModalOpen = true"
+          >
+            Share
           </button>
         </div>
       </div>
@@ -130,11 +137,68 @@
         </div>
       </div>
     </div>
+    <!-- Share Modal -->
+    <transition name="fade-transform">
+      <div v-if="isShareModalOpen" class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/50" @click="isShareModalOpen = false" />
+        <div class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg">
+          <div class="flex items-start justify-between mb-4">
+            <h3 class="text-lg font-semibold text-secondary-900 dark:text-white">Share your spark</h3>
+            <button class="btn-secondary" @click="isShareModalOpen = false">Close</button>
+          </div>
+          <div class="space-y-4">
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" class="form-checkbox mt-1" v-model="shareForm.isPublic" />
+              <div>
+                <div class="font-medium">Make my spark public</div>
+                <div class="text-sm text-secondary-600 dark:text-secondary-300">Generates a public link for direct access to your spark.</div>
+              </div>
+            </label>
+
+            <div v-if="shareForm.isPublic" class="space-y-2">
+              <label class="form-label">Public link</label>
+              <div class="flex gap-2">
+                <input type="text" class="form-input flex-1" :value="publicShareUrl" readonly />
+                <button 
+                  type="button" 
+                  class="btn-secondary" 
+                  @click="copyToClipboard"
+                  :disabled="!publicShareUrl"
+                >
+                  {{ copyStatus === 'copied' ? 'Copied!' : 'Copy' }}
+                </button>
+              </div>
+              <p class="text-xs text-secondary-600 dark:text-secondary-300">
+                Anyone with this link can chat with your spark (limited to 3 messages for unauthenticated users).
+              </p>
+            </div>
+
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" class="form-checkbox mt-1" v-model="shareForm.profitSplitOptIn" />
+              <div>
+                <div class="font-medium">Share to creatives on Art of X and participate in profit split</div>
+                <div class="text-sm text-secondary-600 dark:text-secondary-300">
+                  Makes your spark discoverable in the Personas page for other users. See <NuxtLink to="/legal/terms" class="underline">terms</NuxtLink>. This is optional and off by default.
+                </div>
+              </div>
+            </label>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" class="btn-secondary" @click="isShareModalOpen = false">Cancel</button>
+              <button type="button" class="btn-primary" :disabled="isSavingShare" @click="saveShareSettings">
+                <span v-if="isSavingShare" class="loading-spinner mr-2" />
+                {{ isSavingShare ? 'Saving...' : 'Save' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watchEffect } from 'vue';
 import * as d3 from 'd3';
 import CircularDendrogram from './graphs/CircularDendrogram.vue';
 import type { Pattern, HierarchyNode, DisplayNodeInfo } from './graphs/types';
@@ -328,8 +392,11 @@ type SparkWithDendrogram = {
   userId?: string | null; 
   name: string; 
   dendrograms?: Array<{ id: string; dendrogramSvg: string; dendrogramPng?: ArrayBuffer | null }>
+  isPublic?: boolean;
+  publicShareId?: string | null;
+  profitSplitOptIn?: boolean;
 };
-const { data: allSparksResp } = useFetch<{ data: SparkWithDendrogram[] }>(() => '/api/spark', { server: false });
+const { data: allSparksResp, refresh: refreshAllSparks } = useFetch<{ data: SparkWithDendrogram[] }>(() => '/api/spark', { server: false });
 const userSpark = computed(() => {
   const uid = userProfile.value?.id;
   const list = allSparksResp.value?.data || [];
@@ -340,6 +407,109 @@ const userSparkDendrogramSvg = computed(() => {
   const ds = userSpark.value?.dendrograms;
   return ds && ds.length > 0 ? ds[0].dendrogramSvg : null;
 });
+
+// Share UI state
+const isShareModalOpen = ref(false)
+const shareForm = ref({ isPublic: false, profitSplitOptIn: false })
+const isSavingShare = ref(false)
+const copyStatus = ref<'idle' | 'copied'>('idle')
+const publicShareUrl = computed(() => {
+  // If public sharing is enabled, show the link (either existing or will be generated)
+  if (!shareForm.value.isPublic) return ''
+  
+  const s = userSpark.value as any
+  const id = s?.publicShareId as string | undefined
+  
+  // If we have a share ID, use it; otherwise show a placeholder that will be generated
+  const shareId = id || 'generating...'
+  if (process.client) return `${window.location.origin}/spark/shared/${shareId}`
+  return `/spark/shared/${shareId}`
+})
+
+// Copy to clipboard function
+async function copyToClipboard() {
+  if (!publicShareUrl.value) return
+  
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      // Use modern clipboard API
+      await navigator.clipboard.writeText(publicShareUrl.value)
+      copyStatus.value = 'copied'
+      setTimeout(() => { copyStatus.value = 'idle' }, 2000)
+    } else {
+      // Fallback for older browsers or non-secure contexts
+      const textArea = document.createElement('textarea')
+      textArea.value = publicShareUrl.value
+      textArea.style.position = 'fixed'
+      textArea.style.left = '-999999px'
+      textArea.style.top = '-999999px'
+      document.body.appendChild(textArea)
+      textArea.focus()
+      textArea.select()
+      
+      try {
+        document.execCommand('copy')
+        copyStatus.value = 'copied'
+        setTimeout(() => { copyStatus.value = 'idle' }, 2000)
+      } catch (err) {
+        console.error('Fallback copy failed:', err)
+        alert('Copy failed. Please manually select and copy the link.')
+      } finally {
+        document.body.removeChild(textArea)
+      }
+    }
+  } catch (err) {
+    console.error('Copy failed:', err)
+    alert('Copy failed. Please manually select and copy the link.')
+  }
+}
+
+watchEffect(() => {
+  const s: any = userSpark.value
+  shareForm.value.isPublic = Boolean(s?.isPublic)
+  shareForm.value.profitSplitOptIn = Boolean(s?.profitSplitOptIn)
+})
+
+async function saveShareSettings() {
+  if (!userProfile.value?.id) return
+  isSavingShare.value = true
+  try {
+    // If no spark exists yet, create one first
+    let sparkId = userSparkId.value
+    if (!sparkId) {
+      // Create a minimal spark for this user
+      const newSpark = await $fetch('/api/spark', {
+        method: 'POST',
+        body: {
+          name: 'My Spark',
+          description: 'Personal creative spark',
+          systemPrompt: 'You are a creative assistant.',
+          discipline: 'General',
+          userId: userProfile.value.id,
+        },
+      })
+      sparkId = newSpark.data.id
+      // Refresh to get the new spark
+      await refreshAllSparks()
+    }
+
+    // Now update sharing settings
+    await $fetch('/api/spark/share', {
+      method: 'PUT',
+      body: {
+        sparkId,
+        isPublic: shareForm.value.isPublic,
+        profitSplitOptIn: shareForm.value.profitSplitOptIn,
+      },
+    })
+    await refreshAllSparks()
+    isShareModalOpen.value = false
+  } catch (e: any) {
+    alert(e?.data?.message || 'Failed to update share settings')
+  } finally {
+    isSavingShare.value = false
+  }
+}
 
 // Report data derived from filtered patterns and framework
 type ReportSection = {

@@ -1,50 +1,46 @@
 <template>
-  <main class="min-h-screen flex items-center justify-center p-4">
-    <div class="max-w-md w-full">
+  <div class="min-h-screen bg-white dark:bg-secondary-900">
+    <!-- Header -->
+    <header class="border-b border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800">
+      <div class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+          <NuxtLink to="/" class="text-xl font-bold text-primary-500">
+            Art of X
+          </NuxtLink>
+          <div class="flex items-center space-x-4">
+            <NuxtLink 
+              to="/login" 
+              class="text-secondary-600 dark:text-secondary-400 hover:text-primary-500 dark:hover:text-primary-400"
+            >
+              Sign In
+            </NuxtLink>
+            <NuxtLink 
+              to="/register" 
+              class="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+            >
+              Get Started
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1">
       <slot />
-    </div>
-  </main>
-  <Footer />
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-secondary-200 dark:border-secondary-700 bg-white dark:bg-secondary-800 py-8">
+      <div class="container mx-auto px-4 text-center text-secondary-600 dark:text-secondary-400">
+        <p>&copy; 2024 Art of X. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
 </template>
 
 <script setup lang="ts">
-import Footer from '~/components/Footer.vue';
-import { useAuth } from "~/composables/useAuth";
-import { useUserProfile } from "~/composables/useUserProfile";
-
-// Detect mobile devices
-const isMobile = ref(false);
-
-onMounted(() => {
-  // Check for mobile devices using user agent and screen size
-  const userAgent = navigator.userAgent.toLowerCase();
-  const mobileKeywords = ['mobile', 'android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'];
-  const isMobileUserAgent = mobileKeywords.some(keyword => userAgent.includes(keyword));
-  const isSmallScreen = window.innerWidth <= 768 || window.innerHeight <= 600;
-  
-  isMobile.value = isMobileUserAgent || isSmallScreen;
-});
-
-// Dynamic page title for auth pages
-const { user } = useAuth();
-const { userProfile, isLoadingProfile } = useUserProfile();
-const pageTitle = computed(() => {
-  const supabaseUser = user.value as any
-  const displayName =
-    userProfile.value?.name ||
-    supabaseUser?.user_metadata?.display_name ||
-    supabaseUser?.user_metadata?.name ||
-    (supabaseUser?.email ? supabaseUser.email.split('@')[0] : '')
-  return `Art of ${displayName || 'X'}`
-});
-
-useHead(() => ({
-  title: pageTitle.value,
-  titleTemplate: () => pageTitle.value,
-  bodyAttrs: {
-    class: 'overflow-hidden'
-  }
-}))
+// Public layout - no authentication required
 </script>
 
 <style>

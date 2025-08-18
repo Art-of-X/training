@@ -220,6 +220,9 @@ model Spark {
   dendrograms   SparkDendrogram[]
   projects      SparksOnProjects[]
   user          UserProfile?       @relation("UserSparks", fields: [userId], references: [id], onDelete: SetNull)
+  isPublic      Boolean            @default(false) @map("is_public")
+  publicShareId String?            @unique @map("public_share_id") @db.Uuid
+  profitSplitOptIn Boolean         @default(false) @map("profit_split_opt_in")
 
   @@map("sparks")
 }

@@ -10,6 +10,9 @@ export default defineEventHandler(async (event) => {
         description: true,
         discipline: true,
         userId: true,
+        isPublic: true,
+        publicShareId: true,
+        profitSplitOptIn: true,
         createdAt: true,
         updatedAt: true,
         dendrograms: {

@@ -32,7 +32,7 @@
             <h2 class="text-2xl font-semibold mb-2">Thank You!</h2>
             <p class="text-secondary-600 dark:text-secondary-300 mb-6">Your demographic information has been saved successfully.</p>
           </div>
-          <NuxtLink to="/training/dashboard" class="btn-primary">Back to Dashboard</NuxtLink>
+          <NuxtLink to="/training/chat" class="btn-primary">Back to Dashboard</NuxtLink>
         </div>
 
         <!-- Questionnaire Form -->
@@ -119,7 +119,7 @@
 
     <!-- Navigation -->
     <div class="mt-8">
-      <NuxtLink to="/training/dashboard" class="btn-secondary">
+      <NuxtLink to="/training/chat" class="btn-secondary">
         Back to Dashboard
       </NuxtLink>
     </div>

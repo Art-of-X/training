@@ -50,7 +50,7 @@
             Settings
           </NuxtLink>
           <NuxtLink
-            to="/training/dashboard"
+            to="/training/chat"
             class="dropdown-item"
             :style="{ color: primaryColor.value }"
             @click="closeUserMenu"

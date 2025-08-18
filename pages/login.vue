@@ -169,7 +169,7 @@ const handleSignIn = async () => {
   const result = await signIn(form.email, form.password)
 
   if (result.success) {
-    await navigateTo('/training/dashboard')
+    await navigateTo('/training/chat')
   }
 }
 

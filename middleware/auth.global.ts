@@ -26,11 +26,27 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/login', '/register', '/confirm', '/password-reset', '/legal', '/hfbk']
+  const publicRoutes = ['/login', '/register', '/confirm', '/password-reset', '/legal', '/hfbk', '/spark/shared']
   
   // Check if the current route is public
-  const isPublicRoute = publicRoutes.some(route => to.path.startsWith(route))
+  const isPublicRoute = publicRoutes.some(route => {
+    // Handle dynamic routes like /spark/shared/[shareId]
+    if (route === '/spark/shared') {
+      return to.path.startsWith('/spark/shared/')
+    }
+    return to.path.startsWith(route)
+  })
   
+  // Debug logging (remove in production)
+  if (process.dev) {
+    console.log('Route check:', {
+      path: to.path,
+      isPublicRoute,
+      publicRoutes,
+      user: !!user.value
+    })
+  }
+
   // Re-check user after waiting
   const currentUser = useSupabaseUser();
 
@@ -41,6 +57,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
   
   // If user is authenticated and trying to access auth pages, redirect to training
   if (currentUser.value && (to.path === '/login' || to.path === '/register')) {
-    return navigateTo('/training/dashboard')
+    return navigateTo('/training/chat')
   }
 }) 

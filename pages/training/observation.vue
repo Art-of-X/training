@@ -114,7 +114,7 @@
 
       <!-- Actions -->
       <div class="flex justify-between">
-        <NuxtLink to="/training/dashboard" class="btn-secondary mt-4">
+        <NuxtLink to="/training/chat" class="btn-secondary mt-4">
           Back to Dashboard
         </NuxtLink>
       </div>
