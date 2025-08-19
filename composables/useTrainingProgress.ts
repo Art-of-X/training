@@ -50,8 +50,12 @@ export function useTrainingProgress(sparkId?: Ref<string | undefined> | string |
   const filtered = computed(() => {
     const sid = sparkIdRef.value
     const list = patterns.value || []
-    if (sid) return list.filter((p) => p.sparkId === sid)
-    // When no spark filter is provided, include all returned patterns (API already scoped to user and their sparks)
+    // If a sparkId is present, include both spark-scoped patterns and user-only patterns
+    if (sid) {
+      const uid = userProfile.value?.id
+      return list.filter((p) => p.sparkId === sid || (uid && p.userId === uid))
+    }
+    // When no spark filter is provided, include all returned patterns (already scoped to user and their sparks)
     return list
   })
 

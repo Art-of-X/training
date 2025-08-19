@@ -19,6 +19,9 @@ export default defineNuxtConfig({
   
   // Color mode configuration for dark mode
   colorMode: {
+    // Make light the default preference and SSR fallback
+    preference: 'light',
+    fallback: 'light',
     classSuffix: ''
   },
   

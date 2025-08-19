@@ -154,8 +154,8 @@
                     <div class="text-xs text-secondary-500">Loading projects...</div>
                   </div>
                   
-                  <div v-else-if="projects.length === 0" class="px-8 py-1.5">
-                    <div class="text-xs text-secondary-500">No projects yet</div>
+                  <div v-else-if="projects.length === 0" class="sidebar-link disabled">
+                    <span class="truncate">No projects yet</span>
                   </div>
                   
                   <NuxtLink

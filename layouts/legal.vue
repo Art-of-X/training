@@ -1,8 +1,8 @@
 <template>
   <div class="bg-white dark:bg-secondary-900 min-h-screen">
-    <header v-if="user" class="bg-white/50 dark:bg-secondary-800/50 backdrop-blur-md border-b border-secondary-200/50 dark:border-secondary-700/50 sticky top-0 z-40">
-      <div class="container-wide">
-        <div class="flex justify-between items-center h-16">
+    <header v-if="user" class="backdrop-blur-md sticky top-0 z-40 bg-white/50 dark:bg-secondary-800/50 border-b border-secondary-200/50 dark:border-secondary-700/50">
+      <div class="px-8">
+        <div class="flex justify-between items-center h-16 relative">
           <!-- Logo -->
           <NuxtLink to="/training/chat" class="flex items-center space-x-3">
             <span
@@ -17,7 +17,7 @@
             >
               Art<sup class="ml-1 text-base font-semibold">x</sup>
             </span>
-            <span class="bg-primary-100 text-primary-800 text-xs font-semibold px-2 py-0.5 rounded-full dark:bg-primary-900 dark:text-primary-300 ml-2">BETA</span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full ml-2 bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-300">BETA</span>
           </NuxtLink>
           <div class="flex items-center space-x-2 sm:space-x-4">
             <div class="flex items-center space-x-2 sm:space-x-4">
@@ -105,28 +105,71 @@
         </div>
       </div>
     </header>
-    <header v-else class="bg-white dark:bg-secondary-800 border-b border-secondary-200 dark:border-secondary-700 sticky top-0 z-40">
-      <div class="container-wide">
-        <div class="flex justify-between items-center h-16">
+    <header v-else class="backdrop-blur-md sticky top-0 z-40 bg-white/50 dark:bg-secondary-800/50 border-b border-secondary-200/50 dark:border-secondary-700/50">
+      <div class="px-8">
+        <div class="flex justify-between items-center h-16 relative">
           <NuxtLink to="/" class="flex items-center space-x-3">
             <span class="font-bold text-xl text-secondary-900 dark:text-white">
               Art<sup class="text-base font-semibold">x</sup>
             </span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full ml-2 bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-300">
+              BETA
+            </span>
           </NuxtLink>
-          <div class="flex items-center space-x-2 sm:space-x-4">
-            <nav class="flex items-center space-x-2 sm:space-x-4">
-              <NuxtLink to="/login" class="btn-outline px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm">Sign In</NuxtLink>
-              <NuxtLink to="/register" class="btn-primary px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm">Get Started</NuxtLink>
-            </nav>
+          <div class="flex items-center space-x-4">
+            <NuxtLink to="/login" class="nav-link">Sign In</NuxtLink>
+            <NuxtLink to="/register" class="btn-primary-sm sm:btn-primary">Get Started</NuxtLink>
           </div>
         </div>
       </div>
     </header>
-    <main class="container-wide py-8 md:py-12">
-      <div class="prose dark:prose-invert max-w-4xl mx-auto">
-        <slot />
-      </div>
-    </main>
+
+    <!-- Main Content with Sidebar -->
+    <div class="flex flex-1 min-h-0">
+      <!-- Sidebar for Legal Links -->
+      <aside class="hidden md:flex flex-col backdrop-blur-md transition-all duration-200 ease-in-out w-64 bg-white/50 dark:bg-secondary-800/50 border-r border-secondary-200/50 dark:border-secondary-700/50">
+        <nav class="flex-1 overflow-y-auto p-6">
+          <div class="mb-6">
+            <h3 class="text-sm font-semibold text-secondary-900 dark:text-white uppercase tracking-wider mb-4">
+              Legal
+            </h3>
+            <ul class="space-y-2">
+              <li>
+                <NuxtLink 
+                  to="/legal/dataprivacy" 
+                  class="sidebar-link"
+                >
+                  <span class="truncate">Data Policy</span>
+                </NuxtLink>
+              </li>
+              <li>
+                <NuxtLink 
+                  to="/legal/terms" 
+                  class="sidebar-link"
+                >
+                  <span class="truncate">Terms of Use</span>
+                </NuxtLink>
+              </li>
+              <li>
+                <NuxtLink 
+                  to="/legal/imprint" 
+                  class="sidebar-link"
+                >
+                  <span class="truncate">Imprint</span>
+                </NuxtLink>
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="flex-1 overflow-y-auto p-8">
+        <div class="prose dark:prose-invert max-w-4xl mx-auto">
+          <slot />
+        </div>
+      </main>
+    </div>
     <Footer />
   </div>
 </template>
@@ -167,4 +210,44 @@ const handleSignOut = async () => {
   closeUserMenu();
   await signOut();
 };
-</script> 
+</script>
+
+<style>
+:root {
+  /* Header height: matches py-4 (1rem = 16px) + content height */
+  --app-header-height: 80px;
+}
+
+.dropdown-item {
+  @apply block px-4 py-2 text-sm text-secondary-700 dark:text-secondary-300 hover:bg-secondary-100 dark:hover:bg-secondary-700 hover:text-secondary-900 dark:hover:text-white transition-colors;
+}
+
+.nav-link {
+  @apply text-base font-medium transition-colors;
+  color: var(--header-nav-color, rgb(100, 100, 100));
+}
+
+.nav-link:hover {
+  color: var(--header-nav-hover-color, rgb(75, 85, 99));
+}
+
+.btn-primary-sm {
+  @apply px-3 py-1.5 text-sm bg-primary-500 text-white font-medium rounded-md transition-colors;
+  @apply hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+}
+
+.btn-primary {
+  @apply px-4 py-2 bg-primary-500 text-white font-medium rounded-md transition-colors;
+  @apply hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+}
+
+.sidebar-link {
+  @apply flex items-center gap-2 px-4 py-2 text-sm rounded-md transition-colors;
+  color: var(--sidebar-link-color, rgb(75, 85, 99));
+}
+
+.sidebar-link:hover {
+  background-color: var(--sidebar-link-hover-bg, rgb(243, 244, 246));
+  color: var(--sidebar-link-hover-color, rgb(55, 65, 81));
+}
+</style> 

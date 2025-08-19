@@ -1,5 +1,6 @@
 <template>
-  <div class="space-y-8">
+  <div class="container mx-auto px-4 flex items-center justify-center min-h-[calc(100vh-var(--app-header-height))]">
+    <div class="w-full max-w-md bg-white dark:bg-secondary-800 rounded-lg space-y-8 h-full flex flex-col justify-center">
     <!-- Header -->
     <div class="text-center">
       <h2 class="text-3xl font-bold text-secondary-900 dark:text-white">
@@ -132,6 +133,7 @@
       <NuxtLink to="/login" class="inline-flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors">
         Back to Sign In
       </NuxtLink>
+    </div>
     </div>
   </div>
 </template>

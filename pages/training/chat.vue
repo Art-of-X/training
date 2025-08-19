@@ -37,13 +37,26 @@ import { ref, nextTick, computed } from "vue";
 import ChatComponent from "~/components/Chat.vue";
 import { useRoute } from "#imports";
 import { useTrainingProgress } from "~/composables/useTrainingProgress";
+import { useUserProfile } from "~/composables/useUserProfile";
 
 definePageMeta({
   title: "Training Dashboard",
 });
 
 const route = useRoute();
-const sparkId = computed(() => (route.query.spark as string) || undefined)
+const { userProfile } = useUserProfile();
+
+// Resolve the user's single Spark ID (fallback when no ?spark= is provided)
+type SparkRecord = { id: string; userId?: string | null };
+const { data: allSparksResp } = useFetch<{ data: SparkRecord[] }>(() => "/api/spark", { server: false });
+const userSparkId = computed<string | undefined>(() => {
+  const uid = userProfile.value?.id;
+  const list = allSparksResp.value?.data || [];
+  if (!uid) return undefined;
+  return list.find(s => s.userId === uid)?.id || undefined;
+});
+
+const sparkId = computed<string | undefined>(() => (route.query.spark as string) || userSparkId.value)
 
 // Progress state
 const { progressPercent } = useTrainingProgress(sparkId)

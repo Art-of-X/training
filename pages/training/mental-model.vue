@@ -77,7 +77,7 @@
 
 <script setup lang="ts">
 import { definePageMeta, useRoute, useRouter } from '#imports';
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import UserPatternGraph from '~/components/UserPatternGraph.vue';
 import AllUsersNetwork from '~/components/AllUsersNetwork.vue';
 import { useUserProfile } from '~/composables/useUserProfile';
@@ -99,8 +99,18 @@ const viewTabs = [
 const viewMode = ref<ViewMode>('user');
 const isFullscreen = ref(false);
 
-// Progress
-const { progressPercent, isEligible, uniqueMethodsCount, uniqueCompetenciesCount } = useTrainingProgress()
+// Resolve the user's Spark ID to scope progress/eligibility
+type SparkRecord = { id: string; userId?: string | null };
+const { data: allSparksResp } = useFetch<{ data: SparkRecord[] }>(() => '/api/spark', { server: false });
+const userSparkId = computed<string | undefined>(() => {
+  const uid = userProfile.value?.id;
+  const list = allSparksResp.value?.data || [];
+  if (!uid) return undefined;
+  return list.find(s => s.userId === uid)?.id || undefined;
+});
+
+// Progress scoped to the user's Spark
+const { progressPercent, isEligible, uniqueMethodsCount, uniqueCompetenciesCount } = useTrainingProgress(userSparkId)
 
 function syncFromQuery() {
   const q = (route.query.view as string) || 'user'
