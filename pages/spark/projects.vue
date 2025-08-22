@@ -368,9 +368,9 @@
 
       <!-- Create Project Modal -->
       <transition name="fade-transform">
-        <div v-if="isCreateModalOpen" class="fixed inset-0 z-50 flex items-center justify-start">
+        <div v-if="isCreateModalOpen" class="fixed inset-0 z-50 flex items-center justify-center">
           <div class="absolute inset-0 bg-black/50" @click="isCreateModalOpen = false" />
-          <div class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg ml-8">
+          <div class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg">
             <h3 class="text-3xl font-semibold mb-4 text-secondary-900 dark:text-white">Create New Project</h3>
             <form @submit.prevent="handleCreateProject" class="space-y-4">
               <div>
@@ -407,9 +407,9 @@
 
       <!-- Select Existing Sparks Modal -->
       <transition name="fade-transform">
-        <div v-if="isSelectSparksOpen" class="fixed inset-0 z-50 flex items-center justify-start">
+        <div v-if="isSelectSparksOpen" class="fixed inset-0 z-50 flex items-center justify-center">
           <div class="absolute inset-0 bg-black/50" @click="isSelectSparksOpen = false" />
-          <div class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg ml-8">
+          <div class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg">
             <h3 class="text-3xl font-semibold mb-4 text-secondary-900 dark:text-white">Add Sparks to Project</h3>
             <div class="text-sm text-secondary-600 dark:text-secondary-300 mb-2">
               You can add up to {{ MAX_SPARKS }} sparks. Available slots:
@@ -465,9 +465,9 @@
       </transition>
       <!-- Add Context Item Modal -->
       <transition name="fade-transform">
-        <div v-if="isAddContextModalOpen" class="fixed inset-0 z-50 flex items-center justify-start">
+        <div v-if="isAddContextModalOpen" class="fixed inset-0 z-50 flex items-center justify-center">
           <div class="absolute inset-0 bg-black/50" @click="closeAddContextModal" />
-          <div class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg ml-8">
+          <div class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg">
             <h3 class="text-3xl font-semibold mb-4 text-secondary-900 dark:text-white">Add Context Item</h3>
             <form @submit.prevent="handleAddContextSubmit" class="space-y-4">
               <div class="flex gap-3">
@@ -545,9 +545,9 @@
 
       <!-- Output Detail Modal -->
       <transition name="fade-transform">
-        <div v-if="isOutputModalOpen" class="fixed inset-0 z-50 flex items-center justify-start">
+        <div v-if="isOutputModalOpen" class="fixed inset-0 z-50 flex items-center justify-center">
           <div class="absolute inset-0 bg-black/50" @click="closeOutputModal" />
-          <div class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg ml-8">
+          <div class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg">
             <div class="flex items-start justify-between mb-3">
               <h3 class="text-3xl font-semibold text-secondary-900 dark:text-white">Idea</h3>
               <button class="btn-secondary" @click="closeOutputModal">Close</button>

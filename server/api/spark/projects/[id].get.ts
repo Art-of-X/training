@@ -22,14 +22,33 @@ export default defineEventHandler(async (event) => {
         contextItems: true,
         sparks: {
           include: {
-            spark: true
-          }
+            spark: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                discipline: true,
+                dendrograms: {
+                  select: {
+                    id: true,
+                    dendrogramSvg: true,
+                    updatedAt: true,
+                  },
+                },
+              },
+            },
+          },
         },
         outputs: {
           include: {
-            spark: true
-          }
-        }
+            spark: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       }
     })
 

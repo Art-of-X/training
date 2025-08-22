@@ -27,7 +27,11 @@ export default defineEventHandler(async (event) => {
   // Ensure ownership and existence
   const [project, spark] = await Promise.all([
     prisma.project.findFirst({ where: { id: projectId, userId: user.id } }),
-    prisma.spark.findUnique({ where: { id: sparkId } }),
+    // Select only fields we need to avoid selecting columns that may not exist (e.g., is_premium on older DBs)
+    prisma.spark.findUnique({
+      where: { id: sparkId },
+      select: { id: true },
+    }),
   ])
 
   if (!project) {
