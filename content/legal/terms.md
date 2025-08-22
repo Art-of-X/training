@@ -1,67 +1,96 @@
 # Terms of Service for art ×
 
-**Last Updated: [Date]**
+**Last Updated: [Insert Date]**
 
-Welcome to art ×! We're excited to have you join our experimental platform for creativity and artificial intelligence. These Terms of Service ("Terms") govern your use of our platform, so please read them carefully. By creating an account or using our services, you agree to these Terms.
+By creating an account or using our services, you agree to these Terms of Service ("Terms"). If you do not agree, do not use the services.
 
-## 1. About Us & Our Platform
+## 1. Who We Are
 
-We are **art × - Art of X UG (haftungsbeschränkt)**, located at Goethestr. 59, 10625 Berlin, Germany.
+We are **art × — Art of X UG (haftungsbeschränkt)**, Goethestr. 59, 10625 Berlin, Germany.
 
-Our platform is a space for creatives like you to contribute data (like voice recordings, texts, images, or other materials) that we use to train artificial intelligence models. We're currently in an early, experimental "pre-seed" phase. This means our services are constantly evolving, and things might change, break, or look different over time.
+## 2. The Services
 
-## 2. Your Account
+We provide tools for creativity and AI-assisted workflows, including accounts, voice/text/image uploads, project and "spark" generation, sharing, and AI features powered by third-party providers. The services may change or be discontinued at any time.
 
-To use most features, you'll need to create an account. You are responsible for keeping your account details safe. You must be at least 18 years old to use the platform.
+## 3. Eligibility & Accounts
 
-## 3. The Data You Provide ("User Content")
+- You must be at least 18 years old.
+- You are responsible for your account and keeping credentials confidential.
+- We may suspend or terminate accounts for violations of these Terms or applicable law.
 
-You own the creative content you provide to the platform. We don't claim any ownership of your original materials.
+## 4. Acceptable Use
 
-By uploading or providing content, you grant us a license to use it for the purposes outlined below. This license is a worldwide, non-exclusive, royalty-free, sublicensable right to use, copy, modify, process, and distribute your User Content through our platform.
+You will not: (a) violate law or third-party rights; (b) upload illegal, harmful, or infringing content; (c) attempt to gain unauthorized access or disrupt the services; (d) reverse engineer or misuse the services or APIs; (e) spam or abuse sharing features.
 
-## 4. How We Use Your Data & AI Models
+## 5. Your Content and License
 
-Your data is essential for building our AI models. Here's how we use it:
+- You retain ownership of content you upload or create ("User Content").
+- You grant us a worldwide, non-exclusive, transferable, sublicensable, royalty-free license to host, store, copy, modify, process, analyze, display, and distribute User Content as necessary to provide, improve, secure, and operate the services (including backups, content moderation, embeddings, and model evaluation), and to comply with law.
+- If you share content publicly or with others, you grant us the rights necessary to deliver that sharing.
+- You represent that you have all rights to grant the foregoing and that your User Content does not infringe rights or violate law.
 
-### a. Your Personal AI Model
+## 6. AI Features and Model Training
 
-A portion of our service is dedicated to creating a personalized AI model trained exclusively on your User Content. We aim to provide you with access to this personal model. While access is currently free, we may introduce a fee for creating or accessing your personal model in the future. We will notify you well in advance of any such changes.
+- We use third-party AI providers (e.g., OpenAI) to process prompts, generate outputs, and create embeddings. Use of AI features may be subject to those providers’ terms and policies.
+- Your interactions (including prompts, files, metadata) may be used for model quality, safety, and evaluation in accordance with our Privacy Notice and these Terms.
+- You can opt-in to contribute your User Content to improve generalized datasets and models. If you do not opt in, we will not include your User Content in generalized model training.
+- Outputs are generated content; they may be inaccurate or inappropriate. You are responsible for evaluating and using outputs.
 
-### b. Our General AI Models & Datasets
+## 7. Payment, Plans, and Billing (Stripe)
 
-We are also building larger, more general AI models by combining data from multiple users. You have the option to allow your User Content to be included in these general models. These models are part of our core product, which we may offer to clients or use for commercial purposes.
+- We offer a free tier and a paid subscription ("Premium"). Plan limits may apply (e.g., projects/sparks).
+- Subscriptions are billed via Stripe. By subscribing, you authorize recurring charges until cancellation.
+- Prices, taxes, and features may change. We will notify you of material changes as required by law.
+- You can manage or cancel your subscription at any time via the billing portal. Cancellation takes effect at the end of the current billing period; no refunds for partial periods unless required by law.
+- We may offer promotions or trials; additional terms may apply.
 
-By contributing to our general models, you are helping to build a unique, proprietary dataset. We believe in rewarding our contributors, and while we are still developing the specifics, we plan to create models for fairly compensating users who participate in building our commercial offerings.
+## 8. Intellectual Property; Feedback
 
-## 5. Your Right to Data Deletion
+- We and our licensors own all rights in the services, software, documentation, and models (excluding your User Content).
+- You grant us a perpetual, irrevocable, royalty-free license to use feedback you provide to improve the services.
 
-**This is important:** You are in control of your data.
+## 9. Privacy and Security
 
-You can request the deletion of your account and all associated User Content at any time. When you make a deletion request, we will permanently remove your data from our active systems and databases.
+- We use Supabase and other providers for authentication and storage. We implement reasonable technical and organizational measures to protect data. No system is 100% secure.
+- Our processing of personal data is described in our Privacy Notice. By using the services, you consent to such processing.
 
-Crucially, after you request deletion, we will no longer use your data to train any new models, and we will take all reasonable steps to remove your data from our existing models where technically feasible. We will not retain any rights to your data after you have asked for it to be deleted.
+## 10. Data Retention, Deletion, and Model Unlearning
 
-To request data deletion, please contact us at [hello@art-of-x.com](mailto:hello@art-of-x.com).
+- You may request deletion of your account and associated User Content. We will delete from active systems and backups in accordance with our retention schedules and legal obligations.
+- After deletion, we will not use your data for training new generalized models. For existing models, we will take reasonable steps to prevent future use of your data (including retraining or suppression) where technically and commercially feasible.
 
-## 6. Platform Use & Restrictions
+## 11. Third-Party Services
 
-Our platform is currently free to use for invited participants. We reserve the right to introduce fees for certain features in the future. You agree not to misuse the service, for example, by uploading illegal content, infringing on others' intellectual property, or trying to disrupt our systems.
+Third-party services (e.g., Stripe, AI providers, storage/CDN) are subject to their terms and privacy policies. We are not responsible for third-party services.
 
-## 7. Disclaimers & Limitation of Liability
+## 12. Beta, Experimental, and Availability Disclaimer
 
-As our platform is in an experimental phase, it is provided "as is" and "as available," without any warranties of any kind. We cannot guarantee that it will always be perfect, secure, or available.
+The services are offered on an "AS IS" and "AS AVAILABLE" basis, including experimental or beta features. We do not warrant accuracy, reliability, uptime, or fitness for a particular purpose.
 
-To the fullest extent permitted by law, art × shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses.
+## 13. Limitation of Liability
 
-## 8. Changes to These Terms
+To the maximum extent permitted by law: (a) we will not be liable for indirect, incidental, special, consequential, punitive, or exemplary damages; and (b) our total liability for any claim will not exceed the amounts you paid to us in the 12 months preceding the event giving rise to the claim, or €50 if you have paid nothing.
 
-We may update these Terms from time to time as our platform evolves. If we make significant changes, we will notify you through the platform or by email. Your continued use of the platform after such changes constitutes your acceptance of the new Terms.
+## 14. Indemnity
 
-## 9. Governing Law & Jurisdiction
+You will defend and indemnify us against claims arising from your User Content, your use of the services, or your violation of these Terms or law.
 
-These Terms are governed by the laws of the Federal Republic of Germany. The place of jurisdiction for all disputes arising from or in connection with these Terms shall be Berlin, Germany.
+## 15. Suspension and Termination
 
-## 10. Contact Us
+We may suspend or terminate accounts or access for any breach, risk to the services, fraud, or legal requirement. You may stop using the services at any time.
 
-If you have any questions about these Terms, please don't hesitate to reach out to us at **hello@art-of-x.com**.
+## 16. Changes to the Services or Terms
+
+We may modify the services and these Terms. If we make material changes, we will provide notice (e.g., in-app or email). Continued use after changes constitutes acceptance.
+
+## 17. Export and Sanctions
+
+You represent you are not prohibited from using the services under applicable export control and sanctions laws and will not use the services in restricted jurisdictions.
+
+## 18. Governing Law and Venue
+
+These Terms are governed by the laws of Germany. Exclusive venue is Berlin, Germany, except where mandatory law provides otherwise for consumers.
+
+## 19. Contact
+
+Questions: **hello@art-of-x.com**
