@@ -1,14 +1,15 @@
 import { defineEventHandler } from 'h3'
 import Stripe from 'stripe'
-import { getStripeClient, resolveUserPlan, PREMIUM_PRODUCT_ID } from '~/server/utils/stripe'
+import { getStripeClient, resolveUserPlan, getPremiumProductId } from '~/server/utils/stripe'
 
 export default defineEventHandler(async (event) => {
   const { plan, subscriptionId } = await resolveUserPlan(event)
   const stripe = getStripeClient(event)
+  const premiumProductId = getPremiumProductId(event)
 
   // Fetch product and price info for premium tier
-  const product = await stripe.products.retrieve(PREMIUM_PRODUCT_ID)
-  const prices = await stripe.prices.list({ product: PREMIUM_PRODUCT_ID, active: true, limit: 10 })
+  const product = await stripe.products.retrieve(premiumProductId)
+  const prices = await stripe.prices.list({ product: premiumProductId, active: true, limit: 10 })
 
   return {
     plan,

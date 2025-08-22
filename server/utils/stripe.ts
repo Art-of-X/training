@@ -18,7 +18,14 @@ export const PLAN_LIMITS: Record<PlanTier, { projects: number; sparks: number }>
   premium: { projects: 10, sparks: 8 },
 }
 
-export const PREMIUM_PRODUCT_ID = 'prod_SuQl04ffMwtXCn'
+export function getPremiumProductId(event: H3Event) {
+  const config = useRuntimeConfig(event)
+  const pid = config.stripePremiumPid as string | undefined
+  if (!pid) {
+    throw createError({ statusCode: 500, statusMessage: 'Stripe premium product id not configured' })
+  }
+  return pid
+}
 
 export async function resolveUserPlan(event: H3Event): Promise<{ plan: PlanTier; subscriptionId?: string | null }> {
   const user = await serverSupabaseUser(event)
@@ -32,6 +39,7 @@ export async function resolveUserPlan(event: H3Event): Promise<{ plan: PlanTier;
 
   try {
     const stripe = getStripeClient(event)
+    const premiumProductId = getPremiumProductId(event)
     // Try to find customer by email
     const email = user.email || undefined
     if (!email) return { plan, subscriptionId }
@@ -45,7 +53,7 @@ export async function resolveUserPlan(event: H3Event): Promise<{ plan: PlanTier;
     for (const s of subs.data) {
       for (const item of s.items.data) {
         const product = item.price.product as Stripe.Product
-        if (product && product.id === PREMIUM_PRODUCT_ID) {
+        if (product && product.id === premiumProductId) {
           plan = 'premium'
           subscriptionId = s.id
           return { plan, subscriptionId }

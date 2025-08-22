@@ -22,7 +22,9 @@ export default defineNuxtConfig({
     // Make light the default preference and SSR fallback
     preference: 'light',
     fallback: 'light',
-    classSuffix: ''
+    classSuffix: '',
+    // Use a fresh storage key to ignore any previously stored dark preference
+    storageKey: 'aox-color-mode'
   },
   
   // Supabase configuration
@@ -133,6 +135,7 @@ export default defineNuxtConfig({
     supabaseServiceKey: '',
     databaseUrl: '',
     stripeSk: process.env.STRIPE_SK,
+    stripePremiumPid: process.env.STRIPE_PREMIUM_PID,
     
     // Public keys (exposed to client-side)
     public: {

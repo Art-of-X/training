@@ -1050,7 +1050,7 @@ function openSelectSparks() {
 }
 
 function handleAddSparksClick() {
-  if (assignedSparksLimited.length < MAX_SPARKS.value) {
+  if (assignedSparksLimited.value.length < MAX_SPARKS.value) {
     // Still have slots available, open the select sparks modal
     openSelectSparks();
   } else {
