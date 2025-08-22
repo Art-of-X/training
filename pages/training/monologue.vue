@@ -1124,12 +1124,11 @@ const shuffleArray = <T>(array: T[]): T[] => {
 }
 
 .form-input-file {
-  @apply block w-full  text-sm  text-secondary-900 border border-secondary-300 rounded-md cursor-pointer bg-secondary-50 dark:text-secondary-400 focus:outline-none dark:bg-secondary-700 dark:border-secondary-600 dark:placeholder-secondary-400
-  file:mr-4 file:py-2 file:px-4
-  file:rounded-l-md file:border-0
-  file: text-sm  file:font-semibold
-  file:bg-primary-50 file:text-primary-700
-  hover:file:bg-primary-100;
+  @apply block w-full  text-sm  text-secondary-900 border border-secondary-300 rounded-md cursor-pointer bg-secondary-50 dark:text-secondary-400 focus:outline-none dark:bg-secondary-700 dark:border-secondary-600 dark:placeholder-secondary-400;
+}
+
+.form-input-file::file-selector-button {
+  @apply mr-4 py-2 px-4 rounded-l-md border-0 text-sm font-semibold bg-primary-50 text-primary-700 hover:bg-primary-100;
 }
 
 .loading-spinner-sm {
