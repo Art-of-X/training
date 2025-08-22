@@ -26,7 +26,8 @@ export const useVersion = () => {
     return {
       footerLinks: [
         { to: isHfbk.value ? '/hfbk/imprint' : '/legal/imprint', text: 'Imprint', external: false },
-        { to: isHfbk.value ? '/hfbk/dataprivacy' : '/legal/dataprivacy', text: 'Data Privacy', external: false }
+        { to: isHfbk.value ? '/hfbk/dataprivacy' : '/legal/dataprivacy', text: 'Privacy', external: false },
+        { to: isHfbk.value ? '/hfbk/terms' : '/legal/terms', text: 'Terms', external: false }
       ]
     }
   })

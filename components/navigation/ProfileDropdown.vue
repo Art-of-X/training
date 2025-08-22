@@ -24,7 +24,7 @@
       <div
         v-if="isUserMenuOpen"
         :style="accentFgBgStyle"
-        class="absolute right-0 w-56 bg-white dark:bg-secondary-800 z-50 ring-1 ring-black ring-opacity-5 focus:outline-none"
+        class="absolute right-0 w-56 bg-white dark:bg-secondary-800 z-50 focus:outline-none"
       >
         <div class="py-1">
           <div class="px-4 py-3">
@@ -41,52 +41,28 @@
               {{ user.email }}
             </p>
           </div>
-          <NuxtLink
-            to="/training/settings"
-            class="dropdown-item"
-            :style="{ color: primaryColor.value }"
-            @click="closeUserMenu"
-          >
-            Settings
-          </NuxtLink>
-          <NuxtLink
-            to="/training/chat"
-            class="dropdown-item"
-            :style="{ color: primaryColor.value }"
-            @click="closeUserMenu"
-          >
-            Training Dashboard
-          </NuxtLink>
           
-          <NuxtLink
-            to="/training/mental-model"
-            class="dropdown-item"
-            :style="{ color: primaryColor.value }"
-            @click="closeUserMenu"
-          >
-            Your Spark
-          </NuxtLink>
-          
-          <NuxtLink
-            to="/training/creativity-benchmarking"
-            class="dropdown-item"
-            :style="{ color: primaryColor.value }"
-            @click="closeUserMenu"
-          >
-            Creativity Tests
-          </NuxtLink>
-          
-          <button
-            @click="handleSignOut"
-            class="dropdown-item w-full text-left"
-            :style="{ color: primaryColor.value }"
-          >
-            Sign Out
-          </button>
-          
-          <div class="my-2"></div>
-          
-          <div class="flex flex-col space-y-1 px-4 pb-2">
+          <div class="px-4">
+            <NuxtLink
+              to="/training/settings"
+              class="dropdown-item"
+              :style="{ color: primaryColor.value }"
+              @click="closeUserMenu"
+            >
+              Settings
+            </NuxtLink>
+            <NuxtLink
+              to="/training/creativity-benchmarking"
+              class="dropdown-item"
+              :style="{ color: primaryColor.value }"
+              @click="closeUserMenu"
+            >
+              Creativity Tests
+            </NuxtLink>
+            
+            <div class="my-2"></div>
+            
+            <div class="flex flex-col space-y-1">
             <template
               v-for="link in versionConfig?.footerLinks || []"
               :key="link.to"
@@ -94,7 +70,7 @@
               <NuxtLink
                 v-if="!link.external"
                 :to="link.to"
-                class="dropdown-item px-0 text-xs"
+                class="dropdown-item text-xs"
                 :style="{ color: primaryColor.value }"
                 @click="closeUserMenu"
               >
@@ -103,7 +79,7 @@
               <a
                 v-else
                 :href="link.to"
-                class="dropdown-item px-0 text-xs"
+                class="dropdown-item text-xs"
                 :style="{ color: primaryColor.value }"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -112,7 +88,16 @@
                 {{ link.text }}
               </a>
             </template>
+            </div>
           </div>
+
+          <button
+            @click="handleSignOut"
+            class="dropdown-item w-full text-left"
+            :style="{ color: primaryColor.value }"
+          >
+            Log Out
+          </button>
         </div>
       </div>
     </transition>
