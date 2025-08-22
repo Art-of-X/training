@@ -20,10 +20,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
   }
 
-  // If at root, redirect to login
-  if (to.path === '/') {
-    return navigateTo('/login')
-  }
+  // Root redirect handled via route rules in nuxt.config.ts
 
   // Public routes that don't require authentication
   const publicRoutes = ['/login', '/register', '/confirm', '/password-reset', '/legal', '/hfbk', '/spark/shared']
@@ -55,8 +52,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo('/login')
   }
   
-  // If user is authenticated and trying to access auth pages, redirect to training
+  // If user is authenticated and trying to access auth pages, redirect to Sparks
   if (currentUser.value && (to.path === '/login' || to.path === '/register')) {
-    return navigateTo('/training/chat')
+    return navigateTo('/spark/personas')
   }
 }) 

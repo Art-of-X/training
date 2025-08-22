@@ -6,7 +6,7 @@
       <h2 class="text-3xl font-bold text-secondary-900 dark:text-white">
         {{ isResetting ? 'Set New Password' : 'Reset Password' }}
       </h2>
-      <p class="mt-2 text-sm text-secondary-600 dark:text-secondary-400">
+      <p class="mt-2  text-sm  text-secondary-600 dark:text-secondary-400">
         {{ isResetting 
           ? 'Enter your new password below' 
           : 'Enter your email address and we\'ll send you a reset link' 
@@ -22,7 +22,7 @@
     <!-- Reset request form -->
     <form v-if="!isResetting && !showSuccess" class="mt-8 space-y-6" @submit.prevent="handleResetRequest">
       <div>
-        <label for="email" class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
+        <label for="email" class="block  text-sm  font-medium text-secondary-700 dark:text-secondary-300 mb-1">
           Email address
         </label>
         <input
@@ -36,7 +36,7 @@
           :class="{ 'border-error-300 dark:border-error-600': errors.email }"
           placeholder="Enter your email"
         />
-        <p v-if="errors.email" class="mt-1 text-sm text-error-600 dark:text-error-400">
+        <p v-if="errors.email" class="mt-1  text-sm  text-error-600 dark:text-error-400">
           {{ errors.email }}
         </p>
       </div>
@@ -51,7 +51,7 @@
         <button
           type="submit"
           :disabled="isLoading"
-          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm  text-sm  font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <span v-if="isLoading" class="loading-spinner mr-2"></span>
           {{ isLoading ? 'Sending...' : 'Send Reset Link' }}
@@ -60,7 +60,7 @@
 
       <!-- Back to login -->
       <div class="text-center">
-        <NuxtLink to="/login" class="text-sm font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
+        <NuxtLink to="/login" class=" text-sm  font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
           Back to Sign In
         </NuxtLink>
       </div>
@@ -70,7 +70,7 @@
     <form v-else-if="isResetting" class="mt-8 space-y-6" @submit.prevent="handlePasswordUpdate">
       <div class="space-y-4">
         <div>
-          <label for="password" class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
+          <label for="password" class="block  text-sm  font-medium text-secondary-700 dark:text-secondary-300 mb-1">
             New Password
           </label>
           <input
@@ -84,13 +84,13 @@
             :class="{ 'border-error-300 dark:border-error-600': errors.password }"
             placeholder="Enter your new password"
           />
-          <p v-if="errors.password" class="mt-1 text-sm text-error-600 dark:text-error-400">
+          <p v-if="errors.password" class="mt-1  text-sm  text-error-600 dark:text-error-400">
             {{ errors.password }}
           </p>
         </div>
 
         <div>
-          <label for="confirmPassword" class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
+          <label for="confirmPassword" class="block  text-sm  font-medium text-secondary-700 dark:text-secondary-300 mb-1">
             Confirm New Password
           </label>
           <input
@@ -104,7 +104,7 @@
             :class="{ 'border-error-300 dark:border-error-600': errors.confirmPassword }"
             placeholder="Confirm your new password"
           />
-          <p v-if="errors.confirmPassword" class="mt-1 text-sm text-error-600 dark:text-error-400">
+          <p v-if="errors.confirmPassword" class="mt-1  text-sm  text-error-600 dark:text-error-400">
             {{ errors.confirmPassword }}
           </p>
         </div>
@@ -120,7 +120,7 @@
         <button
           type="submit"
           :disabled="isLoading"
-          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm  text-sm  font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <span v-if="isLoading" class="loading-spinner mr-2"></span>
           {{ isLoading ? 'Updating...' : 'Update Password' }}
@@ -130,7 +130,7 @@
 
     <!-- Back to login after success -->
     <div v-if="showSuccess" class="text-center">
-      <NuxtLink to="/login" class="inline-flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors">
+      <NuxtLink to="/login" class="inline-flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm  text-sm  font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors">
         Back to Sign In
       </NuxtLink>
     </div>

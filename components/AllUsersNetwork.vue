@@ -21,14 +21,14 @@
       color: secondaryColor
     }">
       <h3 class="font-bold mb-2">{{ displayNodeInfo.type === 'spark' ? 'Spark' : displayNodeInfo.label }}</h3>
-      <p v-if="displayNodeInfo.content" class="text-sm italic mb-2">"{{ displayNodeInfo.content }}"</p>
-      <p class="text-sm">Type: {{ displayNodeInfo.type }}</p>
-      <p v-if="displayNodeInfo.predefined !== undefined" class="text-sm">Predefined: {{ displayNodeInfo.predefined ? 'Yes' : 'No' }}</p>
+      <p v-if="displayNodeInfo.content" class=" text-sm  italic mb-2">"{{ displayNodeInfo.content }}"</p>
+      <p class=" text-sm ">Type: {{ displayNodeInfo.type }}</p>
+      <p v-if="displayNodeInfo.predefined !== undefined" class=" text-sm ">Predefined: {{ displayNodeInfo.predefined ? 'Yes' : 'No' }}</p>
     </div>
 
     <!-- Color Legend -->
     <div class="absolute bottom-4 right-4 bg-white dark:bg-secondary-800 p-3 rounded-lg shadow-md border border-secondary-200 dark:border-secondary-700">
-      <p class="text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">Node Colors:</p>
+      <p class=" text-sm  font-medium text-secondary-700 dark:text-secondary-300 mb-2">Node Colors:</p>
       <div class="flex flex-col space-y-1 text-xs">
         <div v-for="(item, index) in legendItems" :key="index" class="flex items-center space-x-2">
           <span :style="{ backgroundColor: item.color }" class="w-4 h-4 rounded-full border border-secondary-300 dark:border-secondary-600"></span>

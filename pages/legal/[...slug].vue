@@ -1,19 +1,21 @@
 <script lang="ts" setup>
 
 definePageMeta({
-    layout: 'legal',
+    layout: 'public',
 });
 </script>
 
 <template>
-  <main>
-    <ContentDoc />
+  <main class="py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <ContentDoc class="legal-content" />
+    </div>
   </main>
 </template>
 
 <style>
 .legal-content * {
-  font-size: 1.125rem; /* text-lg */
+  font-size: 1.125rem; /*  text-sm  */
   line-height: 1.75rem; /* leading-7 */
 }
 

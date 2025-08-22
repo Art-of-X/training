@@ -35,8 +35,8 @@ export default defineEventHandler(async (event) => {
       },
     });
 
-    // We only want to return sessions that have messages.
-    const sessionsWithMessages = chatSessions.filter(session => session.chatMessages.length > 0);
+    // We only want to return sessions that have at least 2 messages (a prompt and a reply).
+    const sessionsWithMessages = chatSessions.filter(session => session.chatMessages.length >= 2);
 
     return sessionsWithMessages;
 

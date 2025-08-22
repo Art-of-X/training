@@ -5,7 +5,7 @@
       <h1 class="text-3xl font-bold text-secondary-900 dark:text-white mb-2">
         Monologue Training
       </h1>
-      <p class="text-lg text-secondary-600 dark:text-secondary-300">
+      <p class=" text-sm  text-secondary-600 dark:text-secondary-300">
         Record audio responses to questions to help the AI understand your thought
         process and communication style.
       </p>
@@ -20,7 +20,7 @@
             Your Progress
           </h2>
           <div
-            class="flex items-center justify-between text-sm text-secondary-600 dark:text-secondary-300 mb-2"
+            class="flex items-center justify-between  text-sm  text-secondary-600 dark:text-secondary-300 mb-2"
           >
             <span>Overall Completion</span>
             <span
@@ -42,7 +42,7 @@
         <div class="card-header dark:border-secondary-700">
           <h2 class="text-xl font-semibold text-secondary-900 dark:text-white">
             Questions to Answer
-            <span class="text-sm font-normal text-secondary-500 dark:text-secondary-400 ml-2">
+            <span class=" text-sm  font-normal text-secondary-500 dark:text-secondary-400 ml-2">
               ({{ unansweredQuestions.length }} remaining)
             </span>
           </h2>
@@ -72,7 +72,7 @@
         <div class="card-header dark:border-secondary-700">
           <h2 class="text-xl font-semibold text-secondary-900 dark:text-white">
             Completed Questions
-            <span class="text-sm font-normal text-secondary-500 dark:text-secondary-400 ml-2">
+            <span class=" text-sm  font-normal text-secondary-500 dark:text-secondary-400 ml-2">
               ({{ answeredQuestions.length }} answered)
             </span>
           </h2>
@@ -129,7 +129,7 @@
           </button>
         </div>
         <div class="card-body">
-          <div class="text-lg text-secondary-800 dark:text-secondary-200 leading-relaxed">
+          <div class=" text-sm  text-secondary-800 dark:text-secondary-200 leading-relaxed">
             {{ activeQuestion.text }}
           </div>
         </div>
@@ -151,7 +151,7 @@
               <h2 class="text-xl font-semibold text-secondary-900 dark:text-white">
                 Your Audio Response
               </h2>
-              <p class="text-sm text-secondary-600 dark:text-secondary-300 mt-1">
+              <p class=" text-sm  text-secondary-600 dark:text-secondary-300 mt-1">
                 Submitted on {{ new Date(existingSubmission.createdAt).toLocaleDateString() }}
                 <span v-if="existingSubmission.durationSeconds">
                   • Duration: {{ Math.floor(existingSubmission.durationSeconds / 60) }}:{{ String(existingSubmission.durationSeconds % 60).padStart(2, '0') }}
@@ -183,14 +183,14 @@
                 </svg>
                 <div class="flex-1">
                   <h3 class="font-medium text-secondary-900 dark:text-white">Supplementary File</h3>
-                  <p class="text-sm text-secondary-600 dark:text-secondary-400">
+                  <p class=" text-sm  text-secondary-600 dark:text-secondary-400">
                     {{ existingSubmission.supplementaryDescription }}
                   </p>
                   <a 
                     :href="existingSubmission.supplementaryFilePath" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 text-sm underline"
+                    class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300  text-sm  underline"
                   >
                     View File
                   </a>
@@ -204,14 +204,14 @@
                 </svg>
                 <div class="flex-1">
                   <h3 class="font-medium text-secondary-900 dark:text-white">Supplementary Link</h3>
-                  <p class="text-sm text-secondary-600 dark:text-secondary-400 mb-1">
+                  <p class=" text-sm  text-secondary-600 dark:text-secondary-400 mb-1">
                     {{ existingSubmission.supplementaryDescription }}
                   </p>
                   <a 
                     :href="existingSubmission.supplementaryLink" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 text-sm underline break-all"
+                    class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300  text-sm  underline break-all"
                   >
                     {{ existingSubmission.supplementaryLink }}
                   </a>
@@ -259,7 +259,7 @@
             <h2 class="text-xl font-semibold text-secondary-900 dark:text-white">
               Audio Recording
             </h2>
-            <p class="text-sm text-secondary-600 dark:text-secondary-300 mt-1">
+            <p class=" text-sm  text-secondary-600 dark:text-secondary-300 mt-1">
               Take your time to think and respond naturally to the prompt above
             </p>
           </div>
@@ -291,7 +291,7 @@
                 </div>
 
                 <!-- Duration -->
-                <div class="text-lg font-mono text-secondary-900 dark:text-white">
+                <div class=" text-sm  font-mono text-secondary-900 dark:text-white">
                   {{ formattedDuration }}
                 </div>
               </div>
@@ -456,9 +456,9 @@
           <div class="card-header dark:border-secondary-700">
             <h2 class="text-xl font-semibold text-secondary-900 dark:text-white">
               Supplementary Content
-              <span class="text-sm font-normal text-secondary-500 dark:text-secondary-400">(Optional)</span>
+              <span class=" text-sm  font-normal text-secondary-500 dark:text-secondary-400">(Optional)</span>
             </h2>
-            <p class="text-sm text-secondary-600 dark:text-secondary-300 mt-1">
+            <p class=" text-sm  text-secondary-600 dark:text-secondary-300 mt-1">
               Add a file or link that supports your response
             </p>
           </div>
@@ -473,7 +473,7 @@
                   @change="clearSupplementaryContent"
                   class="text-primary-600 border-secondary-300 focus:ring-primary-500 dark:border-secondary-600 dark:bg-secondary-700"
                 >
-                <span class="text-sm text-secondary-700 dark:text-secondary-300">File Upload</span>
+                <span class=" text-sm  text-secondary-700 dark:text-secondary-300">File Upload</span>
               </label>
               <label class="flex items-center space-x-2 cursor-pointer">
                 <input 
@@ -483,7 +483,7 @@
                   @change="clearSupplementaryContent"
                   class="text-primary-600 border-secondary-300 focus:ring-primary-500 dark:border-secondary-600 dark:bg-secondary-700"
                 >
-                <span class="text-sm text-secondary-700 dark:text-secondary-300">Link</span>
+                <span class=" text-sm  text-secondary-700 dark:text-secondary-300">Link</span>
               </label>
             </div>
 
@@ -541,7 +541,7 @@
                 <svg class="w-12 h-12 text-secondary-400 dark:text-secondary-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
-                <p class="text-secondary-500 dark:text-secondary-400 text-sm">
+                <p class="text-secondary-500 dark:text-secondary-400  text-sm ">
                   No file selected
                 </p>
               </div>
@@ -599,7 +599,7 @@
                 <svg class="w-12 h-12 text-secondary-400 dark:text-secondary-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
                 </svg>
-                <p class="text-secondary-500 dark:text-secondary-400 text-sm">
+                <p class="text-secondary-500 dark:text-secondary-400  text-sm ">
                   No link provided
                 </p>
               </div>
@@ -612,7 +612,7 @@
       <div v-if="!isViewMode && recordedBlob && !isRecording" class="card dark:bg-secondary-800 dark:border-secondary-700 mb-8">
         <div class="card-header dark:border-secondary-700">
           <h2 class="text-xl font-semibold text-secondary-900 dark:text-white">Ready to Submit</h2>
-          <p class="text-sm text-secondary-600 dark:text-secondary-300 mt-1">
+          <p class=" text-sm  text-secondary-600 dark:text-secondary-300 mt-1">
             Review your response before submitting
           </p>
         </div>
@@ -625,7 +625,7 @@
               </svg>
               <div class="flex-1">
                 <h3 class="font-medium text-secondary-900 dark:text-white">Audio Recording</h3>
-                <p class="text-sm text-secondary-600 dark:text-secondary-400">
+                <p class=" text-sm  text-secondary-600 dark:text-secondary-400">
                   Duration: {{ formattedDuration }}
                 </p>
               </div>
@@ -641,7 +641,7 @@
               </svg>
               <div class="flex-1">
                 <h3 class="font-medium text-secondary-900 dark:text-white">{{ supplementaryFile.file.name }}</h3>
-                <p class="text-sm text-secondary-600 dark:text-secondary-400">
+                <p class=" text-sm  text-secondary-600 dark:text-secondary-400">
                   {{ supplementaryFile.description || 'No description provided' }}
                 </p>
                 <p class="text-xs text-secondary-500 dark:text-secondary-400">
@@ -660,7 +660,7 @@
               </svg>
               <div class="flex-1">
                 <h3 class="font-medium text-secondary-900 dark:text-white break-all">{{ supplementaryLink.url }}</h3>
-                <p class="text-sm text-secondary-600 dark:text-secondary-400">
+                <p class=" text-sm  text-secondary-600 dark:text-secondary-400">
                   {{ supplementaryLink.description || 'No description provided' }}
                 </p>
               </div>
@@ -697,7 +697,7 @@
               </div>
               
               <div v-if="(supplementaryFile.file && !supplementaryFile.description?.trim()) || (supplementaryLink.url.trim() && !supplementaryLink.description?.trim())" class="mt-2 text-center">
-                <p class="text-sm text-error-600 dark:text-error-400">
+                <p class=" text-sm  text-error-600 dark:text-error-400">
                   Please provide a description for the {{ supplementaryFile.file ? 'uploaded file' : 'link' }} before submitting
                 </p>
               </div>
@@ -709,7 +709,7 @@
       <!-- Upload Progress -->
       <div v-if="!isViewMode && isUploading" class="card dark:bg-secondary-800 dark:border-secondary-700 mb-8">
         <div class="card-body">
-          <div class="flex items-center justify-between text-sm text-secondary-600 dark:text-secondary-300 mb-2">
+          <div class="flex items-center justify-between  text-sm  text-secondary-600 dark:text-secondary-300 mb-2">
             <span>Submitting your response{{ supplementaryFile.file ? ' with supplementary file' : supplementaryLink.url.trim() ? ' with supplementary link' : '' }}...</span>
             <span>{{ Math.round(uploadProgress.percentage) }}%</span>
           </div>
@@ -1120,14 +1120,14 @@ const shuffleArray = <T>(array: T[]): T[] => {
 
 <style scoped>
 .form-label {
-  @apply block text-sm font-medium text-secondary-700 dark:text-secondary-300;
+  @apply block  text-sm  font-medium text-secondary-700 dark:text-secondary-300;
 }
 
 .form-input-file {
-  @apply block w-full text-sm text-secondary-900 border border-secondary-300 rounded-md cursor-pointer bg-secondary-50 dark:text-secondary-400 focus:outline-none dark:bg-secondary-700 dark:border-secondary-600 dark:placeholder-secondary-400
+  @apply block w-full  text-sm  text-secondary-900 border border-secondary-300 rounded-md cursor-pointer bg-secondary-50 dark:text-secondary-400 focus:outline-none dark:bg-secondary-700 dark:border-secondary-600 dark:placeholder-secondary-400
   file:mr-4 file:py-2 file:px-4
   file:rounded-l-md file:border-0
-  file:text-sm file:font-semibold
+  file: text-sm  file:font-semibold
   file:bg-primary-50 file:text-primary-700
   hover:file:bg-primary-100;
 }

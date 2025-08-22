@@ -12,12 +12,12 @@
       <div class="relative w-full max-w-4xl bg-white dark:bg-secondary-900 shadow-xl">
         <!-- Header -->
         <div class="flex items-center justify-between p-6 border-b border-secondary-200 dark:border-secondary-700">
-          <h2 class="text-2xl font-bold text-secondary-900 dark:text-white">
+          <h2 class=" text-3xl  font-bold text-secondary-900 dark:text-white">
             {{ version === 'research' ? 'Research Study Information' : 'Privacy Policy & Terms' }}
           </h2>
           <button 
             @click="closeModal"
-            class="text-secondary-500 hover:text-secondary-700 dark:text-secondary-400 dark:hover:text-secondary-200 text-2xl font-bold"
+            class="text-secondary-500 hover:text-secondary-700 dark:text-secondary-400 dark:hover:text-secondary-200  text-3xl  font-bold"
           >
             ×
           </button>
@@ -160,7 +160,7 @@ onMounted(loadPolicyContent)
 }
 
 .policy-content :deep(h1) {
-  @apply text-2xl font-bold mb-4 text-secondary-900 dark:text-white;
+  @apply  text-3xl  font-bold mb-4 text-secondary-900 dark:text-white;
 }
 
 .policy-content :deep(h2) {
@@ -168,7 +168,7 @@ onMounted(loadPolicyContent)
 }
 
 .policy-content :deep(h3) {
-  @apply text-lg font-semibold mb-2 mt-4 text-secondary-900 dark:text-white;
+  @apply  text-sm  font-semibold mb-2 mt-4 text-secondary-900 dark:text-white;
 }
 
 .policy-content :deep(p) {

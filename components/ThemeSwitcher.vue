@@ -18,7 +18,7 @@
           v-for="theme in themes"
           :key="theme.value"
           @click="setTheme(theme.value)"
-          class="px-4 py-2 text-sm text-secondary-700 dark:text-secondary-300 hover:bg-secondary-100 dark:hover:bg-secondary-700 cursor-pointer"
+          class="px-4 py-2  text-sm  text-secondary-700 dark:text-secondary-300 hover:bg-secondary-100 dark:hover:bg-secondary-700 cursor-pointer"
           :class="{ 'font-bold text-primary-600 dark:text-primary-400': colorMode.preference === theme.value }"
         >
           {{ theme.name }}

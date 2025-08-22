@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-secondary-900 dark:text-white mb-2">Peer Training</h1>
-        <p class="text-lg text-secondary-600 dark:text-secondary-300">
+        <p class=" text-sm  text-secondary-600 dark:text-secondary-300">
           Collaborative video sessions with other artists to capture dynamic creative interactions and peer learning dynamics.
         </p>
       </div>
@@ -22,19 +22,19 @@
               </svg>
             </div>
             
-            <h3 class="text-2xl font-semibold text-secondary-900 dark:text-white mb-4">
+            <h3 class=" text-3xl  font-semibold text-secondary-900 dark:text-white mb-4">
               Advanced Video Collaboration
             </h3>
             
             <div class="max-w-2xl mx-auto space-y-4 text-secondary-600 dark:text-secondary-300">
-              <p class="text-lg">
+              <p class=" text-sm ">
                 Connect with other artists for recorded collaborative sessions that capture the dynamics of creative peer interaction.
               </p>
               
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                 <div class="text-left">
                   <h4 class="font-semibold text-secondary-900 dark:text-white mb-2">Features Coming Soon:</h4>
-                  <ul class="space-y-2 text-sm">
+                  <ul class="space-y-2  text-sm ">
                     <li class="flex items-center space-x-2">
                       <div class="w-2 h-2 bg-primary-600"></div>
                       <span>Real-time video/audio communication</span>
@@ -56,7 +56,7 @@
                 
                 <div class="text-left">
                   <h4 class="font-semibold text-secondary-900 dark:text-white mb-2">Integration Technology:</h4>
-                  <ul class="space-y-2 text-sm">
+                  <ul class="space-y-2  text-sm ">
                     <li class="flex items-center space-x-2">
                       <div class="w-2 h-2 bg-success-600"></div>
                       <span>WebRTC for peer-to-peer communication</span>
@@ -94,13 +94,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
               </svg>
             </div>
-            <h3 class="text-lg font-semibold text-secondary-700 dark:text-secondary-200 mb-2">
+            <h3 class=" text-sm  font-semibold text-secondary-700 dark:text-secondary-200 mb-2">
               Peer Training Interface
             </h3>
             <p class="text-secondary-600 dark:text-secondary-300 mb-4">
               The collaborative video training interface will be integrated here using WebRTC technology.
             </p>
-            <div class="text-sm text-secondary-500 dark:text-secondary-400">
+            <div class=" text-sm  text-secondary-500 dark:text-secondary-400">
               Expected features: Video calling, screen sharing, session recording, and collaborative tools.
             </div>
           </div>

@@ -1,8 +1,8 @@
 <template>
   <div>
     <div class="flex justify-between mb-1">
-      <span class="text-sm font-medium text-secondary-700 dark:text-secondary-300">{{ label }}</span>
-      <span class="text-sm font-medium text-secondary-700 dark:text-secondary-300">{{ percentage }}%</span>
+      <span class=" text-sm  font-medium text-secondary-700 dark:text-secondary-300">{{ label }}</span>
+      <span class=" text-sm  font-medium text-secondary-700 dark:text-secondary-300">{{ percentage }}%</span>
     </div>
     <div class="w-full bg-secondary-200 rounded-full h-2.5 dark:bg-secondary-700">
       <div class="bg-primary-600 h-2.5 rounded-full" :style="{ width: `${percentage}%` }"></div>

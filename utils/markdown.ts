@@ -7,9 +7,9 @@ export function renderMarkdown(content: string): string {
   
   return content
     // Headers
-    .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mt-3 mb-2">$1</h3>')
+    .replace(/^### (.*$)/gim, '<h3 class=" text-sm  font-semibold mt-3 mb-2">$1</h3>')
     .replace(/^## (.*$)/gim, '<h2 class="text-base font-semibold mt-3 mb-2">$1</h2>')
-    .replace(/^# (.*$)/gim, '<h1 class="text-sm font-semibold mt-2 mb-1">$1</h1>')
+    .replace(/^# (.*$)/gim, '<h1 class=" text-sm  font-semibold mt-2 mb-1">$1</h1>')
     
     // Bold text
     .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
@@ -84,7 +84,7 @@ export const markdownStyles = `
 }
 
 .markdown-content :deep(h1) {
-  @apply text-lg font-semibold mt-3 mb-2 text-gray-900 dark:text-white;
+  @apply  text-sm  font-semibold mt-3 mb-2 text-gray-900 dark:text-white;
 }
 
 .markdown-content :deep(h2) {
@@ -92,7 +92,7 @@ export const markdownStyles = `
 }
 
 .markdown-content :deep(h3) {
-  @apply text-sm font-semibold mt-2 mb-1 text-gray-900 dark:text-white;
+  @apply  text-sm  font-semibold mt-2 mb-1 text-gray-900 dark:text-white;
 }
 
 .markdown-content :deep(p) {
@@ -112,7 +112,7 @@ export const markdownStyles = `
 }
 
 .markdown-content :deep(code:not(pre code)) {
-  @apply bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm font-mono text-gray-800 dark:text-gray-200;
+  @apply bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded  text-sm  font-mono text-gray-800 dark:text-gray-200;
 }
 
 .markdown-content :deep(pre) {
@@ -120,7 +120,7 @@ export const markdownStyles = `
 }
 
 .markdown-content :deep(pre code) {
-  @apply bg-transparent p-0 text-sm text-gray-800 dark:text-gray-200;
+  @apply bg-transparent p-0  text-sm  text-gray-800 dark:text-gray-200;
 }
 
 .markdown-content :deep(ul) {
@@ -152,11 +152,11 @@ export const markdownStyles = `
 }
 
 .markdown-content :deep(td) {
-  @apply border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300 text-sm;
+  @apply border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-700 dark:text-gray-300  text-sm ;
 }
 
 .markdown-content :deep(th) {
-  @apply border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-white font-semibold bg-gray-50 dark:bg-gray-800 text-sm;
+  @apply border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-gray-900 dark:text-white font-semibold bg-gray-50 dark:bg-gray-800  text-sm ;
 }
 
 /* Ensure proper spacing for embedded mode */

@@ -13,6 +13,7 @@ model UserProfile {
   createdAt                DateTime                  @default(now()) @map("created_at")
   updatedAt                DateTime                  @updatedAt @map("updated_at")
   name                     String
+  favoriteSparkIds         String[]                  @default([]) @map("favorite_spark_ids") @db.Uuid
   autAnswers               AUTAnswer[]
   chatMessages             ChatMessage[]
   chatSessions             ChatSession[]
@@ -22,12 +23,12 @@ model UserProfile {
   patterns                 Pattern[]                 @relation("UserPatterns")
   peerTrainingParticipants PeerTrainingParticipant[] @relation("Participants")
   portfolioItems           PortfolioItem[]
+  projectRuns              ProjectRun[]              @relation("UserProjectRuns")
   projects                 Project[]
   ratAnswers               RATAnswer[]
+  sparks                   Spark[]                   @relation("UserSparks")
   preferences              UserPreferences?
   voiceAgentRecordings     VoiceAgentRecording[]
-  projectRuns              ProjectRun[]           @relation("UserProjectRuns")
-  sparks                   Spark[]                 @relation("UserSparks")
 
   @@map("user_profiles")
 }
@@ -39,8 +40,8 @@ model UserPreferences {
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
   preferredLanguage String      @default("en") @map("preferred_language")
-  memory            String?
   voiceId           String?     @map("voice_id")
+  memory            String?
   user              UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_preferences")
@@ -195,34 +196,36 @@ model Pattern {
   spark                  String
   createdAt              DateTime     @default(now()) @map("created_at")
   isPredefined           Boolean      @default(true) @map("is_predefined")
-  sparkId                String       @map("spark_id") @db.Uuid
+  sparkId                String?      @map("spark_id") @db.Uuid
   isPredefinedMethod     Boolean      @default(false) @map("is_predefined_method")
   isPredefinedCompetency Boolean      @default(false) @map("is_predefined_competency")
-  sparkRef               Spark        @relation("SparkPatterns", fields: [sparkId], references: [id], onDelete: Cascade)
+  sparkRef               Spark?       @relation("SparkPatterns", fields: [sparkId], references: [id], onDelete: Cascade)
   user                   UserProfile? @relation("UserPatterns", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([isPredefinedCompetency], map: "idx_patterns_predefined_competency")
   @@index([isPredefinedMethod], map: "idx_patterns_predefined_method")
+  @@index([sparkId], map: "idx_patterns_spark_id")
   @@map("patterns")
 }
 
 model Spark {
-  id            String             @id @default(uuid()) @db.Uuid
-  name          String
-  description   String
-  systemPrompt  String             @map("system_prompt")
-  discipline    String
-  userId        String?            @map("user_id") @db.Uuid
-  createdAt     DateTime           @default(now()) @map("created_at")
-  updatedAt     DateTime           @updatedAt @map("updated_at")
-  outputs       Output[]
-  patterns      Pattern[]          @relation("SparkPatterns")
-  dendrograms   SparkDendrogram[]
-  projects      SparksOnProjects[]
-  user          UserProfile?       @relation("UserSparks", fields: [userId], references: [id], onDelete: SetNull)
-  isPublic      Boolean            @default(false) @map("is_public")
-  publicShareId String?            @unique @map("public_share_id") @db.Uuid
-  profitSplitOptIn Boolean         @default(false) @map("profit_split_opt_in")
+  id               String             @id @default(uuid()) @db.Uuid
+  name             String
+  description      String
+  systemPrompt     String             @map("system_prompt")
+  discipline       String
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  userId           String?            @map("user_id") @db.Uuid
+  isPublic         Boolean            @default(false) @map("is_public")
+  isPremium        Boolean            @default(false) @map("is_premium")
+  publicShareId    String?            @unique @map("public_share_id") @db.Uuid
+  profitSplitOptIn Boolean            @default(false) @map("profit_split_opt_in")
+  outputs          Output[]
+  patterns         Pattern[]          @relation("SparkPatterns")
+  dendrograms      SparkDendrogram?
+  user             UserProfile?       @relation("UserSparks", fields: [userId], references: [id], onUpdate: NoAction)
+  projects         SparksOnProjects[]
 
   @@map("sparks")
 }
@@ -236,9 +239,9 @@ model Project {
   updatedAt    DateTime           @updatedAt @map("updated_at")
   contextItems ContextItem[]
   outputs      Output[]
+  runs         ProjectRun[]       @relation("ProjectRuns")
   user         UserProfile        @relation(fields: [userId], references: [id], onDelete: Cascade)
   sparks       SparksOnProjects[]
-  runs         ProjectRun[]        @relation("ProjectRuns")
 
   @@map("projects")
 }
@@ -269,19 +272,19 @@ model SparksOnProjects {
 }
 
 model Output {
-  id             String   @id @default(uuid()) @db.Uuid
-  projectId      String   @map("project_id") @db.Uuid
-  sparkId        String   @map("spark_id") @db.Uuid
-  title          String?  // Title of the idea (optional initially for existing data)
-  text           String   // Full description/content of the idea
-  coverPrompt    String?  // Prompt for generating visual cover with diffusion model
-  coverImageUrl  String?  // URL of the generated cover image
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-  runId          String?  @map("run_id") @db.Uuid
-  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  spark          Spark    @relation(fields: [sparkId], references: [id], onDelete: Cascade)
-  run            ProjectRun? @relation("RunOutputs", fields: [runId], references: [id], onDelete: SetNull)
+  id            String      @id @default(uuid()) @db.Uuid
+  projectId     String      @map("project_id") @db.Uuid
+  sparkId       String      @map("spark_id") @db.Uuid
+  text          String
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  runId         String?     @map("run_id") @db.Uuid
+  title         String?
+  coverPrompt   String?
+  coverImageUrl String?
+  project       Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  run           ProjectRun? @relation("RunOutputs", fields: [runId], references: [id])
+  spark         Spark       @relation(fields: [sparkId], references: [id], onDelete: Cascade)
 
   @@map("outputs")
 }
@@ -299,61 +302,44 @@ model SparkDendrogram {
 }
 
 model ProjectRun {
-  id         String      @id @default(uuid()) @db.Uuid
-  projectId  String      @map("project_id") @db.Uuid
-  userId     String      @map("user_id") @db.Uuid
-  status     String      @default("running")
-  createdAt  DateTime    @default(now()) @map("created_at")
-  finishedAt DateTime?   @map("finished_at")
+  id         String            @id @default(uuid()) @db.Uuid
+  projectId  String            @map("project_id") @db.Uuid
+  userId     String            @map("user_id") @db.Uuid
+  status     String            @default("running")
+  createdAt  DateTime          @default(now()) @map("created_at")
+  finishedAt DateTime?         @map("finished_at")
   summary    String?
-  project    Project     @relation("ProjectRuns", fields: [projectId], references: [id], onDelete: Cascade)
-  user       UserProfile @relation("UserProjectRuns", fields: [userId], references: [id], onDelete: Cascade)
-  outputs    Output[]    @relation("RunOutputs")
+  outputs    Output[]          @relation("RunOutputs")
   events     ProjectRunEvent[] @relation("RunEvents")
+  project    Project           @relation("ProjectRuns", fields: [projectId], references: [id], onDelete: Cascade)
+  user       UserProfile       @relation("UserProjectRuns", fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("project_runs")
 }
 
 model ProjectRunEvent {
-  id        Int         @id @default(autoincrement())
-  runId     String      @map("run_id") @db.Uuid
+  id        Int        @id @default(autoincrement())
+  runId     String     @map("run_id") @db.Uuid
   type      String
   payload   Json
-  createdAt DateTime    @default(now()) @map("created_at")
-  run       ProjectRun  @relation("RunEvents", fields: [runId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now()) @map("created_at")
+  run       ProjectRun @relation("RunEvents", fields: [runId], references: [id], onDelete: Cascade)
 
   @@index([runId, id])
   @@map("project_run_events")
 }
 
-// Vector chunks for RAG system (stored in Supabase DB with pgvector)
 model VectorChunk {
-  id          String                      @id @default(uuid()) @db.Uuid
-  artistName  String                      @map("artist_name")
+  id          String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  artistName  String                 @map("artist_name") @db.VarChar(255)
   content     String
-  metadata    Json                        @default("{}")
-  embedding   Unsupported("vector(1536)")
-  contentHash String                      @unique @map("content_hash")
-  createdAt   DateTime                    @default(now()) @map("created_at")
+  metadata    Json
+  embedding   Unsupported("vector")?
+  contentHash String                 @unique @map("content_hash") @db.VarChar(64)
+  createdAt   DateTime?              @default(now()) @map("created_at") @db.Timestamp(6)
+  updated_at  DateTime?              @default(now()) @db.Timestamp(6)
 
+  @@index([artistName], map: "idx_vector_chunks_artist_name")
+  @@index([embedding], map: "idx_vector_chunks_embedding")
   @@map("vector_chunks")
-  @@index([artistName])
-  @@index([contentHash])
-}
-
-// Optional: RAG query history for analytics/debugging
-model RAGQuery {
-  id          String      @id @default(uuid()) @db.Uuid
-  userId      String?     @map("user_id") @db.Uuid
-  artistName  String      @map("artist_name")
-  query       String
-  response    String
-  confidence  Float
-  sources     Json        @default("[]")
-  createdAt   DateTime    @default(now()) @map("created_at")
-
-  @@map("rag_queries")
-  @@index([artistName])
-  @@index([userId])
-  @@index([createdAt])
 }

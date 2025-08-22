@@ -2,7 +2,7 @@
   <div class="flex flex-col items-center space-y-4">
     <!-- Microphone Error UI -->
     <div v-if="micError" class="flex flex-col items-center space-y-2 w-full max-w-md mt-4">
-      <div class="text-red-500 text-center text-sm">{{ micError }}</div>
+      <div class="text-red-500 text-center  text-sm ">{{ micError }}</div>
       <button @click="retryMicAccess" class="btn-primary px-4 py-2 mt-2">Retry Microphone Access</button>
       <div class="text-xs text-gray-500 mt-1 text-center">
         If you don't see a browser prompt, check your browser's address bar or site settings to allow microphone access.
@@ -78,17 +78,17 @@
       </div>
 
       <!-- Upload Progress -->
-      <div v-if="isUploadingFile" class="text-sm text-blue-600 dark:text-blue-400 text-center">
+      <div v-if="isUploadingFile" class=" text-sm  text-blue-600 dark:text-blue-400 text-center">
         Uploading file...
       </div>
 
       <!-- Upload Error -->
-      <div v-if="uploadError" class="text-sm text-red-500 text-center">
+      <div v-if="uploadError" class=" text-sm  text-red-500 text-center">
         {{ uploadError }}
       </div>
 
       <!-- Small Status Notification -->
-      <div class="text-sm text-gray-600 dark:text-gray-400 text-center">
+      <div class=" text-sm  text-gray-600 dark:text-gray-400 text-center">
         {{ voiceStatus }}
       </div>
 

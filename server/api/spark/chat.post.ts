@@ -67,7 +67,17 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'sparkId is required' })
     }
 
-    const spark = await prisma.spark.findUnique({ where: { id: sparkId } })
+    // Select only fields we need to avoid selecting columns that may be missing in some envs
+    const spark = await prisma.spark.findUnique({ 
+      where: { id: sparkId },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        systemPrompt: true,
+        isPublic: true,
+      }
+    })
     if (!spark) {
       throw createError({ statusCode: 404, statusMessage: 'Spark not found' })
     }

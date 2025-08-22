@@ -1,31 +1,23 @@
 <template>
-  <footer v-if="!isAuthenticated" class="fixed bottom-0 left-0 right-0 bg-transparent p-4 z-50">
-    <div class="container-wide mx-auto">
-      <div class="flex justify-center items-center space-x-4">
-        <NuxtLink :to="imprintLink" class="text-xs text-neutral-800 hover:underline">Imprint</NuxtLink>
-        <span class="text-xs text-neutral-700">|</span>
-        <NuxtLink :to="dataprivacyLink" class="text-xs text-neutral-800 hover:underline">Data Privacy</NuxtLink>
+  <div :style="`background-color: ${primaryColor};`" class="py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div :style="`color: ${secondaryColor};`" class="text-end flex md:flex-col col-span-2 py-6">
+        <div class="mt-auto ms-auto text-xl">
+          <p class="font-bold">art× - Art of X UG (haftungsbeschränkt)</p>
+          <p>Goethestr. 59</p>
+          <p>10625 Berlin</p>
+          <p>HRB 266185 B</p>
+          <NuxtLink to="/legal/imprint" :style="`color: ${secondaryColor}`">Imprint</NuxtLink>
+          |
+          <NuxtLink to="/legal/dataprivacy" :style="`color: ${secondaryColor}`">Data Privacy</NuxtLink>
+          |
+          <NuxtLink to="/legal/terms" :style="`color: ${secondaryColor}`">Terms of Service</NuxtLink>
+        </div>
       </div>
     </div>
-  </footer>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { NuxtLink } from '#components'
-import { computed } from 'vue'
-
-const user = useSupabaseUser()
-
-const isAuthenticated = computed(() => !!user.value)
-
-const isHfbk = computed(() => {
-  if (typeof window !== 'undefined') {
-    return window.location.host.endsWith('hfbk.net')
-  }
-  // Optionally, check process.env for SSR if you have domain info
-  return false
-})
-
-const imprintLink = computed(() => isHfbk.value ? '/hfbk/imprint' : '/legal/imprint')
-const dataprivacyLink = computed(() => isHfbk.value ? '/hfbk/dataprivacy' : '/legal/dataprivacy')
+import { primaryColor, secondaryColor } from '~/composables/useDynamicColors';
 </script> 

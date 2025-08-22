@@ -8,7 +8,7 @@
       <section class="border-b-4 border-secondary-200 dark:border-secondary-700 pb-4 mb-4 relative">
         <div class="flex flex-wrap items-center justify-between gap-4">
           <h1 class="text-3xl font-bold">Chat</h1>
-          <div v-if="progressPercent < 100" class="text-sm font-medium text-secondary-700 dark:text-secondary-300">
+          <div v-if="progressPercent < 100" class=" text-sm  font-medium text-secondary-700 dark:text-secondary-300">
             <span>{{ displayPercent }}% until your own spark</span>
           </div>
         </div>
@@ -42,9 +42,13 @@
                 :class="[
                   'rounded-lg max-w-lg',
                   message.role === 'user'
-                    ? 'bg-transparent border '
-                    : 'bg-secondary-200 dark:bg-secondary-700 text-primary-500',
+                    ? 'text-white'
+                    : 'text-white',
                 ]"
+                :style="message.role === 'user' 
+                  ? { backgroundColor: secondaryColor, color: primaryColor }
+                  : { backgroundColor: primaryColor, color: secondaryColor }
+                "
               >
                 <MessageContent :message="message" />
               </div>
@@ -55,10 +59,8 @@
               <div class="flex-shrink-0 w-12 h-12 flex items-center justify-start mr-2 overflow-hidden">
                 <div class="x-mask" aria-hidden="true"></div>
               </div>
-              <div class="rounded-lg max-w-lg bg-secondary-200 dark:bg-secondary-700 text-primary-500">
-                <div class="flex items-center p-4">
-                  <div class="blinking-cursor w-3 h-6 bg-primary-500"></div>
-                </div>
+              <div class="flex items-center p-4">
+                <div class="blinking-cursor w-3 h-6 bg-primary-500"></div>
               </div>
             </div>
 
@@ -100,9 +102,7 @@
                   rows="4"
                   ref="messageInput"
                 />
-                <div v-if="isTranscribing" class="pointer-events-none absolute bottom-3 right-3">
-                  <span class="inline-block w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin"></span>
-                </div>
+
               </div>
 
               <div class="flex items-center justify-between">
@@ -110,7 +110,7 @@
                   <button
                     type="button"
                     @click="onRecordClick"
-                    :disabled="isLoading || isUploadingFile"
+                    :disabled="isLoading || isUploadingFile || isTranscribing"
                     :class="[actionButtonClass, isRecording ? 'bg-red-500 text-white' : '']"
                     aria-label="Record a voice memo"
                   >
@@ -121,7 +121,7 @@
                   <button
                     type="button"
                     @click="triggerFileUpload"
-                    :disabled="isLoading || isUploadingFile || isRecording"
+                    :disabled="isLoading || isUploadingFile || isRecording || isTranscribing"
                     :class="actionButtonClass"
                     aria-label="Upload a file"
                   >
@@ -133,7 +133,7 @@
                 <button
                   type="submit"
                   :class="actionButtonClass"
-                  :disabled="isLoading || !canSubmit"
+                  :disabled="isLoading || !canSubmit || isTranscribing"
                 >
                   <div class="send-icon-mask w-5 h-5" aria-hidden="true"></div>
                 </button>
@@ -169,7 +169,15 @@
             <div class="x-mask w-12 h-12" aria-hidden="true"></div>
           </div>
 
-          <div class="max-w-[65%]">
+          <div 
+            :class="[
+              'max-w-[65%] rounded-lg p-3 text-white'
+            ]"
+            :style="message.role === 'user' 
+              ? { backgroundColor: secondaryColor, color: primaryColor }
+              : { backgroundColor: primaryColor, color: secondaryColor }
+            "
+          >
             <MessageContent :message="message" />
           </div>
         </div>
@@ -179,10 +187,8 @@
           <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center mr-2 overflow-hidden">
             <div class="x-mask w-12 h-12" aria-hidden="true"></div>
           </div>
-          <div class="inline-block px-3 rounded-lg max-w-[65%] dark:bg-secondary-700 text-primary-500">
-            <div class="flex items-center">
-              <div class="blinking-cursor w-3 h-12 bg-primary-500"></div>
-            </div>
+          <div class="flex items-center">
+            <div class="blinking-cursor w-3 h-12 bg-primary-500"></div>
           </div>
         </div>
 
@@ -227,9 +233,7 @@
               rows="4"
               ref="messageInput"
             />
-            <div v-if="isTranscribing" class="pointer-events-none absolute bottom-3 right-3">
-              <span class="inline-block w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin"></span>
-            </div>
+
           </div>
 
           <div class="flex items-center justify-between">
@@ -237,7 +241,7 @@
               <button
                 type="button"
                 @click="onRecordClick"
-                :disabled="isLoading || isUploadingFile"
+                :disabled="isLoading || isUploadingFile || isTranscribing"
                 :class="[actionButtonClass, isRecording ? 'bg-red-500 text-white' : '']"
                 aria-label="Record a voice memo"
               >
@@ -248,7 +252,7 @@
               <button
                 type="button"
                 @click="triggerFileUpload"
-                :disabled="isLoading || isUploadingFile || isRecording"
+                :disabled="isLoading || isUploadingFile || isRecording || isTranscribing"
                 :class="actionButtonClass"
                 aria-label="Upload a file"
               >
@@ -257,7 +261,7 @@
               </button>
             </div>
 
-            <button type="submit" :class="actionButtonClass" :disabled="isLoading || !canSubmit">
+            <button type="submit" :class="actionButtonClass" :disabled="isLoading || !canSubmit || isTranscribing">
               <div class="send-icon-mask w-5 h-5" aria-hidden="true"></div>
             </button>
           </div>
@@ -282,16 +286,20 @@ import {
   defineExpose,
 } from "vue";
 import { useTrainingProgress } from "~/composables/useTrainingProgress";
+import { useDynamicColors } from "~/composables/useDynamicColors";
+import { useUpgradeModal } from "~/composables/useUpgradeModal";
 
 // Props
 interface Props {
   embedded?: boolean;
   sparkId?: string; // When provided, runs in spark chat mode (no tools, spark system prompt)
+  maxUserMessages?: number; // Optional cap for user messages (e.g., premium sparks)
 }
 
 const props = withDefaults(defineProps<Props>(), {
   embedded: false,
   sparkId: undefined,
+  maxUserMessages: undefined,
 });
 
 const {
@@ -310,6 +318,10 @@ const {
   currentSessionId,
   transcriptDraft,
 } = useChat({ mode: props.sparkId ? 'spark' : 'default', sparkId: props.sparkId });
+
+// Dynamic colors
+const { primaryColor, secondaryColor } = useDynamicColors();
+const { openUpgradeModal } = useUpgradeModal();
 
 // Training progress (scoped to spark if provided)
 const { progressPercent } = useTrainingProgress(computed(() => props.sparkId))
@@ -352,6 +364,11 @@ const displayMessages = computed(() => {
     return true;
   });
 });
+
+// Count user-authored messages in this chat session
+const userMessageCount = computed(() =>
+  messages.value.reduce((count, m) => (m.role === 'user' ? count + 1 : count), 0)
+);
 
 // Shared button styles for attach and send
 const actionButtonClass = computed(() =>
@@ -460,12 +477,22 @@ const inputProxy = computed({
 const canSubmit = computed(() => {
   const draft = transcriptDraft.value?.trim();
   const typed = inputValue.value?.trim();
-  return Boolean((draft && draft.length > 0) || (typed && typed.length > 0));
+  const hasText = Boolean((draft && draft.length > 0) || (typed && typed.length > 0));
+  if (!hasText) return false;
+  if (props.maxUserMessages !== undefined && userMessageCount.value >= props.maxUserMessages) return false;
+  return true;
 });
 
 // Submit handler
 const handleSubmit = async (e: Event) => {
   e.preventDefault();
+  if (props.maxUserMessages !== undefined && userMessageCount.value >= props.maxUserMessages) {
+    openUpgradeModal({
+      title: 'Message Limit Reached',
+      message: `You can send up to ${props.maxUserMessages} messages to this premium spark on your current plan. Upgrade to continue the conversation.`,
+    });
+    return;
+  }
   const draft = transcriptDraft.value?.trim();
   const typed = inputValue.value?.trim();
   const userMessage = draft && draft.length > 0 ? draft : typed;
@@ -511,6 +538,14 @@ watch(inputValue, () => {
   nextTick(() => {
     autoResizeTextarea();
   });
+  
+  // If user starts typing manually while transcribing, cancel transcription
+  if (isTranscribing.value && inputValue.value.trim().length > 0) {
+    isTranscribing.value = false;
+    if (transcriptDraft.value) {
+      transcriptDraft.value = '';
+    }
+  }
 });
 
 // Watch for changes that should trigger scrolling
@@ -544,6 +579,16 @@ const onRecordClick = async () => {
   if (isRecording.value) {
     stopRecording();
     isTranscribing.value = true; // show while waiting for STT
+    
+    // Safety timeout: if transcription takes too long or fails, reset state
+    setTimeout(() => {
+      if (isTranscribing.value && (!transcriptDraft.value || transcriptDraft.value.trim().length === 0)) {
+        isTranscribing.value = false;
+        if (transcriptDraft.value) {
+          transcriptDraft.value = '';
+        }
+      }
+    }, 10000); // 10 second timeout
   } else {
     isTranscribing.value = false;
     await startRecording();
@@ -551,8 +596,17 @@ const onRecordClick = async () => {
 };
 
 // Hide indicator when transcript text arrives/changes
-watch(transcriptDraft, () => {
-  isTranscribing.value = false;
+watch(transcriptDraft, (newTranscript) => {
+  // If transcript is empty or too short, cancel transcription and allow user to type again
+  if (!newTranscript || newTranscript.trim().length === 0) {
+    isTranscribing.value = false;
+    // Clear any empty transcript draft
+    if (transcriptDraft.value) {
+      transcriptDraft.value = '';
+    }
+  } else {
+    isTranscribing.value = false;
+  }
 });
 
 defineExpose({ cleanup, loadSession });

@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-secondary-900 dark:text-white mb-2">Alternate Uses Test (AUT)</h1>
-      <p class="text-lg text-secondary-600 dark:text-secondary-300">
+      <p class=" text-sm  text-secondary-600 dark:text-secondary-300">
         Think of as many creative and unusual uses as you can for the object mentioned below.
       </p>
     </div>
@@ -26,7 +26,7 @@
       <div v-else-if="submissionSuccess" class="text-center">
           <div class="text-success-600 dark:text-success-400 flex flex-col items-center">
               <svg class="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              <h2 class="text-2xl font-semibold mb-2">Submission Successful!</h2>
+              <h2 class=" text-3xl  font-semibold mb-2">Submission Successful!</h2>
               <p class="text-secondary-600 dark:text-secondary-300 mb-6">Your ideas have been saved. Ready for another challenge?</p>
           </div>
           <button @click="getNextQuestion" class="btn-primary">Next Question</button>
@@ -35,8 +35,8 @@
       <!-- Test Interface -->
       <div v-else-if="question" class="space-y-6">
         <div class="text-center">
-          <p class="text-sm text-secondary-600 dark:text-secondary-400">Your object is:</p>
-          <h2 class="text-4xl font-bold text-primary-600 dark:text-primary-400 capitalize">{{ question.object }}</h2>
+          <p class=" text-sm  text-secondary-600 dark:text-secondary-400">Your object is:</p>
+          <h2 class="text-3xl font-bold text-primary-600 dark:text-primary-400 capitalize">{{ question.object }}</h2>
         </div>
 
         <!-- Input Form -->
@@ -80,7 +80,7 @@
             <span v-if="isSubmitting" class="loading-spinner-sm mr-2"></span>
             {{ isSubmitting ? 'Submitting...' : 'Submit All Uses' }}
           </button>
-          <p v-if="submissionError" class="text-error-500 text-sm mt-2">{{ submissionError }}</p>
+          <p v-if="submissionError" class="text-error-500  text-sm  mt-2">{{ submissionError }}</p>
         </div>
       </div>
     </div>

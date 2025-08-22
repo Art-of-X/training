@@ -5,7 +5,7 @@
       class="flex items-center space-x-2 focus:outline-none"
     >
       <div
-        class="w-16 h-16 flex items-center justify-center font-bold text-sm"
+        class="w-16 h-16 flex items-center justify-center font-bold  text-sm "
         :style="accentFgBgStyle"
       >
         {{ userInitials }}
@@ -29,13 +29,13 @@
         <div class="py-1">
           <div class="px-4 py-3">
             <p
-              class="text-sm font-medium truncate"
+              class=" text-sm  font-medium truncate"
               :style="{ color: primaryColor.value }"
             >
               {{ userProfile?.name || "User" }}
             </p>
             <p
-              class="text-sm truncate"
+              class=" text-sm  truncate"
               :style="{ color: secondaryColor.value }"
             >
               {{ user.email }}
@@ -178,7 +178,7 @@ watch(
 
 <style scoped>
 .dropdown-item {
-  @apply block w-full px-4 py-2 text-sm text-left transition-colors;
+  @apply block w-full px-4 py-2  text-sm  text-left transition-colors;
   color: var(--dropdown-item-color);
 }
 

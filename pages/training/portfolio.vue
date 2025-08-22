@@ -1,144 +1,154 @@
 <template>
   <div class="p-8">
-    <section class="border-b-4 border-primary-500 pb-4">
-      <div class="flex flex-wrap items-center justify-between gap-4">
-        <h1 class="text-3xl font-bold">Portfolio</h1>
-        <button @click="openAddModal" class="btn-primary">
-          Add Item
-        </button>
-      </div>
-    </section>
-
-    <!-- Grid of portfolio items -->
-    <div v-if="!portfolioItems || portfolioItems.length === 0" class="text-center py-12 text-secondary-500">
-      <p class="text-lg font-medium">No portfolio items yet</p>
-      <p class="text-sm">Click the '+' button to add your first one.</p>
+    <div v-if="isLoadingPortfolio">
+      <PageLoader />
     </div>
-    
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-stretch">
-      <div
-        v-for="item in portfolioItems"
-        :key="item.id"
-        class="group relative aspect-square w-full rounded-lg bg-secondary-100 dark:bg-secondary-800 overflow-hidden portfolio-tile"
-        style="aspect-ratio: 1 / 1;"
-      >
-        <!-- Remove button (visible on hover) -->
-        <button
-          @click="deleteItem(item.id)"
-          :disabled="deletingItemId === item.id"
-          class="absolute top-2 right-2 w-6 h-6 rounded-full bg-secondary-500 dark:bg-secondary-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-          :aria-label="deletingItemId === item.id ? 'Deleting...' : 'Delete item'"
-          :title="deletingItemId === item.id ? 'Deleting...' : 'Delete item'"
-        >
-          <span v-if="deletingItemId === item.id" class="loading-spinner w-4 h-4" />
-          <span v-else class="x-mask-primary w-4 h-4" aria-hidden="true"></span>
-        </button>
+    <div v-else>
+      <section class="border-b-4 border-primary-500 pb-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <h1 class="text-3xl font-bold">My Portfolio</h1>
+          <button @click="openAddModal" class="btn-primary">
+            Add Item
+          </button>
+        </div>
+      </section>
 
-        <!-- Media preview -->
-        <template v-if="item.filePath">
-          <div class="tile-media absolute inset-0 w-full h-full">
-            <img 
-              :src="item.filePath" 
-              :alt="item.description"
-              class="w-full h-full object-cover"
-            />
-          </div>
-        </template>
-        
-        <!-- Link preview -->
-        <template v-else-if="item.link">
-          <div class="tile-media absolute inset-0 w-full h-full">
-            <!-- Try to show preview image first -->
-            <img 
-              v-if="getLinkPreview(item.link)"
-              :src="getLinkPreview(item.link)" 
-              :alt="item.description"
-              class="w-full h-full object-cover"
-              @error="handleImageError"
-            />
-            <!-- Fallback to iframe for supported sites -->
-            <iframe 
-              v-else-if="isIframeSupported(item.link)"
-              :src="getIframeUrl(item.link)"
-              class="w-full h-full border-0"
-              frameborder="0"
-              allowfullscreen
-              loading="lazy"
-            ></iframe>
-            <!-- Final fallback to text -->
-            <div v-else class="w-full h-full flex items-center justify-center">
-              <div class="text-center text-secondary-500 text-sm">
-                Link
+      <!-- Grid of portfolio items -->
+      <div v-if="!portfolioItems || portfolioItems.length === 0" class="text-center py-12 text-secondary-500">
+        <p class=" text-sm  font-medium">No portfolio items yet</p>
+        <p class=" text-sm ">Click the '+' button to add your first one.</p>
+      </div>
+
+      <div v-else class="grid grid-cols-5 gap-4 items-stretch">
+        <div
+          v-for="item in portfolioItems"
+          :key="item.id"
+          class="group relative aspect-square w-full rounded-lg bg-secondary-100 dark:bg-secondary-800 overflow-hidden portfolio-tile"
+          style="aspect-ratio: 1 / 1"
+        >
+          <!-- Remove button (visible on hover) -->
+          <button
+            @click="deleteItem(item.id)"
+            :disabled="deletingItemId === item.id"
+            class="absolute top-2 right-2 w-6 h-6 rounded-full bg-secondary-500 dark:bg-secondary-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            :aria-label="deletingItemId === item.id ? 'Deleting...' : 'Delete item'"
+            :title="deletingItemId === item.id ? 'Deleting...' : 'Delete item'"
+          >
+            <span v-if="deletingItemId === item.id" class="loading-spinner w-4 h-4" />
+            <span v-else class="x-mask-primary w-4 h-4" aria-hidden="true"></span>
+          </button>
+
+          <!-- Media preview -->
+          <template v-if="item.filePath">
+            <div class="tile-media absolute inset-0 w-full h-full">
+              <img :src="item.filePath" :alt="item.description" class="w-full h-full object-cover" />
+            </div>
+          </template>
+
+          <!-- Link preview -->
+          <template v-else-if="item.link">
+            <div class="tile-media absolute inset-0 w-full h-full">
+              <!-- Try to show preview image first -->
+              <img
+                v-if="getLinkPreview(item.link)"
+                :src="getLinkPreview(item.link)"
+                :alt="item.description"
+                class="w-full h-full object-cover"
+                @error="handleImageError"
+              />
+              <!-- Fallback to iframe for supported sites -->
+              <iframe
+                v-else-if="isIframeSupported(item.link)"
+                :src="getIframeUrl(item.link)"
+                class="w-full h-full border-0"
+                frameborder="0"
+                allowfullscreen
+                loading="lazy"
+              ></iframe>
+              <!-- Final fallback to text -->
+              <div v-else class="w-full h-full flex items-center justify-center">
+                <div class="text-center text-secondary-500  text-sm ">Link</div>
               </div>
             </div>
+          </template>
+
+          <!-- Fallback -->
+          <div v-else class="tile-media absolute inset-0 w-full h-full flex items-center justify-center">
+            <div class="text-center text-secondary-500  text-sm ">Item</div>
           </div>
+
+          <!-- Always-visible name bar -->
+          <div
+            class="absolute bottom-0 left-0 right-0 p-3  text-sm  font-medium z-20 bg-primary-500"
+            :style="{ color: secondaryColor }"
+          >
+            <div class="truncate w-full text-start">{{ item.description }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div
+        v-if="error"
+        class="mt-6 bg-error-50 border border-error-200 text-error-700 dark:bg-error-900/20 dark:border-error-500/30 dark:text-error-300 px-4 py-3"
+      >
+        {{ error }}
+      </div>
+
+      <!-- Add Modal -->
+      <Modal :model-value="isAddModalOpen" @update:modelValue="(v) => v ? openAddModal() : closeAddModal()">
+        <template #title>Add portfolio item</template>
+        <form @submit.prevent="handleAddSubmit" class="space-y-4">
+          <div class="flex gap-3">
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <input type="radio" value="link" v-model="addType" class="form-radio" />
+              <span class=" text-sm ">Link</span>
+            </label>
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <input type="radio" value="file" v-model="addType" class="form-radio" />
+              <span class=" text-sm ">File</span>
+            </label>
+          </div>
+
+          <div v-if="addType === 'link'">
+            <label for="add-link-url" class="form-label">Link URL</label>
+            <input
+              id="add-link-url"
+              v-model="addForm.url"
+              type="url"
+              placeholder="https://example.com"
+              class="form-input w-full mt-1"
+              required
+            />
+          </div>
+
+          <div v-else>
+            <label for="add-file" class="form-label">File (max 10MB)</label>
+            <input id="add-file" type="file" class="form-input mt-1" @change="handleAddFileChange" required />
+          </div>
+
+          <div>
+            <label for="add-description" class="form-label">Description</label>
+            <input
+              id="add-description"
+              v-model="addForm.description"
+              type="text"
+              class="form-input w-full mt-1"
+              placeholder="Brief description"
+              required
+            />
+          </div>
+        </form>
+        <template #actions>
+          <button type="button" class="btn-secondary" @click="closeAddModal">Cancel</button>
+          <button type="submit" form="" class="btn-primary" :disabled="isSaving" @click="handleAddSubmit">
+            <span v-if="isSaving" class="loading-spinner mr-2" />
+            {{ isSaving ? "Saving..." : "Add item" }}
+          </button>
         </template>
-        
-        <!-- Fallback -->
-        <div v-else class="tile-media absolute inset-0 w-full h-full flex items-center justify-center">
-          <div class="text-center text-secondary-500 text-sm">
-            Item
-          </div>
-        </div>
-
-        <!-- Always-visible name bar -->
-        <div class="absolute bottom-0 left-0 right-0 p-3 text-sm font-medium z-20 bg-primary-500" :style="{ color: secondaryColor }">
-          <div class="truncate w-full text-start">{{ item.description }}</div>
-        </div>
-      </div>
+      </Modal>
     </div>
-
-    <!-- Error -->
-    <div v-if="error" class="mt-6 bg-error-50 border border-error-200 text-error-700 dark:bg-error-900/20 dark:border-error-500/30 dark:text-error-300 px-4 py-3">
-      {{ error }}
-    </div>
-
-    <!-- Add Modal -->
-    <transition name="fade-transform">
-      <div v-if="isAddModalOpen" class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="absolute inset-0 bg-black/50" @click="closeAddModal" />
-        <div class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg shadow-lg p-6">
-          <h3 class="text-lg font-semibold mb-4 text-secondary-900 dark:text-white">Add portfolio item</h3>
-          <form @submit.prevent="handleAddSubmit" class="space-y-4">
-            <div class="flex gap-3">
-              <label class="inline-flex items-center gap-2 cursor-pointer">
-                <input type="radio" value="link" v-model="addType" class="form-radio" />
-                <span class="text-sm">Link</span>
-              </label>
-              <label class="inline-flex items-center gap-2 cursor-pointer">
-                <input type="radio" value="file" v-model="addType" class="form-radio" />
-                <span class="text-sm">File</span>
-              </label>
-            </div>
-
-            <div v-if="addType === 'link'">
-              <label for="add-link-url" class="form-label">Link URL</label>
-              <input id="add-link-url" v-model="addForm.url" type="url" placeholder="https://example.com" class="form-input w-full mt-1" required />
-            </div>
-
-            <div v-else>
-              <label for="add-file" class="form-label">File (max 10MB)</label>
-              <input id="add-file" type="file" class="form-input mt-1" @change="handleAddFileChange" required />
-            </div>
-
-            <div>
-              <label for="add-description" class="form-label">Description</label>
-              <input id="add-description" v-model="addForm.description" type="text" class="form-input w-full mt-1" placeholder="Brief description" required />
-            </div>
-
-            <div class="flex justify-end gap-2 pt-2">
-              <button type="button" class="btn-secondary" @click="closeAddModal">Cancel</button>
-              <button type="submit" class="btn-primary" :disabled="isSaving">
-                <span v-if="isSaving" class="loading-spinner mr-2" />
-                {{ isSaving ? 'Saving...' : 'Add item' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </transition>
   </div>
-  
 </template>
 
 <script setup lang="ts">
@@ -150,6 +160,8 @@ definePageMeta({
 })
 
 import { secondaryColor } from '~/composables/useDynamicColors'
+import PageLoader from '~/components/common/PageLoader.vue'
+import Modal from '~/components/common/Modal.vue'
 
 interface PortfolioItem {
   id: string
@@ -249,7 +261,7 @@ const getLinkPreview = (url: string): string | null => {
   try {
     const urlObj = new URL(url)
     const domain = urlObj.hostname.toLowerCase()
-    
+
     // Common social media and content platforms
     if (domain.includes('youtube.com') || domain.includes('youtu.be')) {
       const videoId = urlObj.searchParams.get('v') || urlObj.pathname.split('/').pop()
@@ -269,7 +281,7 @@ const getLinkPreview = (url: string): string | null => {
     if (domain.includes('dribbble.com')) {
       return `https://dribbble.com/shots/${urlObj.pathname.split('/').pop()}/og-image`
     }
-    
+
     // Try to get Open Graph image if available
     return null
   } catch {
@@ -281,7 +293,7 @@ const isIframeSupported = (url: string): boolean => {
   try {
     const urlObj = new URL(url)
     const domain = urlObj.hostname.toLowerCase()
-    
+
     // Sites that support iframe embedding
     const iframeSupported = [
       'youtube.com',
@@ -293,7 +305,7 @@ const isIframeSupported = (url: string): boolean => {
       'jsfiddle.net',
       'codesandbox.io'
     ]
-    
+
     return iframeSupported.some(supported => domain.includes(supported))
   } catch {
     return false
@@ -304,7 +316,7 @@ const getIframeUrl = (url: string): string => {
   try {
     const urlObj = new URL(url)
     const domain = urlObj.hostname.toLowerCase()
-    
+
     if (domain.includes('youtube.com') || domain.includes('youtu.be')) {
       const videoId = urlObj.searchParams.get('v') || urlObj.pathname.split('/').pop()
       return `https://www.youtube.com/embed/${videoId}`
@@ -326,7 +338,7 @@ const getIframeUrl = (url: string): string => {
     if (domain.includes('jsfiddle.net')) {
       return url.replace('/jsfiddle/', '/embed/')
     }
-    
+
     return url
   } catch {
     return url
@@ -342,7 +354,7 @@ const handleImageError = (event: Event) => {
 
 <style scoped>
 .form-label {
-  @apply block text-sm font-medium text-secondary-700 dark:text-secondary-300;
+  @apply block  text-sm  font-medium text-secondary-700 dark:text-secondary-300;
 }
 .loading-spinner-small {
   @apply w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin;
@@ -351,7 +363,7 @@ const handleImageError = (event: Event) => {
 .loading-spinner {
   @apply w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin;
 }
- 
+
 
 /* X mask (primary) - may be used elsewhere */
 .x-mask {
@@ -380,19 +392,19 @@ const handleImageError = (event: Event) => {
 }
 
 /* Tile behavior - ensure always square */
-.portfolio-tile { 
-  position: relative; 
-  aspect-ratio: 1 / 1; 
+.portfolio-tile {
+  position: relative;
+  aspect-ratio: 1 / 1;
   width: 100%;
   height: 0;
   padding-bottom: 100%; /* Ensures square aspect ratio */
 }
-.portfolio-tile .tile-media { 
-  position: absolute; 
-  z-index: 0; 
-  transition: opacity 150ms ease-out; 
-  width: 100%; 
-  height: 100%; 
+.portfolio-tile .tile-media {
+  position: absolute;
+  z-index: 0;
+  transition: opacity 150ms ease-out;
+  width: 100%;
+  height: 100%;
   top: 0;
   left: 0;
 }

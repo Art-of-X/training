@@ -6,21 +6,21 @@
         <h1 class="text-3xl font-bold">Your Spark</h1>
         <div class="flex gap-2 items-center">
           <button
-            class="px-3 py-1.5 rounded-md text-sm transition-colors"
+            class="px-3 py-1.5 rounded-md  text-sm  transition-colors"
             :class="activeTab === 'chart' ? 'bg-primary-500 text-white' : 'bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-200'"
             @click="activeTab = 'chart'"
           >
             Chart
           </button>
           <button
-            class="px-3 py-1.5 rounded-md text-sm transition-colors"
+            class="px-3 py-1.5 rounded-md  text-sm  transition-colors"
             :class="activeTab === 'chat' ? 'bg-primary-500 text-white' : 'bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-200'"
             @click="activeTab = 'chat'"
           >
             Chat
           </button>
           <button
-            class="px-3 py-1.5 rounded-md text-sm transition-colors"
+            class="px-3 py-1.5 rounded-md  text-sm  transition-colors"
             :class="activeTab === 'report' ? 'bg-primary-500 text-white' : 'bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-200'"
             @click="activeTab = 'report'"
           >
@@ -28,7 +28,7 @@
           </button>
           <button
             v-if="userProfile?.id"
-            class="ml-2 px-3 py-1.5 rounded-md text-sm transition-colors bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-200 hover:bg-secondary-200 dark:hover:bg-secondary-700"
+            class="ml-2 px-3 py-1.5 rounded-md  text-sm  transition-colors bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-200 hover:bg-secondary-200 dark:hover:bg-secondary-700"
             @click="isShareModalOpen = true"
           >
             Share
@@ -83,10 +83,10 @@
                displayNodeInfo.type === 'spark' ? 'Spark' : 
                displayNodeInfo.label }}
           </h3>
-          <p v-if="displayNodeInfo.content" class="text-sm italic mb-2">"{{ displayNodeInfo.content }}"</p>
-          <p class="text-sm">Type: {{ displayNodeInfo.type === 'ai_spark' ? 'AI Spark' : displayNodeInfo.type }}</p>
-          <p v-if="displayNodeInfo.predefinedMethod !== undefined" class="text-sm">Method Predefined: {{ displayNodeInfo.predefinedMethod ? 'Yes' : 'No' }}</p>
-          <p v-if="displayNodeInfo.predefinedCompetency !== undefined" class="text-sm">Competency Predefined: {{ displayNodeInfo.predefinedCompetency ? 'Yes' : 'No' }}</p>
+          <p v-if="displayNodeInfo.content" class=" text-sm  italic mb-2">"{{ displayNodeInfo.content }}"</p>
+          <p class=" text-sm ">Type: {{ displayNodeInfo.type === 'ai_spark' ? 'AI Spark' : displayNodeInfo.type }}</p>
+          <p v-if="displayNodeInfo.predefinedMethod !== undefined" class=" text-sm ">Method Predefined: {{ displayNodeInfo.predefinedMethod ? 'Yes' : 'No' }}</p>
+          <p v-if="displayNodeInfo.predefinedCompetency !== undefined" class=" text-sm ">Competency Predefined: {{ displayNodeInfo.predefinedCompetency ? 'Yes' : 'No' }}</p>
         </div>
       </div>
     </div>
@@ -111,11 +111,11 @@
         <div v-else class="space-y-8">
           <div v-for="section in report.sections" :key="section.method" class="space-y-2">
             <h2 class="text-xl font-semibold text-secondary-900 dark:text-white">{{ section.method }}</h2>
-            <p v-if="section.methodDescription" class="text-sm text-secondary-600 dark:text-secondary-300">{{ section.methodDescription }}</p>
+            <p v-if="section.methodDescription" class=" text-sm  text-secondary-600 dark:text-secondary-300">{{ section.methodDescription }}</p>
 
             <div v-for="comp in section.competencies" :key="comp.name" class="mt-2">
               <div class="font-medium text-secondary-900 dark:text-white">{{ comp.name }}</div>
-              <div v-if="comp.description" class="text-sm text-secondary-600 dark:text-secondary-300">{{ comp.description }}</div>
+              <div v-if="comp.description" class=" text-sm  text-secondary-600 dark:text-secondary-300">{{ comp.description }}</div>
               <div v-if="comp.citations && comp.citations.length" class="text-xs text-secondary-600 dark:text-secondary-400 mt-1">
                 Citations: 
                 <span>
@@ -126,8 +126,8 @@
           </div>
 
           <div>
-            <h3 class="text-lg font-semibold text-secondary-900 dark:text-white">Citations</h3>
-            <ol class="list-decimal ml-5 mt-2 space-y-1 text-sm text-secondary-700 dark:text-secondary-300">
+            <h3 class=" text-sm  font-semibold text-secondary-900 dark:text-white">Citations</h3>
+            <ol class="list-decimal ml-5 mt-2 space-y-1  text-sm  text-secondary-700 dark:text-secondary-300">
               <li v-for="c in report.citations" :key="c.num">
                 <span class="font-medium">{{ c.label }}:</span>
                 <span class="italic">"{{ c.preview }}"</span>
@@ -143,7 +143,7 @@
         <div class="absolute inset-0 bg-black/50" @click="isShareModalOpen = false" />
         <div class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg">
           <div class="flex items-start justify-between mb-4">
-            <h3 class="text-lg font-semibold text-secondary-900 dark:text-white">Share your spark</h3>
+            <h3 class=" text-3xl  font-semibold text-secondary-900 dark:text-white">Share your spark</h3>
             <button class="btn-secondary" @click="isShareModalOpen = false">Close</button>
           </div>
           <div class="space-y-4">
@@ -151,7 +151,7 @@
               <input type="checkbox" class="form-checkbox mt-1" v-model="shareForm.isPublic" />
               <div>
                 <div class="font-medium">Make my spark public</div>
-                <div class="text-sm text-secondary-600 dark:text-secondary-300">Generates a public link for direct access to your spark.</div>
+                <div class=" text-sm  text-secondary-600 dark:text-secondary-300">Generates a public link for direct access to your spark.</div>
               </div>
             </label>
 
@@ -177,7 +177,7 @@
               <input type="checkbox" class="form-checkbox mt-1" v-model="shareForm.profitSplitOptIn" />
               <div>
                 <div class="font-medium">Share to creatives on Art of X and participate in profit split</div>
-                <div class="text-sm text-secondary-600 dark:text-secondary-300">
+                <div class=" text-sm  text-secondary-600 dark:text-secondary-300">
                   Makes your spark discoverable in the Personas page for other users. See <NuxtLink to="/legal/terms" class="underline">terms</NuxtLink>. This is optional and off by default.
                 </div>
               </div>
@@ -391,7 +391,7 @@ type SparkWithDendrogram = {
   id: string; 
   userId?: string | null; 
   name: string; 
-  dendrograms?: Array<{ id: string; dendrogramSvg: string; dendrogramPng?: ArrayBuffer | null }>
+  dendrograms?: { id: string; dendrogramSvg: string; dendrogramPng?: ArrayBuffer | null } | null
   isPublic?: boolean;
   publicShareId?: string | null;
   profitSplitOptIn?: boolean;
@@ -405,7 +405,7 @@ const userSpark = computed(() => {
 const userSparkId = computed(() => userSpark.value?.id || null);
 const userSparkDendrogramSvg = computed(() => {
   const ds = userSpark.value?.dendrograms;
-  return ds && ds.length > 0 ? ds[0].dendrogramSvg : null;
+  return ds?.dendrogramSvg || null;
 });
 
 // Share UI state

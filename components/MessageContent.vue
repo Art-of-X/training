@@ -85,7 +85,7 @@ const startTyping = (fullText: string) => {
     }
     displayedText.value += fullText[i];
     i++;
-  }, 15);
+  }, 5);
 };
 
 // Trigger typing only when content transitions from empty string to non-empty string

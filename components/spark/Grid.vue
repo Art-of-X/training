@@ -6,8 +6,8 @@
         <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
         </svg>
-        <p class="text-lg font-medium">No sparks found</p>
-        <p class="text-sm">Create some sparks to get started</p>
+        <p class=" text-sm  font-medium">No sparks found</p>
+        <p class=" text-sm ">Create some sparks to get started</p>
       </div>
       
       <div :class="tileGridClass">
@@ -17,6 +17,7 @@
           class="group relative aspect-square w-full rounded-lg bg-secondary-100 dark:bg-secondary-800 overflow-hidden portfolio-tile cursor-pointer"
           @click="openSparkChat(spark)"
         >
+
           <!-- Optional Remove button (top-left) -->
           <button
             v-if="showRemove"
@@ -26,24 +27,24 @@
           >
             <span class="x-mask-secondary w-5 h-5" aria-hidden="true"></span>
           </button>
-          <!-- Media preview (SVG dendrogram) -->
-          <template v-if="spark.dendrograms && spark.dendrograms.length > 0">
+                    <!-- Media preview (SVG dendrogram) -->
+          <template v-if="spark.dendrograms && spark.dendrograms.dendrogramSvg">
             <div
               class="tile-media absolute inset-0 w-full h-full"
             >
-              <div class="svg-container" v-html="spark.dendrograms[0].dendrogramSvg"></div>
+              <div class="svg-container" v-html="spark.dendrograms.dendrogramSvg"></div>
             </div>
           </template>
           
           <!-- Fallback cover -->
           <div v-else class="tile-media absolute inset-0 w-full h-full flex items-center justify-center">
-            <div class="text-center text-secondary-500 text-sm">
+            <div class="text-center text-secondary-500  text-sm ">
               No dendrogram
             </div>
           </div>
 
           <!-- Always-visible name bar -->
-          <div class="absolute bottom-0 left-0 right-0 p-3 text-sm font-medium z-20 bg-primary-500" :style="{ color: secondaryColor }">
+          <div class="absolute bottom-0 left-0 right-0 p-3  text-sm  font-medium z-20 bg-primary-500" :style="{ color: secondaryColor }">
             <div class="truncate w-full text-start">{{ spark.name }}</div>
           </div>
 
@@ -54,7 +55,7 @@
 
     <!-- In-page sidebar: spans 3 columns on xl, stacks on smaller screens -->
     <transition name="slide-left">
-      <div v-if="activeSpark" class="min-h-[420px] xl:col-span-3 bg-white dark:bg-secondary-900 border-l-4 border-l-primary-500 rounded-lg shadow-sm grid grid-rows-[auto_1fr] max-h-[80vh] xl:max-h-[calc(100vh-var(--app-header-height)-1rem)] xl:sticky xl:top-4">
+      <div v-if="activeSpark" class="min-h-[420px] xl:col-span-3 bg-white dark:bg-secondary-900 border-l-4 border-l-primary-500 rounded-lg shadow-sm grid grid-rows-[auto_1fr] max-h-[calc(100vh-var(--app-header-height)-2rem)] xl:sticky xl:top-4">
         <!-- Header -->
         <div class="flex items-center justify-between ps-8 py-4">
           <div class="min-w-0 flex-1">
@@ -63,18 +64,32 @@
           <!-- Tabs -->
           <div class="flex gap-2 mr-4">
             <button
-              class="px-3 py-1.5 rounded-md text-sm"
+              class="px-3 py-1.5 rounded-md  text-sm "
               :class="activeTab === 'dendrogram' ? 'bg-primary-500 text-white' : 'bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-200'"
               @click="activeTab = 'dendrogram'"
             >
               Dendrogram
             </button>
             <button
-              class="px-3 py-1.5 rounded-md text-sm"
+              class="px-3 py-1.5 rounded-md  text-sm "
               :class="activeTab === 'chat' ? 'bg-primary-500 text-white' : 'bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-200'"
               @click="activeTab = 'chat'"
             >
               Chat
+            </button>
+          </div>
+          <div class="flex items-center gap-2 mr-4">
+            <button
+              class="px-3 py-1.5 rounded-md  text-sm  bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-200 hover:bg-secondary-200 dark:hover:bg-secondary-700"
+              @click="toggleFavorite"
+            >
+              {{ isFavorite ? 'Unfavourite' : 'Favourite' }}
+            </button>
+            <button
+              class="px-3 py-1.5 rounded-md  text-sm  bg-primary-500 text-white hover:bg-primary-600"
+              @click="openAddToProject"
+            >
+              Add to Project
             </button>
           </div>
           <button class="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-secondary-100 dark:hover:bg-secondary-800" @click="closeSparkChat" aria-label="Close">
@@ -84,7 +99,12 @@
         <!-- Content area -->
         <div class="min-h-0 ps-8 pt-8 pb-4">
           <div v-if="activeTab === 'chat'" class="h-full">
-            <Chat :key="activeSpark?.id" :embedded="true" :spark-id="activeSpark?.id" />
+            <Chat 
+              :key="activeSpark?.id" 
+              :embedded="true" 
+              :spark-id="activeSpark?.id" 
+              :max-user-messages="activeSpark?.isPremium ? 3 : undefined"
+            />
           </div>
           <div v-else class="h-full overflow-hidden p-3 relative">
             <div v-if="patternsPending" class="h-full flex items-center justify-center text-secondary-500">Loading...</div>
@@ -95,7 +115,7 @@
             <div v-else class="h-full flex items-center justify-center text-secondary-500">
               <div class="text-center">
                 <div>No dendrogram data</div>
-                <div v-if="activeSpark?.dendrograms?.length > 0 && sparkPatterns.length === 0" class="text-xs text-orange-500 mt-2">
+                <div v-if="activeSpark?.dendrograms?.dendrogramSvg && sparkPatterns.length === 0" class="text-xs text-orange-500 mt-2">
                   This spark has dendrograms but no patterns. Patterns are needed to build the hierarchy.
                 </div>
               </div>
@@ -108,17 +128,66 @@
                    displayNodeInfo.type === 'spark' ? 'Spark' : 
                    displayNodeInfo.label }}
               </h3>
-              <p v-if="displayNodeInfo.content" class="text-sm text-secondary-700 dark:text-secondary-300 italic mb-2">"{{ displayNodeInfo.content }}"</p>
-              <p class="text-sm text-secondary-700 dark:text-secondary-300">Type: {{ displayNodeInfo.type === 'ai_spark' ? 'AI Spark' : displayNodeInfo.type }}</p>
-              <p v-if="displayNodeInfo.predefinedMethod !== undefined" class="text-sm text-secondary-700 dark:text-secondary-300">Method Predefined: {{ displayNodeInfo.predefinedMethod ? 'Yes' : 'No' }}</p>
-              <p v-if="displayNodeInfo.predefinedCompetency !== undefined" class="text-sm text-secondary-700 dark:text-secondary-300">Competency Predefined: {{ displayNodeInfo.predefinedCompetency ? 'Yes' : 'No' }}</p>
-              <button @click="displayNodeInfo = null" class="mt-4 px-3 py-1.5 text-sm bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-200 rounded-md hover:bg-secondary-200 dark:hover:bg-secondary-700 transition">Close</button>
+              <p v-if="displayNodeInfo.content" class=" text-sm  text-secondary-700 dark:text-secondary-300 italic mb-2">"{{ displayNodeInfo.content }}"</p>
+              <p class=" text-sm  text-secondary-700 dark:text-secondary-300">Type: {{ displayNodeInfo.type === 'ai_spark' ? 'AI Spark' : displayNodeInfo.type }}</p>
+              <p v-if="displayNodeInfo.predefinedMethod !== undefined" class=" text-sm  text-secondary-700 dark:text-secondary-300">Method Predefined: {{ displayNodeInfo.predefinedMethod ? 'Yes' : 'No' }}</p>
+              <p v-if="displayNodeInfo.predefinedCompetency !== undefined" class=" text-sm  text-secondary-700 dark:text-secondary-300">Competency Predefined: {{ displayNodeInfo.predefinedCompetency ? 'Yes' : 'No' }}</p>
+              <button @click="displayNodeInfo = null" class="mt-4 px-3 py-1.5  text-sm  bg-secondary-100 dark:bg-secondary-800 text-secondary-700 dark:text-secondary-200 rounded-md hover:bg-secondary-200 dark:hover:bg-secondary-700 transition">Close</button>
             </div>
           </div>
         </div>
       </div>
     </transition>
   </div>
+
+  <!-- Add to Project Modal -->
+  <transition name="fade-transform">
+    <div v-if="isAddToProjectOpen" class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/50" @click="closeAddToProject" />
+      <div class="relative w-full max-w-lg bg-white dark:bg-secondary-900 rounded-lg p-6 shadow-lg">
+        <div class="flex items-start justify-between mb-3">
+          <h3 class=" text-3xl  font-semibold text-secondary-900 dark:text-white">Add "{{ activeSpark?.name }}" to Project</h3>
+          <button class="btn-secondary" @click="closeAddToProject">Close</button>
+        </div>
+        <div class="space-y-4">
+          <div class="flex gap-3">
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <input type="radio" value="existing" v-model="addToProjectMode" class="form-radio" />
+              <span class=" text-sm ">Existing project</span>
+            </label>
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <input type="radio" value="new" v-model="addToProjectMode" class="form-radio" />
+              <span class=" text-sm ">New project</span>
+            </label>
+          </div>
+
+          <div v-if="addToProjectMode === 'existing'">
+            <label class="form-label">Select Project</label>
+            <select v-model="selectedProjectId" class="form-input">
+              <option v-for="p in projectList" :key="p.id" :value="p.id">{{ p.name }}</option>
+            </select>
+            <div v-if="isLoadingProjects" class="text-xs text-secondary-500 mt-1">Loading projects...</div>
+            <div v-else-if="projectList.length === 0" class="text-xs text-secondary-500 mt-1">No projects found</div>
+          </div>
+
+          <div v-else>
+            <label class="form-label" for="new-project-name">Project Name</label>
+            <input id="new-project-name" v-model="newProjectName" type="text" class="form-input w-full" />
+            <label class="form-label mt-2" for="new-project-task">Task</label>
+            <textarea id="new-project-task" v-model="newProjectTask" rows="3" class="form-input w-full"></textarea>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" class="btn-secondary" @click="closeAddToProject">Cancel</button>
+            <button type="button" class="btn-primary" :disabled="isSubmittingAddToProject" @click="handleAddToProjectSubmit">
+              <span v-if="isSubmittingAddToProject" class="loading-spinner mr-2" />
+              {{ isSubmittingAddToProject ? 'Adding...' : 'Add' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
 </template>
 
 <script setup lang="ts">
@@ -128,6 +197,7 @@ import { secondaryColor } from '~/composables/useDynamicColors'
 import Chat from '~/components/Chat.vue'
 import CircularDendrogram from '~/components/graphs/CircularDendrogram.vue'
 import type { HierarchyNode, DisplayNodeInfo } from '~/components/graphs/types'
+import { useUpgradeModal } from '~/composables/useUpgradeModal'
 
 interface SparkDendrogram {
   id: string
@@ -141,8 +211,9 @@ interface Spark {
   name: string
   description: string
   discipline: string
-  dendrograms: SparkDendrogram[]
+  dendrograms: SparkDendrogram | null
   systemPrompt?: string
+  isPremium?: boolean
 }
 
 interface Props {
@@ -169,10 +240,14 @@ const svgToDataUrl = (svg: string | null | undefined) => {
 const activeSpark = ref<Spark | null>(null)
 const activeTab = ref<'dendrogram' | 'chat'>('chat')
 const displayNodeInfo = ref<DisplayNodeInfo | null>(null)
-function openSparkChat(spark: Spark) {
+async function openSparkChat(spark: Spark) {
   activeSpark.value = spark
   activeTab.value = 'chat'
-  refreshPatterns()
+  
+  // Ensure patterns are loaded for the dendrogram tab
+  if (!allPatterns.value || allPatterns.value.data.length === 0) {
+    await refreshPatterns()
+  }
 }
 
 function closeSparkChat() {
@@ -187,13 +262,16 @@ const handleNodeClick = (nodeInfo: DisplayNodeInfo | null) => {
 // Fetch all patterns (requires auth); we'll filter by active spark id
 const { data: allPatterns, pending: patternsPending, error: patternsError, refresh: refreshPatterns } = useFetch<{ data: any[] }>(
   '/api/patterns/all',
-  { immediate: false }
+  { 
+    immediate: false,
+    server: false // Ensure this runs on client-side where user auth is available
+  }
 )
 
 // When switching sparks, refetch to ensure freshness
-watch(activeSpark, (s) => {
+watch(activeSpark, async (s) => {
   if (s) {
-    refreshPatterns()
+    await refreshPatterns()
   }
 })
 
@@ -204,20 +282,43 @@ watch(allPatterns, (newPatterns) => {
   }
 }, { deep: true })
 
+// Debug: Watch sparks data to see the structure
+watch(() => props.sparks, (newSparks) => {
+  if (newSparks && newSparks.length > 0) {
+    console.log('First spark:', newSparks[0].name);
+    console.log('Dendrograms structure:', newSparks[0].dendrograms);
+    if (newSparks[0].dendrograms) {
+      console.log('SVG length:', newSparks[0].dendrograms.dendrogramSvg?.length);
+    }
+  }
+}, { immediate: true })
+
+
 // Watch for tab changes
 watch(activeTab, (newTab) => {
-  // Tab changed, update display accordingly
+  if (newTab === 'dendrogram' && activeSpark.value && !allPatterns.value) {
+    refreshPatterns()
+  }
 })
 
 // Fetch patterns when component mounts
-onMounted(() => {
-  refreshPatterns()
+onMounted(async () => {
+  await refreshPatterns()
+  // Fetch user's favorite sparks if authorized
+  try {
+    const favs = await $fetch<{ data: any[] }>("/api/spark/favorites")
+    const ids = (favs?.data || []).map((s: any) => s.id)
+    favoriteIds.value = new Set(ids)
+  } catch (e) {
+    // ignore (likely guest)
+  }
 })
 
 const sparkPatterns = computed(() => {
   if (!activeSpark.value) return [] as any[]
   const list = allPatterns.value?.data ?? []
   
+  // Filter patterns by sparkId
   const filtered = list.filter((p: any) => p.sparkId === activeSpark.value?.id)
   
   return filtered
@@ -328,6 +429,112 @@ const tileGridClass = computed(() => {
   }
   return base
 })
+
+// Favourites and Add to Project
+const favoriteIds = ref<Set<string>>(new Set())
+const isFavorite = computed(() => activeSpark.value ? favoriteIds.value.has(activeSpark.value.id) : false)
+
+async function toggleFavorite() {
+  if (!activeSpark.value) return
+  const sparkId = activeSpark.value.id
+  try {
+    if (favoriteIds.value.has(sparkId)) {
+      await $fetch('/api/spark/favorites', { method: 'DELETE', body: { sparkId } })
+      favoriteIds.value.delete(sparkId)
+    } else {
+      await $fetch('/api/spark/favorites', { method: 'POST', body: { sparkId } })
+      favoriteIds.value.add(sparkId)
+    }
+  } catch (e: any) {
+    // Silently handle errors for now since favorites aren't persisted yet
+    console.warn('Favorites not persisted yet:', e)
+    // Still update UI state for better UX
+    if (favoriteIds.value.has(sparkId)) {
+      favoriteIds.value.delete(sparkId)
+    } else {
+      favoriteIds.value.add(sparkId)
+    }
+  }
+}
+
+const isAddToProjectOpen = ref(false)
+const addToProjectMode = ref<'existing' | 'new'>('existing')
+const isLoadingProjects = ref(false)
+const projectList = ref<any[]>([])
+const selectedProjectId = ref<string | null>(null)
+const newProjectName = ref('')
+const newProjectTask = ref('')
+const isSubmittingAddToProject = ref(false)
+const userPlan = ref<'free' | 'premium'>('free')
+const { openUpgradeModal } = useUpgradeModal()
+
+async function fetchProjectsForAdd() {
+  isLoadingProjects.value = true
+  try {
+    const res = await $fetch<{ data: any[] }>("/api/spark/projects")
+    projectList.value = res.data
+  } catch (e) {
+    projectList.value = []
+  } finally {
+    isLoadingProjects.value = false
+  }
+}
+
+async function openAddToProject() {
+  // Enforce plan for premium sparks
+  if (activeSpark.value?.isPremium) {
+    try {
+      const sub = await $fetch<any>('/api/billing/subscription')
+      userPlan.value = sub.plan
+    } catch {}
+    if (userPlan.value !== 'premium') {
+      openUpgradeModal({
+        title: 'Premium Spark',
+        message: 'This spark requires a premium plan to add to a project.',
+      })
+      return
+    }
+  }
+  await fetchProjectsForAdd()
+  addToProjectMode.value = projectList.value.length > 0 ? 'existing' : 'new'
+  selectedProjectId.value = projectList.value[0]?.id || null
+  newProjectName.value = ''
+  newProjectTask.value = ''
+  isAddToProjectOpen.value = true
+}
+
+function closeAddToProject() {
+  isAddToProjectOpen.value = false
+}
+
+async function handleAddToProjectSubmit() {
+  if (!activeSpark.value) return
+  isSubmittingAddToProject.value = true
+  try {
+    if (addToProjectMode.value === 'existing') {
+      if (!selectedProjectId.value) { alert('Select a project'); return }
+      await $fetch(`/api/spark/projects/${selectedProjectId.value}/sparks`, { method: 'POST', body: { sparkId: activeSpark.value.id } })
+    } else {
+      // Creating a new project: enforce plan limit
+      const limit = userPlan.value === 'premium' ? 10 : 3
+      if (projectList.value.length >= limit) {
+        openUpgradeModal({
+          title: 'Project Limit Reached',
+          message: `You have reached the limit of ${limit} projects on your current plan. Upgrade to create more projects.`,
+        })
+        return
+      }
+      if (!newProjectName.value || !newProjectTask.value) { alert('Enter name and task'); return }
+      await $fetch(`/api/spark/projects`, { method: 'POST', body: { name: newProjectName.value, task: newProjectTask.value, sparkIds: [activeSpark.value.id] } })
+    }
+    if (process.client) { window.dispatchEvent(new Event('project-changed')) }
+    closeAddToProject()
+  } catch (e: any) {
+    alert(e?.data?.message || 'Failed to add to project')
+  } finally {
+    isSubmittingAddToProject.value = false
+  }
+}
 </script>
 
 <style scoped>

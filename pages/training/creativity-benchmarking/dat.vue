@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-secondary-900 dark:text-white mb-2">Divergent Association Task (DAT)</h1>
-      <p class="text-lg text-secondary-600 dark:text-secondary-300">
+      <p class=" text-sm  text-secondary-600 dark:text-secondary-300">
         Your goal is to name 10 words that are as different from each other in meaning as possible.
       </p>
     </div>
@@ -14,11 +14,11 @@
       <div v-if="submissionSuccess" class="text-center">
           <div class="text-success-600 dark:text-success-400 flex flex-col items-center">
               <svg class="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              <h2 class="text-2xl font-semibold mb-2">Task Complete!</h2>
+              <h2 class=" text-3xl  font-semibold mb-2">Task Complete!</h2>
               <p class="text-secondary-600 dark:text-secondary-300 mb-4">
                 Your response has been recorded for research purposes.
               </p>
-              <p class="text-sm text-secondary-500 dark:text-secondary-400 mb-6">
+              <p class=" text-sm  text-secondary-500 dark:text-secondary-400 mb-6">
                 The DAT can only be completed once to ensure data validity and fair comparison across all participants.
               </p>
           </div>
@@ -54,7 +54,7 @@
             <span v-if="isSubmitting" class="loading-spinner-sm mr-2"></span>
             {{ isSubmitting ? 'Submitting...' : 'Submit Words' }}
           </button>
-          <p v-if="submissionError" class="text-error-500 text-sm mt-2">{{ submissionError }}</p>
+          <p v-if="submissionError" class="text-error-500  text-sm  mt-2">{{ submissionError }}</p>
         </div>
       </form>
     </div>

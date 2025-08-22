@@ -13,7 +13,7 @@ definePageMeta({
 
 <style>
 .legal-content * {
-  font-size: 1.125rem; /* text-lg */
+  font-size: 1.125rem; /*  text-sm  */
   line-height: 1.75rem; /* leading-7 */
 }
 

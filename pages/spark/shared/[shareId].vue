@@ -14,7 +14,7 @@
       <div class="text-center border-b-4 border-primary-500 pb-4">
         <h1 class="text-3xl font-bold mb-2">{{ spark.name }}</h1>
         <p class="text-secondary-600 dark:text-secondary-400 mb-2">{{ spark.description }}</p>
-        <p class="text-sm text-secondary-500">{{ spark.discipline }}</p>
+        <p class=" text-sm  text-secondary-500">{{ spark.discipline }}</p>
       </div>
 
       <!-- Limited Chat Interface -->
@@ -54,7 +54,7 @@
 
             <!-- Message Limit Warning -->
             <div v-if="messages.length >= 3" class="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-              <p class="text-sm text-yellow-800 dark:text-yellow-200 text-center">
+              <p class=" text-sm  text-yellow-800 dark:text-yellow-200 text-center">
                 Message limit reached. <NuxtLink to="/login" class="underline">Sign in</NuxtLink> to continue the conversation.
               </p>
             </div>
@@ -72,7 +72,7 @@
               />
               
               <div class="flex justify-between items-center">
-                <p class="text-sm text-secondary-500">
+                <p class=" text-sm  text-secondary-500">
                   {{ messages.length }}/3 messages
                 </p>
                 

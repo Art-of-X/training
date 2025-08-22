@@ -6,7 +6,7 @@
       <h2 class="text-3xl font-bold text-secondary-900 dark:text-white">
         Sign in to your account
       </h2>
-      <p class="mt-2 text-sm text-secondary-600 dark:text-secondary-400">
+      <p class="mt-2  text-sm  text-secondary-600 dark:text-secondary-400">
         Continue your training journey
       </p>
     </div>
@@ -20,7 +20,7 @@
     <form class="mt-8 space-y-6" @submit.prevent="handleSignIn">
       <div class="space-y-4">
         <div>
-          <label for="email" class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
+          <label for="email" class="block  text-sm  font-medium text-secondary-700 dark:text-secondary-300 mb-1">
             Email address
           </label>
           <input
@@ -34,13 +34,13 @@
             :class="{ 'border-error-300 dark:border-error-600': errors.email }"
             placeholder="Enter your email"
           />
-          <p v-if="errors.email" class="mt-1 text-sm text-error-600 dark:text-error-400">
+          <p v-if="errors.email" class="mt-1  text-sm  text-error-600 dark:text-error-400">
             {{ errors.email }}
           </p>
         </div>
 
         <div>
-          <label for="password" class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
+          <label for="password" class="block  text-sm  font-medium text-secondary-700 dark:text-secondary-300 mb-1">
             Password
           </label>
           <input
@@ -54,7 +54,7 @@
             :class="{ 'border-error-300 dark:border-error-600': errors.password }"
             placeholder="Enter your password"
           />
-          <p v-if="errors.password" class="mt-1 text-sm text-error-600 dark:text-error-400">
+          <p v-if="errors.password" class="mt-1  text-sm  text-error-600 dark:text-error-400">
             {{ errors.password }}
           </p>
         </div>
@@ -70,7 +70,7 @@
         <button
           type="submit"
           :disabled="isLoading"
-          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm  text-sm  font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <span v-if="isLoading" class="loading-spinner mr-2"></span>
           {{ isLoading ? 'Signing in...' : 'Sign in' }}
@@ -79,13 +79,13 @@
 
       <!-- Links -->
       <div class="text-center space-y-2">
-        <p class="text-sm text-secondary-600 dark:text-secondary-400">
+        <p class=" text-sm  text-secondary-600 dark:text-secondary-400">
           Don't have an account?
           <NuxtLink to="/register" class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
             Sign up
           </NuxtLink>
         </p>
-        <p class="text-sm">
+        <p class=" text-sm ">
           <NuxtLink to="/password-reset" class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
             Forgot your password?
           </NuxtLink>

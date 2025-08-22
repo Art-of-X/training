@@ -73,6 +73,11 @@ export default defineNuxtConfig({
       ]
     },
   },
+
+  // Redirects and route rules
+  routeRules: {
+    '/': { redirect: { to: '/spark/personas', statusCode: 302 } }
+  },
   
   // TypeScript configuration
   typescript: {
@@ -127,13 +132,15 @@ export default defineNuxtConfig({
     // Private keys (only available on server-side)
     supabaseServiceKey: '',
     databaseUrl: '',
+    stripeSk: process.env.STRIPE_SK,
     
     // Public keys (exposed to client-side)
     public: {
       supabaseUrl: '',
       supabaseAnonKey: '',
       siteUrl: '',
-      version: 'commercial'
+      version: 'commercial',
+      stripePk: process.env.STRIPE_PK
     }
   },
   

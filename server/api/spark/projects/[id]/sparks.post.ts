@@ -1,6 +1,7 @@
 import { serverSupabaseUser } from '#supabase/server'
 import { z } from 'zod'
 import { prisma } from '~/server/utils/prisma'
+import { resolveUserPlan, PLAN_LIMITS } from '~/server/utils/stripe'
 
 const bodySchema = z.object({
   sparkId: z.string().uuid(),
@@ -37,6 +38,14 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    // Enforce per-project spark assignment limit based on plan
+    const { plan } = await resolveUserPlan(event)
+    const limits = PLAN_LIMITS[plan]
+    const currentCount = await prisma.sparksOnProjects.count({ where: { projectId } })
+    if (currentCount >= limits.sparks) {
+      throw createError({ statusCode: 402, message: `Spark limit reached for ${plan} plan. Please upgrade to add more sparks.` })
+    }
+
     const link = await prisma.sparksOnProjects.create({
       data: { projectId, sparkId },
     })

@@ -75,7 +75,7 @@
 
         <!-- Fallback cover with domain badge -->
         <div v-else class="tile-media absolute inset-0 w-full h-full flex items-center justify-center">
-          <div class="text-center text-secondary-500 text-sm">
+          <div class="text-center text-secondary-500  text-sm ">
             {{ domainOf(item.link || '') }}
           </div>
         </div>
@@ -83,13 +83,13 @@
 
       <!-- Text preview -->
       <div v-else-if="item.text" class="tile-media absolute inset-0 w-full h-full flex items-center justify-center p-4">
-          <p class="text-secondary-700 dark:text-secondary-300 text-sm">{{ item.text }}</p>
+          <p class="text-secondary-700 dark:text-secondary-300  text-sm ">{{ item.text }}</p>
       </div>
 
 
       <!-- Description overlay -->
       <div
-        class="absolute bottom-0 left-0 right-0 p-3 text-sm font-medium transition-opacity tile-title z-20 pointer-events-none"
+        class="absolute bottom-0 left-0 right-0 p-3  text-sm  font-medium transition-opacity tile-title z-20 pointer-events-none"
         :class="alwaysShowLabel ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'"
       >
         <div class="truncate w-full text-start">{{ tileTitle(item) }}</div>
@@ -121,7 +121,7 @@
     >
       <div class="absolute inset-0 flex flex-col items-center justify-center text-secondary-500 group-hover:text-primary-600">
         <div class="add-mask w-8 h-8 mb-2" aria-hidden="true"></div>
-        <span class="text-sm font-medium">{{ addLabel }}</span>
+        <span class=" text-sm  font-medium">{{ addLabel }}</span>
       </div>
     </button>
   </div>

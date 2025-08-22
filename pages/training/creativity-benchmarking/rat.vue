@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-secondary-900 dark:text-white mb-2">Remote Associates Test (RAT)</h1>
-      <p class="text-lg text-secondary-600 dark:text-secondary-300">
+      <p class=" text-sm  text-secondary-600 dark:text-secondary-300">
         Find a single word that connects the three words presented below.
       </p>
     </div>
@@ -26,7 +26,7 @@
       <div v-else-if="submissionSuccess" class="text-center">
           <div class="text-success-600 dark:text-success-400 flex flex-col items-center">
               <svg class="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              <h2 class="text-2xl font-semibold mb-2">Submission Successful!</h2>
+              <h2 class=" text-3xl  font-semibold mb-2">Submission Successful!</h2>
               <p class="text-secondary-600 dark:text-secondary-300 mb-6">Your answer has been saved. Ready for the next one?</p>
           </div>
           <button @click="getNextQuestion" class="btn-primary">Next Puzzle</button>
@@ -35,11 +35,11 @@
       <!-- Test Interface -->
       <div v-else-if="question" class="space-y-8">
         <div class="text-center">
-          <p class="text-sm text-secondary-600 dark:text-secondary-400 mb-4">What word connects these three?</p>
+          <p class=" text-sm  text-secondary-600 dark:text-secondary-400 mb-4">What word connects these three?</p>
           <div class="flex justify-center items-center space-x-4 md:space-x-8">
-            <span class="text-2xl md:text-4xl font-bold text-primary-600 dark:text-primary-400 capitalize p-4 bg-secondary-100 dark:bg-secondary-700/50 rounded-lg">{{ question.word1 }}</span>
-            <span class="text-2xl md:text-4xl font-bold text-primary-600 dark:text-primary-400 capitalize p-4 bg-secondary-100 dark:bg-secondary-700/50 rounded-lg">{{ question.word2 }}</span>
-            <span class="text-2xl md:text-4xl font-bold text-primary-600 dark:text-primary-400 capitalize p-4 bg-secondary-100 dark:bg-secondary-700/50 rounded-lg">{{ question.word3 }}</span>
+            <span class=" text-3xl  md:text-3xl font-bold text-primary-600 dark:text-primary-400 capitalize p-4 bg-secondary-100 dark:bg-secondary-700/50 rounded-lg">{{ question.word1 }}</span>
+            <span class=" text-3xl  md:text-3xl font-bold text-primary-600 dark:text-primary-400 capitalize p-4 bg-secondary-100 dark:bg-secondary-700/50 rounded-lg">{{ question.word2 }}</span>
+            <span class=" text-3xl  md:text-3xl font-bold text-primary-600 dark:text-primary-400 capitalize p-4 bg-secondary-100 dark:bg-secondary-700/50 rounded-lg">{{ question.word3 }}</span>
           </div>
         </div>
 
@@ -48,7 +48,7 @@
           <input
             v-model="answer"
             type="text"
-            class="form-input text-center text-lg"
+            class="form-input text-center  text-sm "
             placeholder="Your answer"
             required
           />
@@ -60,7 +60,7 @@
             <span v-if="isSubmitting" class="loading-spinner-sm mr-2"></span>
             {{ isSubmitting ? 'Submitting...' : 'Submit Answer' }}
           </button>
-          <p v-if="submissionError" class="text-error-500 text-sm text-center mt-2">{{ submissionError }}</p>
+          <p v-if="submissionError" class="text-error-500  text-sm  text-center mt-2">{{ submissionError }}</p>
         </form>
       </div>
     </div>

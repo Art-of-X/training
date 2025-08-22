@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-secondary-900 dark:text-white mb-2">Observation Training</h1>
-        <p class="text-lg text-secondary-600 dark:text-secondary-300">
+        <p class=" text-sm  text-secondary-600 dark:text-secondary-300">
           Advanced training module for capturing observational learning patterns and environmental creative responses.
         </p>
       </div>
@@ -29,34 +29,34 @@
             </p>
             
             <div class="bg-secondary-100 dark:bg-secondary-700/50 border border-secondary-200 dark:border-secondary-700 p-6 text-left max-w-2xl mx-auto mb-8">
-              <h3 class="text-lg font-semibold text-secondary-900 dark:text-white mb-4">Planned Features:</h3>
+              <h3 class=" text-sm  font-semibold text-secondary-900 dark:text-white mb-4">Planned Features:</h3>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="space-y-2">
                   <div class="flex items-center space-x-2">
                     <div class="w-2 h-2 bg-warning-600"></div>
-                    <span class="text-sm text-secondary-700 dark:text-secondary-300">Environmental response tracking</span>
+                    <span class=" text-sm  text-secondary-700 dark:text-secondary-300">Environmental response tracking</span>
                   </div>
                   <div class="flex items-center space-x-2">
                     <div class="w-2 h-2 bg-warning-600"></div>
-                    <span class="text-sm text-secondary-700 dark:text-secondary-300">Visual attention pattern analysis</span>
+                    <span class=" text-sm  text-secondary-700 dark:text-secondary-300">Visual attention pattern analysis</span>
                   </div>
                   <div class="flex items-center space-x-2">
                     <div class="w-2 h-2 bg-warning-600"></div>
-                    <span class="text-sm text-secondary-700 dark:text-secondary-300">Creative inspiration mapping</span>
+                    <span class=" text-sm  text-secondary-700 dark:text-secondary-300">Creative inspiration mapping</span>
                   </div>
                 </div>
                 <div class="space-y-2">
                   <div class="flex items-center space-x-2">
                     <div class="w-2 h-2 bg-warning-600"></div>
-                    <span class="text-sm text-secondary-700 dark:text-secondary-300">Observational learning metrics</span>
+                    <span class=" text-sm  text-secondary-700 dark:text-secondary-300">Observational learning metrics</span>
                   </div>
                   <div class="flex items-center space-x-2">
                     <div class="w-2 h-2 bg-warning-600"></div>
-                    <span class="text-sm text-secondary-700 dark:text-secondary-300">Context-aware data collection</span>
+                    <span class=" text-sm  text-secondary-700 dark:text-secondary-300">Context-aware data collection</span>
                   </div>
                   <div class="flex items-center space-x-2">
                     <div class="w-2 h-2 bg-warning-600"></div>
-                    <span class="text-sm text-secondary-700 dark:text-secondary-300">Advanced AI pattern recognition</span>
+                    <span class=" text-sm  text-secondary-700 dark:text-secondary-300">Advanced AI pattern recognition</span>
                   </div>
                 </div>
               </div>
@@ -79,7 +79,7 @@
                 </svg>
               </div>
               <h3 class="font-semibold text-success-900 dark:text-success-300 mb-1">Portfolio</h3>
-              <p class="text-sm text-success-700 dark:text-success-400">Complete</p>
+              <p class=" text-sm  text-success-700 dark:text-success-400">Complete</p>
             </div>
 
             <div class="text-center p-4 bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-500/30">
@@ -89,7 +89,7 @@
                 </svg>
               </div>
               <h3 class="font-semibold text-success-900 dark:text-success-300 mb-1">Monologue</h3>
-              <p class="text-sm text-success-700 dark:text-success-400">Complete</p>
+              <p class=" text-sm  text-success-700 dark:text-success-400">Complete</p>
             </div>
 
             <div class="text-center p-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-500/30">
@@ -99,7 +99,7 @@
                 </svg>
               </div>
               <h3 class="font-semibold text-primary-900 dark:text-primary-300 mb-1">Peer Training</h3>
-              <p class="text-sm text-primary-700 dark:text-primary-400">In Development</p>
+              <p class=" text-sm  text-primary-700 dark:text-primary-400">In Development</p>
             </div>
           </div>
           

@@ -11,38 +11,34 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Fetch both user patterns and spark patterns
+    // Use raw SQL to handle the null sparkId issue properly
     const [userPatterns, sparkPatterns] = await Promise.all([
-      prisma.pattern.findMany({
-        where: {
-          userId: { not: null },
-          // Only require spark content to be present
-          spark: { not: '' }
-        },
-        include: {
-          user: {
-            select: {
-              name: true
-            }
-          }
-        },
-        orderBy: { createdAt: 'asc' },
-      }),
-      prisma.pattern.findMany({
-        where: {
-          userId: null,
-          // Only require spark content to be present
-          spark: { not: '' }
-        },
-        include: {
-          sparkRef: {
-            select: {
-              name: true,
-              description: true
-            }
-          }
-        },
-        orderBy: { createdAt: 'asc' },
-      })
+      prisma.$queryRaw<any[]>`
+        SELECT p.id, p.user_id as "userId", p.spark_id as "sparkId", 
+               p.method, p.competency, p.spark, p.created_at as "createdAt",
+               p.is_predefined as "isPredefined", p.is_predefined_method as "isPredefinedMethod",
+               p.is_predefined_competency as "isPredefinedCompetency",
+               u.name as "userName"
+        FROM patterns p
+        LEFT JOIN user_profiles u ON u.id = p.user_id
+        WHERE p.user_id IS NOT NULL 
+          AND p.spark_id IS NOT NULL
+          AND p.spark <> ''
+        ORDER BY p.created_at ASC
+      `,
+      prisma.$queryRaw<any[]>`
+        SELECT p.id, p.user_id as "userId", p.spark_id as "sparkId",
+               p.method, p.competency, p.spark, p.created_at as "createdAt", 
+               p.is_predefined as "isPredefined", p.is_predefined_method as "isPredefinedMethod",
+               p.is_predefined_competency as "isPredefinedCompetency",
+               s.name as "sparkName", s.description as "sparkDescription"
+        FROM patterns p
+        LEFT JOIN sparks s ON s.id = p.spark_id
+        WHERE p.user_id IS NULL 
+          AND p.spark_id IS NOT NULL
+          AND p.spark <> ''
+        ORDER BY p.created_at ASC
+      `
     ]);
 
     // Combine and format the patterns
@@ -50,12 +46,12 @@ export default defineEventHandler(async (event) => {
       ...userPatterns.map(p => ({
         ...p,
         source: 'user' as const,
-        sourceName: p.user?.name || 'Unknown User'
+        sourceName: p.userName || 'Unknown User'
       })),
       ...sparkPatterns.map(p => ({
         ...p,
         source: 'spark' as const,
-        sourceName: p.sparkRef?.name || 'Unnamed Spark'
+        sourceName: p.sparkName || 'Unnamed Spark'
       }))
     ];
 

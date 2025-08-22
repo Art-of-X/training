@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-secondary-900 dark:text-white mb-2">Demographics Questionnaire</h1>
-      <p class="text-lg text-secondary-600 dark:text-secondary-300">
+      <p class=" text-sm  text-secondary-600 dark:text-secondary-300">
         Help us understand your background by answering these questions. Your responses will be kept confidential.
       </p>
     </div>
@@ -29,7 +29,7 @@
             <svg class="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            <h2 class="text-2xl font-semibold mb-2">Thank You!</h2>
+            <h2 class=" text-3xl  font-semibold mb-2">Thank You!</h2>
             <p class="text-secondary-600 dark:text-secondary-300 mb-6">Your demographic information has been saved successfully.</p>
           </div>
           <NuxtLink to="/training/chat" class="btn-primary">Back to Dashboard</NuxtLink>
@@ -39,7 +39,7 @@
         <form v-else-if="questions" @submit.prevent="submitAnswers" class="space-y-8">
           <div v-for="question in questions" :key="question.key" class="space-y-3">
             <!-- Question Text -->
-            <label class="block text-lg font-medium text-secondary-900 dark:text-white">
+            <label class="block  text-sm  font-medium text-secondary-900 dark:text-white">
               {{ question.question }}
               <span v-if="question.required" class="text-error-500">*</span>
             </label>
@@ -93,7 +93,7 @@
                 class="w-full h-2 bg-secondary-200 rounded-lg appearance-none cursor-pointer dark:bg-secondary-700"
                 :required="question.required"
               />
-              <div class="flex justify-between text-sm text-secondary-500">
+              <div class="flex justify-between  text-sm  text-secondary-500">
                 <span>{{ question.min || 1 }}</span>
                 <span class="font-medium">{{ answers[question.key] || 5 }}</span>
                 <span>{{ question.max || 10 }}</span>
@@ -111,7 +111,7 @@
               <span v-if="isSubmitting" class="loading-spinner-sm mr-2"></span>
               {{ isSubmitting ? 'Submitting...' : 'Submit Answers' }}
             </button>
-            <p v-if="submissionError" class="text-error-500 text-sm mt-2 text-center">{{ submissionError }}</p>
+            <p v-if="submissionError" class="text-error-500  text-sm  mt-2 text-center">{{ submissionError }}</p>
           </div>
         </form>
       </div>
