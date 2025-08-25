@@ -56,8 +56,11 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 404, message: 'Project not found' })
     }
 
+    const totalRuns = await prisma.projectRun.count({ where: { projectId, userId: user.id } })
+
     return {
-      data: project
+      data: project,
+      meta: { totalRuns }
     }
   } catch (error) {
     console.error(`Error fetching project ${projectId}:`, error)

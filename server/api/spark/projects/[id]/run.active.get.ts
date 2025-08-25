@@ -17,7 +17,9 @@ export default defineEventHandler(async (event) => {
     select: { id: true, status: true, createdAt: true },
   })
 
-  return { runId: active?.id || null, status: active?.status || null }
+  const totalRuns = await prisma.projectRun.count({ where: { projectId, userId: user.id } })
+
+  return { runId: active?.id || null, status: active?.status || null, totalRuns }
 })
 
 

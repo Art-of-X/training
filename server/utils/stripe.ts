@@ -40,25 +40,49 @@ export async function resolveUserPlan(event: H3Event): Promise<{ plan: PlanTier;
   try {
     const stripe = getStripeClient(event)
     const premiumProductId = getPremiumProductId(event)
-    // Try to find customer by email
     const email = user.email || undefined
     if (!email) return { plan, subscriptionId }
 
-    const customers = await stripe.customers.list({ email, limit: 1 })
-    const customer = customers.data[0]
-    if (!customer) return { plan, subscriptionId }
-
-    // Check active subscriptions for our premium product
-    const subs = await stripe.subscriptions.list({ customer: customer.id, status: 'active', expand: ['data.items.data.price.product'] })
-    for (const s of subs.data) {
-      for (const item of s.items.data) {
-        const product = item.price.product as Stripe.Product
-        if (product && product.id === premiumProductId) {
-          plan = 'premium'
-          subscriptionId = s.id
-          return { plan, subscriptionId }
-        }
+    // Collect all customers that match this email (there can be multiple)
+    let allCustomers: Stripe.Customer[] = []
+    try {
+      const search = await stripe.customers.search({ query: `email:'${email}'`, limit: 100 })
+      allCustomers = search.data
+      // Fallback to list if search returns nothing
+      if (allCustomers.length === 0) {
+        const list = await stripe.customers.list({ email, limit: 100 })
+        allCustomers = list.data
       }
+    } catch {
+      try {
+        const list = await stripe.customers.list({ email, limit: 100 })
+        allCustomers = list.data
+      } catch {}
+    }
+
+    // Allowed statuses to treat as premium
+    const premiumStatuses = new Set<Stripe.Subscription.Status>(['active', 'trialing', 'past_due', 'unpaid'])
+
+    for (const c of allCustomers) {
+      try {
+        const subs = await stripe.subscriptions.list({
+          customer: c.id,
+          status: 'all',
+          expand: ['data.items.data.price.product'],
+          limit: 50,
+        })
+        for (const s of subs.data) {
+          if (!premiumStatuses.has(s.status)) continue
+          for (const item of s.items.data) {
+            const product = item.price.product as Stripe.Product
+            if (product && product.id === premiumProductId) {
+              plan = 'premium'
+              subscriptionId = s.id
+              return { plan, subscriptionId }
+            }
+          }
+        }
+      } catch {}
     }
   } catch (e) {
     // Swallow errors and assume free plan

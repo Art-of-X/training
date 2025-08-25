@@ -151,48 +151,31 @@ export async function processProjectRun(runId: string) {
       } })
 
       // Skip to output creation phase
-      await emit(runId, { type: 'phase:outputs', payload: { message: 'Creating outputs with artist-generated titles and cover prompts...' } })
+      await emit(runId, { type: 'phase:outputs', payload: { message: 'Creating outputs with artist-generated titles...' } })
       
       // Process each selected proposal
       for (const selectedProposal of selectedProposals) {
         if (currentRun?.status === 'cancelled') return
 
         try {
-          // Let the artist create title and cover prompt for their own idea
+          // Let the artist create a title for their own idea
           const mentalModels = await buildSparkMentalModelsSection(singleSpark.id)
-          const titlePrompt = `\n\n---\n\nCore Directive:\n- You are ${singleSpark.name} creating a title and visual description for YOUR creative idea.\n- This is YOUR proposal that you've selected to develop.\n- Create a title and cover prompt that captures YOUR artistic vision.`
+          const titlePrompt = `\n\n---\n\nCore Directive:\n- You are ${singleSpark.name} creating a title for YOUR creative idea.\n- This is YOUR proposal that you've selected to develop.\n- Create a concise, catchy title that captures your artistic vision.`
           const system = mentalModels ? `${singleSpark.systemPrompt}\n\n---\n\n${mentalModels}${titlePrompt}` : `${singleSpark.systemPrompt}${titlePrompt}`
 
-          const { text: titleAndCover } = await generateText({
+          const { text: titleOnly } = await generateText({
             model: openai('gpt-4o-mini'),
             system,
             messages: [{
               role: 'user',
-              content: `This is YOUR creative idea. Create:
-1. A concise, catchy title (max 8 words) that captures your artistic vision
-2. A visual cover prompt (max 25 words) that represents your idea visually
-
-Your idea: ${selectedProposal.proposal}
-
-IMPORTANT: The cover prompt should describe simple, clear visual elements that work well as a minimalistic line drawing. Focus on:
-- Main subject or object (1-2 key elements)
-- Simple shapes and forms
-- Clean, recognizable imagery
-- Avoid complex details or textures
-
-Format your response exactly as:
-Title: [title here]
-Cover: [visual prompt here]`
+              content: `This is YOUR creative idea. Create a concise, catchy title (max 8 words) that captures your artistic vision.\n\nYour idea: ${selectedProposal.proposal}\n\nRespond exactly as:\nTitle: [title here]`
             }],
             temperature: 0.8,
           })
 
-          // Parse the response to extract title and cover prompt
-          const titleMatch = titleAndCover.match(/Title:\s*(.+?)(?:\n|$)/i)
-          const coverMatch = titleAndCover.match(/Cover:\s*(.+?)(?:\n|$)/i)
-          
-          const title = titleMatch ? titleMatch[1].trim() : selectedProposal.proposal.split('\n')[0].substring(0, 50)
-          const coverPrompt = coverMatch ? coverMatch[1].trim() : null
+          // Parse the response to extract title
+          const titleMatch = titleOnly.match(/Title:\s*(.+?)(?:\n|$)/i)
+          const title = titleMatch ? titleMatch[1].trim() : selectedProposal.proposal.split('\\n')[0].substring(0, 50)
 
           // Save the output
           const created = await db.output.create({
@@ -201,74 +184,29 @@ Cover: [visual prompt here]`
               sparkId: selectedProposal.sparkId,
               title,
               text: selectedProposal.proposal,
-              coverPrompt,
               runId
             },
             include: { spark: true },
           })
 
-          // Auto-generate cover image using the artist's cover prompt
-          if (coverPrompt) {
-            try {
-              // Check cancellation before starting image generation
-              const imgRun = await prisma.projectRun.findUnique({ where: { id: runId }, select: { status: true } })
-              if (imgRun?.status === 'cancelled') return
-
-              await emit(runId, { 
-                type: 'image:generating', 
-                payload: { 
-                  outputId: created.id, 
-                  sparkId: selectedProposal.sparkId,
-                  sparkName: singleSpark.name
-                } 
-              })
-              
-              const openaiClient = new (await import('openai')).default({
-                apiKey: process.env.OPENAI_API_KEY
-              })
-              
-              // Add consistent minimalistic line drawing styling
-              const styledPrompt = `minimalistic line drawing, clean sketch, simple black lines on white background, artistic illustration, ${coverPrompt}`
-              
-              const imageResponse = await openaiClient.images.generate({
-                model: 'dall-e-3',
-                prompt: styledPrompt,
-                n: 1,
-                size: '1024x1024',
-                quality: 'standard',
-                response_format: 'url'
-              })
-
-              const imageUrl = imageResponse.data[0]?.url
-              if (imageUrl) {
-                await db.output.update({
-                  where: { id: created.id },
-                  data: { coverImageUrl: imageUrl }
-                })
-                
-                await emit(runId, { 
-                  type: 'image:completed', 
-                  payload: { 
-                    outputId: created.id, 
-                    imageUrl,
-                    sparkId: selectedProposal.sparkId,
-                    sparkName: singleSpark.name
-                  } 
-                })
-              }
-            } catch (imageError) {
-              console.error('Failed to auto-generate cover image:', imageError)
-              await emit(runId, { 
-                type: 'image:failed', 
-                payload: { 
-                  outputId: created.id, 
-                  error: imageError.message,
-                  sparkId: selectedProposal.sparkId,
-                  sparkName: singleSpark.name
-                } 
-              })
+          // Generate minimal SVG cover based on project name and task
+          try {
+            const { text: rawSvg } = await generateText({
+              model: openai('gpt-4o-mini'),
+              system: 'You generate concise, valid SVG markup only. No explanations. Output EXACTLY one <svg> element with viewBox="0 0 512 512" suitable for a square card. MUST be low-poly (triangles/polygons), abstract, composed of 3–5 shapes. Use SINGLE flat fill color for all shapes, NO gradients, NO strokes, NO external images or scripts.',
+              messages: [{
+                role: 'user',
+                content: `Project Title: ${project.name}\nProject Task: ${project.task}\nCreate an abstract LOW-POLY SVG composed of 3 to 5 separate polygon shapes (triangles/quadrilaterals). No circles or curves. Use a SINGLE flat fill color for all shapes (frontend recolors), NO gradients, NO strokes. You MAY vary opacity per shape (0.35–1.0) to create layering. Arrange shapes to subtly reflect the idea's key concepts. NO text. Max 8KB. Output only the SVG element.`
+              }],
+              temperature: 0.35,
+            })
+            const raw = (rawSvg || '').trim()
+            const m = raw.match(/<svg[\s\S]*?<\/svg>/i)
+            const svg = m ? m[0] : raw
+            if (svg.startsWith('<svg')) {
+              await db.output.update({ where: { id: created.id }, data: { coverSvg: svg } })
             }
-          }
+          } catch {}
 
           await emit(runId, { 
             type: 'output:created', 
@@ -276,8 +214,6 @@ Cover: [visual prompt here]`
               id: created.id, 
               text: created.text, 
               title: (created as any).title || '', 
-              coverPrompt: (created as any).coverPrompt || '', 
-              coverImageUrl: (created as any).coverImageUrl || '', 
               sparkId: created.sparkId, 
               sparkName: (created as any).spark.name 
             } 
@@ -398,7 +334,7 @@ Cover: [visual prompt here]`
   } })
 
   // Phase 4: Output creation - each selected proposal gets processed by its creator
-  await emit(runId, { type: 'phase:outputs', payload: { message: 'Creating final outputs with artist-generated titles and cover prompts...' } })
+  await emit(runId, { type: 'phase:outputs', payload: { message: 'Creating final outputs with artist-generated titles...' } })
 
   for (const selectedProposal of sortedProposals) {
     if (!selectedProposal) continue
@@ -412,41 +348,24 @@ Cover: [visual prompt here]`
       const originalSpark = assignedSparks.find(s => s.id === selectedProposal.sparkId)
       if (!originalSpark) continue
 
-      // Let the original artist create title and cover prompt for their own idea
+      // Let the original artist create a title for their own idea
       const mentalModels = await buildSparkMentalModelsSection(originalSpark.id)
-      const titlePrompt = `\n\n---\n\nCore Directive:\n- You are ${originalSpark.name} creating a title and visual description for YOUR creative idea.\n- This is YOUR proposal that was selected by the group.\n- Create a title and cover prompt that captures YOUR artistic vision.`
+      const titlePrompt = `\n\n---\n\nCore Directive:\n- You are ${originalSpark.name} creating a title for YOUR creative idea.\n- This is YOUR proposal that was selected by the group.\n- Create a concise, catchy title that captures your artistic vision.`
       const system = mentalModels ? `${originalSpark.systemPrompt}\n\n---\n\n${mentalModels}${titlePrompt}` : `${originalSpark.systemPrompt}${titlePrompt}`
 
-      const { text: titleAndCover } = await generateText({
+      const { text: titleOnly } = await generateText({
         model: openai('gpt-4o-mini'),
         system,
         messages: [{
           role: 'user',
-          content: `This is YOUR creative idea that was selected by the group. Create:
-1. A concise, catchy title (max 8 words) that captures your artistic vision
-2. A visual cover prompt (max 25 words) that represents your idea visually
-
-Your idea: ${selectedProposal.proposal}
-
-IMPORTANT: The cover prompt should describe simple, clear visual elements that work well as a minimalistic line drawing. Focus on:
-- Main subject or object (1-2 key elements)
-- Simple shapes and forms
-- Clean, recognizable imagery
-- Avoid complex details or textures
-
-Format your response exactly as:
-Title: [title here]
-Cover: [visual prompt here]`
+          content: `This is YOUR creative idea that was selected by the group. Create a concise, catchy title (max 8 words) that captures your artistic vision.\n\nYour idea: ${selectedProposal.proposal}\n\nRespond exactly as:\nTitle: [title here]`
         }],
         temperature: 0.8,
       })
 
-      // Parse the response to extract title and cover prompt
-      const titleMatch = titleAndCover.match(/Title:\s*(.+?)(?:\n|$)/i)
-      const coverMatch = titleAndCover.match(/Cover:\s*(.+?)(?:\n|$)/i)
-      
-      const title = titleMatch ? titleMatch[1].trim() : selectedProposal.proposal.split('\n')[0].substring(0, 50)
-      const coverPrompt = coverMatch ? coverMatch[1].trim() : null
+      // Parse the response to extract title
+      const titleMatch = titleOnly.match(/Title:\s*(.+?)(?:\n|$)/i)
+      const title = titleMatch ? titleMatch[1].trim() : selectedProposal.proposal.split('\\n')[0].substring(0, 50)
 
       // Save the entire proposal for reference
       const created = await db.output.create({
@@ -455,74 +374,29 @@ Cover: [visual prompt here]`
           sparkId: selectedProposal.sparkId, // Original creator gets attribution
           title,
           text: selectedProposal.proposal, // Full proposal text
-          coverPrompt,
           runId
         },
         include: { spark: true },
       })
 
-      // Auto-generate cover image using the artist's cover prompt
-      if (coverPrompt) {
-        try {
-          // Check cancellation before starting image generation
-          const imgRun = await prisma.projectRun.findUnique({ where: { id: runId }, select: { status: true } })
-          if (imgRun?.status === 'cancelled') return
-
-          await emit(runId, { 
-            type: 'image:generating', 
-            payload: { 
-              outputId: created.id, 
-              sparkId: selectedProposal.sparkId,
-              sparkName: originalSpark.name
-            } 
-          })
-          
-          const openaiClient = new (await import('openai')).default({
-            apiKey: process.env.OPENAI_API_KEY
-          })
-          
-          // Add consistent minimalistic line drawing styling
-          const styledPrompt = `minimalistic line drawing, clean sketch, simple black lines on white background, artistic illustration, ${coverPrompt}`
-          
-          const imageResponse = await openaiClient.images.generate({
-            model: 'dall-e-3',
-            prompt: styledPrompt,
-            n: 1,
-            size: '1024x1024',
-            quality: 'standard',
-            response_format: 'url'
-          })
-
-          const imageUrl = imageResponse.data[0]?.url
-          if (imageUrl) {
-            await db.output.update({
-              where: { id: created.id },
-              data: { coverImageUrl: imageUrl }
-            })
-            
-            await emit(runId, { 
-              type: 'image:completed', 
-              payload: { 
-                outputId: created.id, 
-                imageUrl,
-                sparkId: selectedProposal.sparkId,
-                sparkName: originalSpark.name
-              } 
-            })
-          }
-        } catch (imageError) {
-          console.error('Failed to auto-generate cover image:', imageError)
-          await emit(runId, { 
-            type: 'image:failed', 
-            payload: { 
-              outputId: created.id, 
-              error: imageError.message,
-              sparkId: selectedProposal.sparkId,
-              sparkName: originalSpark.name
-            } 
-          })
+      // Generate minimal SVG cover based on project name and task
+      try {
+        const { text: rawSvg } = await generateText({
+          model: openai('gpt-4o-mini'),
+          system: 'You generate concise, valid SVG markup only. No explanations. Output EXACTLY one <svg> element with viewBox="0 0 512 512" suitable for a square card. MUST be low-poly (triangles/polygons), abstract, composed of 3–5 shapes. Use SINGLE flat fill color for all shapes, NO gradients, NO strokes, NO external images or scripts.',
+          messages: [{
+            role: 'user',
+            content: `Project Title: ${project.name}\nProject Task: ${project.task}\nCreate an abstract LOW-POLY SVG composed of 3 to 5 separate polygon shapes (triangles/quadrilaterals). No circles or curves. Use a SINGLE flat fill color for all shapes (frontend recolors), NO gradients, NO strokes. You MAY vary opacity per shape (0.35–1.0) to create layering. Arrange shapes to subtly reflect the idea's key concepts. NO text. Max 8KB. Output only the SVG element.`
+          }],
+          temperature: 0.35,
+        })
+        const raw = (rawSvg || '').trim()
+        const m = raw.match(/<svg[\s\S]*?<\/svg>/i)
+        const svg = m ? m[0] : raw
+        if (svg.startsWith('<svg')) {
+          await db.output.update({ where: { id: created.id }, data: { coverSvg: svg } })
         }
-      }
+      } catch {}
 
       await emit(runId, { 
         type: 'output:created', 
@@ -530,8 +404,6 @@ Cover: [visual prompt here]`
           id: created.id, 
           text: created.text, 
           title: (created as any).title || '', 
-          coverPrompt: (created as any).coverPrompt || '', 
-          coverImageUrl: (created as any).coverImageUrl || '', 
           sparkId: created.sparkId, 
           sparkName: (created as any).spark.name 
         } 

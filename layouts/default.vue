@@ -196,7 +196,85 @@
               </li> -->
             </ul>
           </div>
+
+
         </nav>
+
+        <!-- Sidebar Footer Links -->
+        <div class="border-t-4 border-primary-500">
+          <NuxtLink
+            to="/guide"
+            class="sidebar-link"
+            :class="{ active: route.path.startsWith('/guide') }"
+            @mouseenter="(e) => showPopover(e, 'Learn how to use Art of X effectively with comprehensive guides for all features.')"
+            @mouseleave="hidePopover"
+          >
+            <span class="truncate">Guide</span>
+          </NuxtLink>
+          
+          <!-- Guide Submenu - Only show when guide is active -->
+          <div v-if="route.path.startsWith('/guide')" class="ml-4 mt-2 space-y-1">
+            <NuxtLink
+              to="/guide"
+              class="sidebar-link"
+              :class="{ active: route.path === '/guide' }"
+              @mouseenter="(e) => showPopover(e, 'Get started with Art of X - overview of all features and getting started guide.')"
+              @mouseleave="hidePopover"
+            >
+              <span class="truncate">Overview</span>
+            </NuxtLink>
+            
+            <NuxtLink
+              to="/guide/sparks"
+              class="sidebar-link"
+              :class="{ active: route.path === '/guide/sparks' }"
+              @mouseenter="(e) => showPopover(e, 'Learn how to use AI personas with unique creative styles for your projects.')"
+              @mouseleave="hidePopover"
+            >
+              <span class="truncate">Sparks</span>
+            </NuxtLink>
+            
+            <NuxtLink
+              to="/guide/projects"
+              class="sidebar-link"
+              :class="{ active: route.path === '/guide/projects' }"
+              @mouseenter="(e) => showPopover(e, 'Organize your creative work into projects and collaborate with AI personas.')"
+              @mouseleave="hidePopover"
+            >
+              <span class="truncate">Projects</span>
+            </NuxtLink>
+            
+            <NuxtLink
+              to="/guide/my-spark"
+              class="sidebar-link"
+              :class="{ active: route.path === '/guide/my-spark' }"
+              @mouseenter="(e) => showPopover(e, 'Understand and use your personal AI model that learns your creative style.')"
+              @mouseleave="hidePopover"
+            >
+              <span class="truncate">My Spark</span>
+            </NuxtLink>
+            
+            <NuxtLink
+              to="/guide/training"
+              class="sidebar-link"
+              :class="{ active: route.path === '/guide/training' }"
+              @mouseenter="(e) => showPopover(e, 'Train your AI to understand your unique creative style and preferences.')"
+              @mouseleave="hidePopover"
+            >
+              <span class="truncate">Training</span>
+            </NuxtLink>
+            
+            <NuxtLink
+              to="/guide/portfolio"
+              class="sidebar-link"
+              :class="{ active: route.path === '/guide/portfolio' }"
+              @mouseenter="(e) => showPopover(e, 'Showcase your creative work and track your portfolio development.')"
+              @mouseleave="hidePopover"
+            >
+              <span class="truncate">Portfolio</span>
+            </NuxtLink>
+          </div>
+        </div>
       </aside>
 
       <!-- Main Content Area -->
@@ -351,6 +429,7 @@ import { primaryColor, secondaryColor } from "~/composables/useDynamicColors";
 import { useHead } from "nuxt/app";
 import { useUpgradeModal } from "~/composables/useUpgradeModal";
 import { useRoute, useRouter, watch, ref, onMounted } from "#imports";
+import { useSubscription } from '~/composables/useSubscription'
 
 const { user } = useAuth();
 const { versionConfig } = useVersion();
@@ -371,8 +450,8 @@ const newProjectForm = reactive({
 });
 
 const allSparks = ref<any[]>([]);
-const userPlan = ref<'free' | 'premium'>('free')
-const MAX_SPARKS = computed(() => (userPlan.value === 'premium' ? 8 : 3))
+const { plan: userPlan, maxSparks, loaded: subscriptionLoaded, loadSubscription } = useSubscription()
+const MAX_SPARKS = computed(() => maxSparks.value)
 
 // Shared upgrade modal state
 const { 
@@ -408,10 +487,7 @@ onMounted(async () => {
     await fetchProjects();
     await fetchAllSparks();
   }
-  try {
-    const sub = await $fetch<any>('/api/billing/subscription')
-    userPlan.value = sub.plan
-  } catch {}
+  try { await loadSubscription() } catch {}
 });
 
 // Watch for user changes to refresh projects
@@ -456,6 +532,12 @@ if (process.client) {
 
 // Create project modal functions
 function openCreateProjectModal() {
+  // If subscription not yet loaded, allow creating and rely on server limits
+  if (!subscriptionLoaded.value) {
+    isCreateModalOpen.value = true;
+    newProjectForm.selectedSparkIds = [] as string[];
+    return;
+  }
   const limit = userPlan.value === 'premium' ? 10 : 3
   if (projects.value.length >= limit) {
     openUpgradeModal({

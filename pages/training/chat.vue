@@ -123,7 +123,7 @@ const sparkId = computed<string | undefined>(() => (route.query.spark as string)
 
 // Progress state
 const { progressPercent } = useTrainingProgress(sparkId)
-const displayPercent = computed(() => String(progressPercent.value).padStart(2, '0'))
+const displayPercent = computed(() => Math.floor(progressPercent.value))
 
 const chatRef = ref();
 const loadSession = async (sessionMessages: any[], sessionId:string) => {

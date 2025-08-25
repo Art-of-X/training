@@ -294,13 +294,19 @@ interface Props {
   embedded?: boolean;
   sparkId?: string; // When provided, runs in spark chat mode (no tools, spark system prompt)
   maxUserMessages?: number; // Optional cap for user messages (e.g., premium sparks)
+  externalMessages?: Array<{ role: 'user' | 'assistant'; text: string }>; // Optional external messages for display-only mode
 }
 
 const props = withDefaults(defineProps<Props>(), {
   embedded: false,
   sparkId: undefined,
   maxUserMessages: undefined,
+  externalMessages: undefined,
 });
+
+const emit = defineEmits<{
+  (e: 'submit', text: string): void
+}>()
 
 const {
   messages,
@@ -344,6 +350,10 @@ const chatObserver = ref<IntersectionObserver | null>(null);
 
 // Filter out system messages and technical user messages for display
 const displayMessages = computed(() => {
+  // If external messages are provided, render those in the same visual format
+  if (props.externalMessages && props.externalMessages.length > 0) {
+    return props.externalMessages.map(m => ({ role: m.role, content: m.text })) as any
+  }
   return messages.value.filter((msg, index, array) => {
     if (msg.role === "system") return false;
     if (isLoading.value && msg.role === "user" && index === array.length - 1)
@@ -504,6 +514,12 @@ const handleSubmit = async (e: Event) => {
     inputValue.value = '';
   }
 
+  // If using external messages (display-only), emit to parent and skip internal chat flow
+  if (props.externalMessages && props.externalMessages.length >= 0) {
+    emit('submit', userMessage)
+    return
+  }
+
   originalHandleSubmit(userMessage);
 };
 
@@ -557,10 +573,24 @@ watch(
   { deep: true, immediate: true }
 );
 
+// Also auto-scroll when using externalMessages in embedded/display-only mode
+watch(
+  () => props.externalMessages,
+  () => {
+    scrollToBottom();
+  },
+  { deep: true, immediate: true }
+);
+
 // Function to initialize chat when it becomes visible
 const initializeChat = () => {
   if (!hasInitialized.value && messages.value.length === 0) {
     hasInitialized.value = true;
+    // If externalMessages are provided, don't inject the default initial message
+    if (props.externalMessages && props.externalMessages.length >= 0) {
+      scrollToBottom();
+      return;
+    }
     getInitialMessage();
     scrollToBottom();
   }

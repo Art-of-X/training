@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
     mode: 'subscription',
     customer: customerId,
     line_items: [{ price: prices.data[0].id, quantity: 1 }],
-    success_url: `${siteUrl}/training/settings?checkout=success`,
+    success_url: `${siteUrl}/training/settings?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${siteUrl}/training/settings?checkout=cancel`,
     allow_promotion_codes: true,
     billing_address_collection: 'auto',

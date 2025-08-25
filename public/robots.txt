@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /server/
+Disallow: /prisma/
+Disallow: /temp/
+
+# Allow public content
+Allow: /content/
+Allow: /images/
+Allow: /svg/
+
+# Sitemap location (if you have one)
+# Sitemap: https://yoursite.com/sitemap.xml

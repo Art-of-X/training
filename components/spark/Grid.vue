@@ -27,6 +27,17 @@
           >
             <span class="x-mask-secondary w-5 h-5" aria-hidden="true"></span>
           </button>
+          
+          <!-- Projects count badge (flush top-right, hover reverse colors) -->
+          <div class="absolute top-0 right-0 z-30">
+            <span
+              class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-bl-md spark-count-badge"
+              :style="{ '--badge-bg': primaryColor, '--badge-fg': secondaryColor }"
+              :title="`Projects count`"
+            >
+              used {{ spark.projectsCount ?? 0 }} times
+            </span>
+          </div>
                     <!-- Media preview (SVG dendrogram) -->
           <template v-if="spark.dendrograms && spark.dendrograms.dendrogramSvg">
             <div
@@ -193,7 +204,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import * as d3 from 'd3'
-import { secondaryColor } from '~/composables/useDynamicColors'
+import { primaryColor, secondaryColor } from '~/composables/useDynamicColors'
 import Chat from '~/components/Chat.vue'
 import CircularDendrogram from '~/components/graphs/CircularDendrogram.vue'
 import type { HierarchyNode, DisplayNodeInfo } from '~/components/graphs/types'
@@ -214,6 +225,7 @@ interface Spark {
   dendrograms: SparkDendrogram | null
   systemPrompt?: string
   isPremium?: boolean
+  projectsCount?: number
 }
 
 interface Props {
@@ -597,5 +609,15 @@ async function handleAddToProjectSubmit() {
 /* Ensure proper height constraints for chat tab */
 .flex-1.min-h-0 {
   height: 100%;
+}
+
+/* Dynamic color badge using useDynamicColors */
+.spark-count-badge { 
+  background-color: var(--badge-bg);
+  color: var(--badge-fg);
+}
+.group:hover .spark-count-badge {
+  background-color: var(--badge-fg);
+  color: var(--badge-bg);
 }
 </style>

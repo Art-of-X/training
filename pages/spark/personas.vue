@@ -79,6 +79,7 @@ type Spark = {
   isPublic?: boolean;
   profitSplitOptIn?: boolean;
   isPremium?: boolean;
+  projectsCount?: number;
 };
 
 const { data, pending, error } = useFetch<{ data: Spark[] }>("/api/spark");

@@ -15,6 +15,9 @@ export default defineEventHandler(async (event) => {
         profitSplitOptIn: true,
         createdAt: true,
         updatedAt: true,
+        _count: {
+          select: { projects: true }
+        },
         dendrograms: {
           select: {
             id: true,
@@ -28,7 +31,12 @@ export default defineEventHandler(async (event) => {
         updatedAt: 'desc',
       },
     })
-    return { data: sparks }
+    // Shape a stable field name for project count to keep UI simple
+    const shaped = sparks.map(s => ({
+      ...s,
+      projectsCount: s._count?.projects ?? 0,
+    }))
+    return { data: shaped }
   }
   catch (error) {
     console.error('Error fetching sparks:', error)

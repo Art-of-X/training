@@ -257,6 +257,18 @@ const accountForm = reactive<{ name: string; email: string }>({ name: '', email:
 onMounted(async () => {
   await loadAccount()
   await loadSubscription()
+  // If returning from Stripe checkout with a session id, verify and refresh plan
+  const route = useRoute()
+  const sessionId = (route.query.session_id as string | undefined) || undefined
+  if (route.query.checkout === 'success' && sessionId) {
+    try {
+      const r = await $fetch<{ plan: 'free'|'premium'; subscriptionId?: string | null }>(`/api/billing/session`, { params: { id: sessionId } })
+      if (r.plan === 'premium') {
+        plan.value = 'premium'
+        if (r.subscriptionId) subscriptionId.value = r.subscriptionId
+      }
+    } catch {}
+  }
 })
 
 watch(user, async (u) => {

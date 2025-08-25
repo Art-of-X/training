@@ -3,9 +3,10 @@
     class="group relative rounded-lg flex flex-col justify-between w-48 h-48 cursor-pointer transition overflow-hidden bg-primary-500 output-card"
     @click="emit('select', output)"
   >
-    <!-- Cover Image Section - Full square, no padding/margin -->
-    <div class="w-full flex-1 flex items-center justify-center min-h-32">
+    <!-- Cover Section: gradient base with optional SVG overlay -->
+    <div class="w-full flex-1 flex items-center justify-center min-h-32 relative">
       <div class="w-full h-full" :style="gradientStyle"></div>
+      <div v-if="output.coverSvg" class="absolute inset-0 svg-wrapper" v-html="output.coverSvg"></div>
     </div>
 
     <!-- Content Section -->
@@ -35,6 +36,7 @@ interface Output {
   text: string;
   coverPrompt?: string;
   coverImageUrl?: string;
+  coverSvg?: string;
   status?: 'text-only' | 'pending-image' | 'complete';
 }
 
@@ -78,4 +80,15 @@ const gradientStyle = computed(() => {
 
 /* Use CSS variables for dynamic secondary color so it works in scoped styles */
 :root { --card-secondary: #888; }
+
+.svg-wrapper :deep(svg) {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* Force all shapes within the SVG to use the secondary color as fill and remove strokes */
+.svg-wrapper :deep(svg *[fill]) { fill: v-bind(secondaryColor) !important; }
+.svg-wrapper :deep(svg *:not([fill])) { fill: v-bind(secondaryColor) !important; }
+.svg-wrapper :deep(svg *[stroke]) { stroke: none !important; }
 </style>

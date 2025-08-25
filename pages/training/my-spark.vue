@@ -6,17 +6,29 @@
     <div v-else class="h-full flex flex-col overflow-hidden">
       <!-- Graph section full width -->
       <div class="flex-grow relative min-h-0 overflow-hidden w-full">
-        <div v-if="!isEligible" class="container-wide py-8">
-          <div
-            class="bg-secondary-50 dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-lg p-6 text-secondary-800 dark:text-secondary-200"
-          >
-            <h2 class=" text-sm  font-semibold mb-2">Keep training to unlock your spark</h2>
-            <p class=" text-sm ">
-              You need at least 3 methods and 3 competencies analyzed. Current: {{ uniqueMethodsCount }}/3 methods, {{
-                uniqueCompetenciesCount
-              }}/3 competencies.
-            </p>
-          </div>
+        <div v-if="!isEligible" class="p-8">
+          <section class="pb-4 mb-6 relative">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <h1 class="text-3xl font-bold">Training</h1>
+              <div class="flex items-center gap-4">
+                <div v-if="progressPercent < 100" class=" text-sm  font-medium text-secondary-700 dark:text-secondary-300">
+                  <span>{{ displayPercent }}% until your own spark</span>
+                </div>
+              </div>
+            </div>
+            <!-- Progress border overlay -->
+            <div class="absolute left-0 right-0 bottom-0 h-1 bg-secondary-200 dark:bg-secondary-700">
+              <div
+                class="h-full bg-primary-500 transition-all duration-500"
+                :style="{ width: progressPercent + '%' }"
+              ></div>
+            </div>
+          </section>
+
+          <p class=" text-sm  text-secondary-800 dark:text-secondary-200">
+            We need a little bit more time to analyze your thinking. Train your spark further to get first insights.
+            <NuxtLink to="/training/chat" class="underline">Go to Training</NuxtLink>
+          </p>
         </div>
         <div v-else-if="userProfile?.id" class="absolute inset-0">
           <UserPatternGraph v-if="viewMode === 'chart'" :userId="userProfile.id" />
@@ -77,6 +89,7 @@ const userSparkId = computed<string | undefined>(() => {
 
 // Progress scoped to the user's Spark
 const { progressPercent, isEligible, uniqueMethodsCount, uniqueCompetenciesCount, loading: isLoadingProgress } = useTrainingProgress(userSparkId)
+const displayPercent = computed(() => Math.floor(progressPercent.value))
 
 const isPageLoading = computed(() => isFetchingSparks.value || isLoadingProgress.value)
 

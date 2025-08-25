@@ -161,7 +161,7 @@
                       v-model="taskProxy"
                       @keydown.enter.exact.prevent="handleSendTask"
                       @keydown.enter.shift.exact="handleTaskShiftEnter"
-                      placeholder="Describe your creative challenge. Agents will generate ideas and create monochrome paper collage covers."
+                      placeholder="Describe your creative challenge. Agents will generate ideas."
                       class="w-full h-full min-h-[120px] bg-transparent resize-none text-sm border-0 focus:outline-none focus:ring-0"
                       :style="{ color: secondaryColor }"
                       :disabled="isRunningTask"
@@ -222,9 +222,10 @@
                 <!-- Multi-agent logs integrated into task area -->
                 <div
                   class="border-t border-secondary-300 dark:border-secondary-600 pt-4 flex-1 flex flex-col overflow-hidden"
+                  :style="{ color: secondaryColor }"
                 >
                   <!-- Task prompt display -->
-                  <div class="text-sm text-secondary-600 dark:text-secondary-300 mb-2">
+                  <div class="text-sm mb-2">
                     <span v-if="runStatus === 'running'">Agents creating individual proposals...</span>
                     <span v-else-if="runStatus === 'coordinating'">Agents evaluating each other's proposals...</span>
                     <span v-else-if="runStatus === 'saving'">Creating final outputs with artist-generated titles...</span>
@@ -234,23 +235,23 @@
 
                   <!-- Task prompt display -->
                   <div class="mb-3">
-                                      <div class="text-sm text-secondary-500 mb-1">Task:</div>
-                  <div class="text-sm text-secondary-900 dark:text-white">
+                    <div class="text-sm mb-1">Task:</div>
+                    <div class="text-sm">
                     {{ task }}
                   </div>
                   </div>
 
                   <!-- Agent events log -->
-                  <div v-if="agentEvents.length === 0" class="text-secondary-500 text-sm flex-1">
+                  <div v-if="agentEvents.length === 0" class="text-sm flex-1">
                     No messages yet.
                   </div>
                   <div v-else ref="logsContainer" class="space-y-1 flex-1 overflow-y-auto">
-                                      <div v-for="(evt, idx) in agentEvents" :key="idx" class="text-sm">
-                    <div class="text-sm text-secondary-500 mb-1">
+                    <div v-for="(evt, idx) in agentEvents" :key="idx" class="text-sm">
+                      <div class="text-sm mb-1">
                       <strong>{{ evt.name || evt.type }}</strong>
                       <span class="ml-2 opacity-75">{{ evt.type }}</span>
                     </div>
-                      <div v-if="evt.text" class="whitespace-pre-wrap text-secondary-700 dark:text-secondary-300">
+                      <div v-if="evt.text" class="whitespace-pre-wrap">
                         {{ evt.text }}
                       </div>
                       <div v-if="evt.error" class="text-sm text-red-500">
@@ -288,14 +289,13 @@
                 Insights and thought processes will appear here.
               </p>
             </div>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-1">
               <OutputCard
                 v-for="output in outputs"
                 :key="output.id"
                 :output="output"
                 class="w-48"
-                @select="openOutputModal(output)"
-                @image-generated="handleImageGenerated"
+                @select="!isRunningTask && openOutputModal(output)"
               />
             </div>
           </div>
@@ -370,7 +370,7 @@
       <transition name="fade-transform">
         <div v-if="isCreateModalOpen" class="fixed inset-0 z-50 flex items-center justify-center">
           <div class="absolute inset-0 bg-black/50" @click="isCreateModalOpen = false" />
-          <div class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg">
+          <div class="relative w-full max-w-4xl bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg">
             <h3 class="text-3xl font-semibold mb-4 text-secondary-900 dark:text-white">Create New Project</h3>
             <form @submit.prevent="handleCreateProject" class="space-y-4">
               <div>
@@ -547,54 +547,47 @@
       <transition name="fade-transform">
         <div v-if="isOutputModalOpen" class="fixed inset-0 z-50 flex items-center justify-center">
           <div class="absolute inset-0 bg-black/50" @click="closeOutputModal" />
-          <div class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg">
-            <div class="flex items-start justify-between mb-3">
-              <h3 class="text-3xl font-semibold text-secondary-900 dark:text-white">Idea</h3>
-              <button class="btn-secondary" @click="closeOutputModal">Close</button>
-            </div>
-            <div v-if="selectedOutput" class="space-y-4">
-              <!-- Cover Image Display -->
-              <div v-if="selectedOutput.coverImageUrl" class="w-full">
-                <img
-                  :src="selectedOutput.coverImageUrl"
-                  :alt="selectedOutput.title"
-                  class="w-full h-48 object-cover rounded-lg border border-secondary-200 dark:border-secondary-700 filter grayscale"
-                />
-              </div>
-
-              <div class="text-sm text-secondary-600 dark:text-secondary-200">
-                <div class="font-medium mb-1">By: {{ selectedOutput.persona.name }}</div>
-                <h3 class="text-sm font-semibold text-secondary-900 dark:text-white mb-3">
-                  {{ selectedOutput.title }}
-                </h3>
-                <div class="markdown-content text-secondary-900 dark:text-white" v-html="renderedOutputText"></div>
-                <div
-                  v-if="selectedOutput.coverPrompt"
-                  class="mt-4 p-3 bg-secondary-50 dark:bg-secondary-800 rounded-lg border border-secondary-200 dark:border-secondary-700"
-                >
-                  <h4 class="font-medium text-secondary-900 dark:text-white mb-2">Cover Prompt:</h4>
-                  <p class="text-sm text-secondary-700 dark:text-secondary-300 italic">
-                    {{ selectedOutput.coverPrompt }}
-                  </p>
-                  <button
-                    v-if="!selectedOutput.coverImageUrl"
-                    @click="generateCoverImageForModal"
-                    :disabled="isGeneratingModalImage"
-                    class="mt-2 bg-primary-500 hover:bg-primary-600 text-white text-sm px-4 py-2 rounded-lg transition flex items-center gap-2"
-                  >
-                    <span v-if="isGeneratingModalImage" class="loading-spinner w-4 h-4"></span>
-                    {{ isGeneratingModalImage ? "Creating..." : "Create Cover Image" }}
-                  </button>
+          <Modal
+            v-model="isOutputModalOpen"
+            :title="selectedOutput ? selectedOutput.title : 'Idea'"
+            max-width="6xl"
+            :body-class="'max-h-[80vh] overflow-hidden'"
+            :close-on-backdrop="false"
+          >
+            <template #headerActions>
+              <button class="btn-danger btn-sm" :disabled="isDeletingOutput" @click="deleteSelectedOutput">
+                <span v-if="isDeletingOutput" class="loading-spinner mr-2" />
+                {{ isDeletingOutput ? 'Deleting...' : 'Delete' }}
+              </button>
+            </template>
+            <div v-if="selectedOutput" class="grid grid-cols-1 md:grid-cols-2 gap-4 h-[75vh]">
+              <!-- Left fixed column -->
+              <div class="flex flex-col h-full rounded-lg p-4" :style="{ backgroundColor: secondaryColor }">
+                <div class="text-sm" :style="{ color: primaryColor }">
+                   <div class="font-medium mb-1">By: {{ selectedOutput.persona.name }}</div>
+                  <template v-if="!isUpdatingIdea">
+                    <h3 class="text-base font-semibold mb-3" :style="{ color: primaryColor }">{{ selectedOutput.title }}</h3>
+                  </template>
+                  <template v-else>
+                    <div class="animate-pulse h-5 bg-secondary-300/60 rounded w-3/5 mb-3"></div>
+                  </template>
+                </div>
+                <div class="flex-1 overflow-y-auto pr-2">
+                  <div class="markdown-content" :style="{ color: primaryColor }" v-html="renderedOutputText"></div>
                 </div>
               </div>
-              <div class="flex justify-end gap-2">
-                <button class="btn-danger" :disabled="isDeletingOutput" @click="deleteSelectedOutput">
-                  <span v-if="isDeletingOutput" class="loading-spinner mr-2" />
-                  {{ isDeletingOutput ? "Deleting..." : "Delete" }}
-                </button>
+              <!-- Right chat column: messages scroll, input fixed -->
+              <div class="flex flex-col h-full min-h-0">
+                <div class="flex-1 min-h-0 overflow-y-auto pr-1">
+                  <Chat
+                    embedded
+                    :external-messages="refineChatWithGreeting"
+                    @submit="(text:string)=>{ refineComment = text; refineSelectedOutput(); }"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          </Modal>
         </div>
       </transition>
 
@@ -649,11 +642,12 @@
 </template>
  
 <script setup lang="ts">
-import { ref, onMounted, computed, reactive, watch, watchEffect } from "vue";
+import { ref, onMounted, onUnmounted, computed, reactive, watch, watchEffect } from "vue";
 import { nextTick } from "vue";
 import { useRoute, navigateTo } from "#imports";
 import SectionHeader from "~/components/common/SectionHeader.vue";
 import OutputCard from "~/components/spark/OutputCard.vue";
+import Chat from "~/components/Chat.vue";
 import ItemGrid from "~/components/common/ItemGrid.vue";
 import Modal from "~/components/common/Modal.vue";
 import { primaryColor, secondaryColor } from "~/composables/useDynamicColors";
@@ -661,6 +655,7 @@ import { renderMarkdown } from "~/utils/markdown";
 import type { Prisma } from "@prisma/client";
 import { useChat } from "~/composables/useChat";
 import PageLoader from '~/components/common/PageLoader.vue'
+import { useSubscription } from '~/composables/useSubscription'
 
 const route = useRoute();
 
@@ -720,9 +715,8 @@ type Spark = {
 };
 
 const allSparks = ref<Spark[]>([]);
-const userPlan = ref<'free' | 'premium'>('free')
-const subscriptionProduct = ref<{ id: string; name: string; description: string } | null>(null)
-const subscriptionPrices = ref<Array<{ id: string; nickname: string | null; unitAmount: number | null; currency: string; interval: string | null }>>([])
+const { plan: userPlan, loaded: subscriptionLoaded, loadSubscription, maxSparks } = useSubscription()
+const projectTotalRuns = ref(0)
 
 // Upgrade modal state
 const isUpgradeModalOpen = ref(false);
@@ -733,7 +727,9 @@ const task = ref("");
 const outputs = ref<any[]>([]);
 const isSavingTask = ref(false);
 const isRunningTask = ref(false);
-const MAX_SPARKS = computed(() => (userPlan.value === 'premium' ? 8 : 3))
+// Declare runStatus early to avoid temporal dead zone in watchers/effects below
+const runStatus = ref<"idle" | "running" | "coordinating" | "saving" | "finished" | "error">("idle");
+const MAX_SPARKS = computed(() => maxSparks.value)
 const assignedSparkIds = computed(
   () => new Set((selectedProject.value?.sparks || []).map((s) => s.sparkId))
 );
@@ -817,6 +813,7 @@ function mapOutputForCard(o: any) {
     text: o.text,
     coverPrompt: o.coverPrompt,
     coverImageUrl: o.coverImageUrl,
+    coverSvg: o.coverSvg,
     persona: { id: sparkId, name: sparkName, color },
   } as any;
 }
@@ -857,12 +854,14 @@ async function fetchProjectDetails() {
   isLoading.value = true;
   error.value = null;
   try {
-    const response = await $fetch<{ data: ProjectWithDetails }>(
+    const response = await $fetch<{ data: ProjectWithDetails; meta?: { totalRuns?: number } }>(
       `/api/spark/projects/${selectedProjectId.value}`
     );
     selectedProject.value = response.data;
     task.value = selectedProject.value?.task || "";
     outputs.value = (selectedProject.value?.outputs || []).map(mapOutputForCard);
+    // Cache run count in a local ref for instant gating
+    projectTotalRuns.value = response.meta?.totalRuns ?? 0
   } catch (e: any) {
     error.value = e.data?.message || "Failed to fetch project details.";
     selectedProject.value = null;
@@ -925,6 +924,13 @@ async function handleSendTask() {
   const typed = task.value?.trim();
   const content = draft && draft.length > 0 ? draft : typed;
   if (!content) return;
+  // Instant precheck only after subscription has loaded; otherwise rely on server enforcement
+  if (subscriptionLoaded.value && userPlan.value !== 'premium' && projectTotalRuns.value >= 3) {
+    upgradeModalTitle.value = 'Run Limit Reached'
+    upgradeModalMessage.value = 'You have reached the limit of 3 runs per project on the free plan. Upgrade to continue running this project.'
+    isUpgradeModalOpen.value = true
+    return
+  }
   if (draft && draft.length > 0) {
     task.value = draft;
     transcriptDraft.value = "";
@@ -1050,11 +1056,14 @@ function openSelectSparks() {
 }
 
 function handleAddSparksClick() {
+  // If subscription not yet loaded, allow modal and rely on server enforcement
+  if (!subscriptionLoaded.value) {
+    openSelectSparks();
+    return;
+  }
   if (assignedSparksLimited.value.length < MAX_SPARKS.value) {
-    // Still have slots available, open the select sparks modal
     openSelectSparks();
   } else {
-    // Max sparks reached, show upgrade modal
     upgradeModalTitle.value = "Spark Limit Reached";
     upgradeModalMessage.value = `You have reached the limit of ${MAX_SPARKS.value} sparks per project on your current plan. Upgrade to add up to 8 sparks per project.`;
     isUpgradeModalOpen.value = true;
@@ -1064,8 +1073,8 @@ async function handleAssignSelectedSparks() {
   if (!selectedProjectId.value || selectedToAssign.value.length === 0) return;
   isAssigningSparks.value = true;
   try {
-    // Prevent assigning premium sparks if not premium plan
-    if (userPlan.value !== 'premium') {
+    // Prevent assigning premium sparks if not premium plan (only after subscription has loaded)
+    if (subscriptionLoaded.value && userPlan.value !== 'premium') {
       const premiumIds = new Set(allSparks.value.filter(s => s.isPremium).map(s => s.id))
       const hasPremium = selectedToAssign.value.some(id => premiumIds.has(id))
       if (hasPremium) {
@@ -1163,7 +1172,13 @@ async function runTask() {
     const start = await $fetch<{ runId: string }>(`/api/spark/projects/${selectedProjectId.value}/run.start`, { method: "POST" });
     runId = start.runId;
   } catch (e: any) {
-    error.value = e?.data?.message || e?.message || "Failed to start run";
+    if (e?.statusCode === 402) {
+      upgradeModalTitle.value = "Run Limit Reached";
+      upgradeModalMessage.value = e?.data?.message || "You have reached the limit of 3 runs per project on the free plan. Upgrade to continue running this project.";
+      isUpgradeModalOpen.value = true;
+    } else {
+      error.value = e?.data?.message || e?.message || "Failed to start run";
+    }
     isRunningTask.value = false;
     runStatus.value = "error";
     return;
@@ -1190,20 +1205,24 @@ async function cancelTask() {
 }
 
 onMounted(() => { fetchProjects(); });
-onMounted(async () => {
-  try {
-    const sub = await $fetch<any>('/api/billing/subscription')
-    userPlan.value = sub.plan
-    subscriptionProduct.value = sub.product
-    subscriptionPrices.value = sub.prices
-  } catch {}
-})
+onMounted(async () => { try { await loadSubscription() } catch {} })
 
 // Watch for route query changes to sync selected project
 watch(
   () => route.query.id,
   async (newId) => {
     if (newId && newId !== selectedProjectId.value) {
+      // Clean up any existing stream and reset run UI state when switching projects
+      try {
+        if (currentEventSource) {
+          currentEventSource.close()
+        }
+      } catch {}
+      currentEventSource = null
+      isRunningTask.value = false
+      runStatus.value = 'idle'
+      agentEvents.value = []
+      agentThinking.value = {}
       selectedProjectId.value = newId as string;
       await fetchProjectDetails();
     }
@@ -1233,7 +1252,6 @@ type AgentEvent = { type: string; sparkId?: string; name?: string; text?: string
 const agentEvents = ref<AgentEvent[]>([]);
 const agentThinking = ref<Record<string, boolean>>({});
 const isMonologueOpen = ref(true);
-const runStatus = ref<"idle" | "running" | "coordinating" | "saving" | "finished" | "error">("idle");
 const logsContainer = ref<HTMLElement | null>(null);
 function scrollToBottom() { if (logsContainer.value) { logsContainer.value.scrollTop = logsContainer.value.scrollHeight; } }
 
@@ -1243,6 +1261,13 @@ function attachRunEventSource(es: EventSource) {
     const data = JSON.parse(e.data || "{}");
     agentEvents.value.push({ type: "run:started", name: "Run started", text: `Task: ${data.task}` } as any);
     scrollToBottom();
+  });
+  es.addEventListener("stream:ready", () => {
+    agentEvents.value.push({ type: "stream:ready", name: "System", text: "Connected to live stream." } as any);
+    scrollToBottom();
+  });
+  es.addEventListener("stream:ping", () => {
+    // no-op: just keeps the connection fresh; optionally surface minimal UI feedback
   });
   es.addEventListener("agent:started", (e: MessageEvent) => {
     const d = JSON.parse(e.data || "{}");
@@ -1258,8 +1283,6 @@ function attachRunEventSource(es: EventSource) {
       id: `early-${d.sparkId}-${Date.now()}`,
       title: "Generating idea...",
       text: d.text,
-      coverPrompt: null,
-      coverImageUrl: null,
       persona: { id: d.sparkId, name: d.name || "Spark", color: getSparkColor(String(d.sparkId)) },
       status: "text-only",
     };
@@ -1272,7 +1295,7 @@ function attachRunEventSource(es: EventSource) {
     scrollToBottom();
   });
   es.addEventListener("outputs:saving", () => {
-    agentEvents.value.push({ type: "outputs:saving", name: "System", text: `Crafting final outputs and generating visual covers...` } as any);
+    agentEvents.value.push({ type: "outputs:saving", name: "System", text: `Crafting final outputs...` } as any);
     scrollToBottom();
   });
   es.addEventListener("output:created", (e: MessageEvent) => {
@@ -1283,44 +1306,22 @@ function attachRunEventSource(es: EventSource) {
       id: d.id,
       title: d.title || "Untitled Idea",
       text: d.text,
-      coverPrompt: d.coverPrompt,
-      coverImageUrl: d.coverImageUrl,
       persona: { id: d.sparkId, name: d.sparkName || "Spark", color: getSparkColor(String(d.sparkId)) },
-      status: d.coverImageUrl ? "complete" : "pending-image",
+      status: "complete",
     };
     if (earlyOutputIndex !== -1) {
       outputs.value[earlyOutputIndex] = finalOutput;
     } else {
       outputs.value.unshift(finalOutput);
     }
-    const currentRunOutputs = outputs.value.filter(o => o.id.startsWith('early-') || o.status === 'pending-image' || o.status === 'complete');
+    const currentRunOutputs = outputs.value.filter(o => o.id.startsWith('early-') || o.status === 'complete');
     if (currentRunOutputs.length > 3) {
       const toRemove = currentRunOutputs.slice(3);
       outputs.value = outputs.value.filter(o => !toRemove.includes(o));
     }
     scrollToBottom();
   });
-  es.addEventListener("image:generating", (e: MessageEvent) => {
-    const d = JSON.parse(e.data || "{}");
-    agentEvents.value.push({ type: "image:generating", name: "System", text: `Creating cover image...` } as any);
-    const outputIndex = outputs.value.findIndex((o) => o.id === d.outputId);
-    if (outputIndex !== -1) { outputs.value[outputIndex].status = "pending-image"; }
-    scrollToBottom();
-  });
-  es.addEventListener("image:completed", (e: MessageEvent) => {
-    const d = JSON.parse(e.data || "{}");
-    agentEvents.value.push({ type: "image:completed", name: "System", text: `Cover image completed!` } as any);
-    const outputIndex = outputs.value.findIndex((o) => o.id === d.outputId);
-    if (outputIndex !== -1) { outputs.value[outputIndex].coverImageUrl = d.imageUrl; outputs.value[outputIndex].status = "complete"; }
-    scrollToBottom();
-  });
-  es.addEventListener("image:failed", (e: MessageEvent) => {
-    const d = JSON.parse(e.data || "{}");
-    agentEvents.value.push({ type: "image:failed", name: "System", text: `Cover image generation failed: ${d.error}` } as any);
-    const outputIndex = outputs.value.findIndex((o) => o.id === d.outputId);
-    if (outputIndex !== -1) { outputs.value[outputIndex].status = "complete"; }
-    scrollToBottom();
-  });
+  // Removed image generation events
   es.addEventListener("agent:error", (e: MessageEvent) => {
     const d = JSON.parse(e.data || "{}");
     agentEvents.value.push({ type: "agent:error", sparkId: d.sparkId, name: d.name, error: d.error } as any);
@@ -1369,29 +1370,101 @@ function attachRunEventSource(es: EventSource) {
       currentEventSource = null;
     }
   });
-  es.onerror = () => {
-    if (runStatus.value !== "finished") {
-      runStatus.value = "error";
-      isRunningTask.value = false;
-      agentEvents.value.push({ type: "connection:error", name: "System", text: "Connection error. Check authentication and server logs." } as any);
-      try { es.close(); } catch {}
-      currentEventSource = null;
+  es.onerror = async () => {
+    // Close current source and attempt a quick reconnect if the run is still active.
+    try { es.close(); } catch {}
+    currentEventSource = null;
+    try {
+      const active = await $fetch<{ runId: string | null; status: string | null }>(`/api/spark/projects/${selectedProjectId.value}/run.active`)
+      if (active.runId && active.status === 'running') {
+        agentEvents.value.push({ type: 'connection:retry', name: 'System', text: 'Connection lost, retrying...' } as any)
+        const nes = new EventSource(`/api/spark/projects/${selectedProjectId.value}/run.stream?runId=${active.runId}`)
+        attachRunEventSource(nes)
+        return
+      }
+    } catch {}
+    if (runStatus.value !== 'finished') {
+      runStatus.value = 'error'
+      isRunningTask.value = false
+      agentEvents.value.push({ type: 'connection:error', name: 'System', text: 'Connection error. Check authentication and server logs.' } as any)
     }
-  };
+  }
 }
 
+// Heartbeat: keep UI in running state and auto-reconnect if stream drops (client-only)
+let heartbeat: any = null
+onMounted(() => {
+  if (!process.client) return
+  heartbeat = setInterval(async () => {
+    try {
+      if (!selectedProjectId.value) return
+      const active = await $fetch<{ runId: string | null; status: string | null }>(`/api/spark/projects/${selectedProjectId.value}/run.active`)
+      if (active.runId && active.status === 'running') {
+        // Ensure UI stays in running mode
+        isRunningTask.value = true
+        if (runStatus.value === 'idle' || runStatus.value === 'error') runStatus.value = 'running'
+        // Reattach stream if needed
+        if (!currentEventSource) {
+          const es = new EventSource(`/api/spark/projects/${selectedProjectId.value}/run.stream?runId=${active.runId}`)
+          attachRunEventSource(es)
+        }
+      }
+    } catch {}
+  }, 3000)
+})
+
+onUnmounted(() => {
+  try {
+    if (heartbeat) clearInterval(heartbeat)
+  } catch {}
+  heartbeat = null
+})
+
+// Ensure agentThinking is initialized for assigned sparks after reload when a run is active
+watch([assignedSparks, isRunningTask, runStatus], () => {
+  const isActive = isRunningTask.value || runStatus.value === 'running'
+  if (!isActive) return
+  if (!assignedSparks.value || assignedSparks.value.length === 0) return
+  for (const spark of assignedSparks.value) {
+    if (agentThinking.value[spark.id] === undefined) agentThinking.value[spark.id] = true
+  }
+})
+
 // Output modal state
-type UiOutput = { id: string; title: string; text: string; coverPrompt?: string; coverImageUrl?: string; persona: { id: string; name: string; color: string; }; status?: "text-only" | "pending-image" | "complete"; };
+type UiOutput = { id: string; title: string; text: string; persona: { id: string; name: string; color: string; }; coverSvg?: string; status?: "text-only" | "complete" };
 const isOutputModalOpen = ref(false);
 const selectedOutput = ref<UiOutput | null>(null);
+const refineComment = ref('')
+const isRefiningOutput = ref(false)
+const isUpdatingIdea = ref(false)
+const refineChat = ref<Array<{ role: 'user' | 'assistant'; text: string }>>([])
+const refineChatWithGreeting = computed(() => {
+  if (!selectedOutput.value) return refineChat.value
+  const sparkName = selectedOutput.value.persona?.name || 'Spark'
+  const greeting = { role: 'assistant', text: `Hi, I'm ${sparkName}. Got any comments or feedback on my idea?` } as const
+  // Prepend greeting unless there is already content
+  return [greeting, ...refineChat.value]
+})
 const isDeletingOutput = ref(false);
 const isDeletingAllOutputs = ref(false);
 
 const renderedOutputText = computed(() => {
   if (!selectedOutput.value) return "";
+  if (isUpdatingIdea.value) {
+    return `<div class=\"animate-pulse space-y-2\"><div class=\"h-3 bg-secondary-300/60 rounded\"></div><div class=\"h-3 bg-secondary-300/60 rounded w-5/6\"></div><div class=\"h-3 bg-secondary-300/60 rounded w-4/6\"></div></div>`
+  }
   return renderMarkdown(selectedOutput.value.text);
 });
-function openOutputModal(output: UiOutput) { selectedOutput.value = output; isOutputModalOpen.value = true; }
+async function openOutputModal(output: UiOutput) { 
+  selectedOutput.value = output; 
+  refineComment.value = ''; 
+  refineChat.value = []; 
+  isOutputModalOpen.value = true; 
+  try {
+    const r = await $fetch<{ data: { output: any; comments: Array<{ role: 'user' | 'assistant'; text: string }> } }>(`/api/spark/outputs/${output.id}`)
+    refineChat.value = (r.data.comments || []).map(c => ({ role: (c.role as any) || 'assistant', text: c.text }))
+  } catch {}
+}
 function closeOutputModal() { isOutputModalOpen.value = false; selectedOutput.value = null; }
 async function deleteSelectedOutput() {
   if (!selectedOutput.value) return;
@@ -1406,6 +1479,58 @@ async function deleteSelectedOutput() {
     alert(e.data?.message || "Failed to delete output");
   } finally {
     isDeletingOutput.value = false;
+  }
+}
+
+async function refineSelectedOutput() {
+  if (!selectedOutput.value) return
+  const comment = refineComment.value.trim()
+  if (!comment) return
+  // Chat: append user message and thinking placeholder
+  refineChat.value.push({ role: 'user', text: comment })
+  const thinkingIndex = refineChat.value.push({ role: 'assistant', text: 'Thinking…' }) - 1
+  isRefiningOutput.value = true
+  let opMode: 'update' | 'explore' = 'update'
+  try {
+    const res = await $fetch<{ data: { id: string; mode?: 'update' | 'explore'; title?: string; text?: string; explanation?: string; followups?: string[] } }>(`/api/spark/outputs/${selectedOutput.value.id}`, {
+      method: 'PUT',
+      body: { comment }
+    })
+    const mode = res.data.mode || 'update'
+    opMode = mode
+    if (mode === 'update') {
+      // Show skeleton only while applying changes
+      isUpdatingIdea.value = true
+      const expl = res.data.explanation || 'Updated the idea based on your comment.'
+      if (thinkingIndex >= 0) refineChat.value[thinkingIndex] = { role: 'assistant', text: expl }
+
+      await nextTick()
+      setTimeout(() => {
+        const idx = outputs.value.findIndex(o => o.id === selectedOutput.value?.id)
+        if (idx !== -1) {
+          if (res.data.text) outputs.value[idx].text = res.data.text
+          if (res.data.title) outputs.value[idx].title = res.data.title
+          if (res.data.text) selectedOutput.value.text = res.data.text
+          if (res.data.title) selectedOutput.value.title = res.data.title
+        }
+        isUpdatingIdea.value = false
+      }, 350)
+    } else {
+      // explore mode: do not change idea, ask follow-ups
+      const lines = [res.data.explanation || 'I have a couple of clarifying questions:']
+      if (res.data.followups && res.data.followups.length > 0) {
+        for (const q of res.data.followups) lines.push(`- ${q}`)
+      }
+      if (thinkingIndex >= 0) refineChat.value[thinkingIndex] = { role: 'assistant', text: lines.join('\n') }
+    }
+  } catch (e: any) {
+    if (thinkingIndex >= 0) refineChat.value[thinkingIndex] = { role: 'assistant', text: e?.data?.message || e?.message || 'Failed to update idea' }
+  } finally {
+    isRefiningOutput.value = false
+    if (opMode !== 'update') {
+      isUpdatingIdea.value = false
+    }
+    refineComment.value = ''
   }
 }
 async function deleteAllOutputs() {

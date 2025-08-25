@@ -136,6 +136,8 @@ export default defineNuxtConfig({
     databaseUrl: '',
     stripeSk: process.env.STRIPE_SK,
     stripePremiumPid: process.env.STRIPE_PREMIUM_PID,
+    githubToken: process.env.GITHUB_TOKEN,
+    githubRepo: process.env.GITHUB_REPO,
     
     // Public keys (exposed to client-side)
     public: {
