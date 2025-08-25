@@ -193,12 +193,12 @@ export async function processProjectRun(runId: string) {
           try {
             const { text: rawSvg } = await generateText({
               model: openai('gpt-4o-mini'),
-              system: 'You generate concise, valid SVG markup only. No explanations. Output EXACTLY one <svg> element with viewBox="0 0 512 512" suitable for a square card. MUST be low-poly (triangles/polygons), abstract, composed of 3–5 shapes. Use SINGLE flat fill color for all shapes, NO gradients, NO strokes, NO external images or scripts.',
+              system: 'You generate concise, valid SVG markup only. No explanations. Output EXACTLY one <svg> element with viewBox="0 0 512 512" suitable for a square card. MUST be low-poly (triangles/polygons), abstract, composed of 5–15 shapes. Use SINGLE flat fill color for all shapes, NO gradients, NO strokes, NO external images or scripts.',
               messages: [{
                 role: 'user',
-                content: `Project Title: ${project.name}\nProject Task: ${project.task}\nCreate an abstract LOW-POLY SVG composed of 3 to 5 separate polygon shapes (triangles/quadrilaterals). No circles or curves. Use a SINGLE flat fill color for all shapes (frontend recolors), NO gradients, NO strokes. You MAY vary opacity per shape (0.35–1.0) to create layering. Arrange shapes to subtly reflect the idea's key concepts. NO text. Max 8KB. Output only the SVG element.`
+                content: `Project Title: ${project.name}\nProject Task: ${project.task}\nCreate an abstract LOW-POLY SVG composed of 5 to 15 separate polygon shapes (triangles/quadrilaterals). No circles or curves. Use a SINGLE flat fill color for all shapes (frontend recolors), NO gradients, NO strokes. You MAY vary opacity per shape (0.35–1.0) to create layering. Freely position, scale, and rotate shapes to subtly reflect the idea's key concepts. NO text. Max 8KB. Output only the SVG element.`
               }],
-              temperature: 0.35,
+              temperature: 0.4,
             })
             const raw = (rawSvg || '').trim()
             const m = raw.match(/<svg[\s\S]*?<\/svg>/i)
@@ -383,12 +383,12 @@ export async function processProjectRun(runId: string) {
       try {
         const { text: rawSvg } = await generateText({
           model: openai('gpt-4o-mini'),
-          system: 'You generate concise, valid SVG markup only. No explanations. Output EXACTLY one <svg> element with viewBox="0 0 512 512" suitable for a square card. MUST be low-poly (triangles/polygons), abstract, composed of 3–5 shapes. Use SINGLE flat fill color for all shapes, NO gradients, NO strokes, NO external images or scripts.',
+          system: 'You generate concise, valid SVG markup only. No explanations. Output EXACTLY one <svg> element with viewBox="0 0 512 512" suitable for a square card. MUST be low-poly (triangles/polygons), abstract, composed of 5–15 shapes. Use SINGLE flat fill color for all shapes, NO gradients, NO strokes, NO external images or scripts.',
           messages: [{
             role: 'user',
-            content: `Project Title: ${project.name}\nProject Task: ${project.task}\nCreate an abstract LOW-POLY SVG composed of 3 to 5 separate polygon shapes (triangles/quadrilaterals). No circles or curves. Use a SINGLE flat fill color for all shapes (frontend recolors), NO gradients, NO strokes. You MAY vary opacity per shape (0.35–1.0) to create layering. Arrange shapes to subtly reflect the idea's key concepts. NO text. Max 8KB. Output only the SVG element.`
+            content: `Project Title: ${project.name}\nProject Task: ${project.task}\nCreate an abstract LOW-POLY SVG composed of 5 to 15 separate polygon shapes (triangles/quadrilaterals). No circles or curves. Use a SINGLE flat fill color for all shapes (frontend recolors), NO gradients, NO strokes. You MAY vary opacity per shape (0.35–1.0) to create layering. Freely position, scale, and rotate shapes to subtly reflect the idea's key concepts. NO text. Max 8KB. Output only the SVG element.`
           }],
-          temperature: 0.35,
+          temperature: 0.4,
         })
         const raw = (rawSvg || '').trim()
         const m = raw.match(/<svg[\s\S]*?<\/svg>/i)
