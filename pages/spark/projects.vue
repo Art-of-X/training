@@ -729,6 +729,11 @@ const isSavingTask = ref(false);
 const isRunningTask = ref(false);
 // Declare runStatus early to avoid temporal dead zone in watchers/effects below
 const runStatus = ref<"idle" | "running" | "coordinating" | "saving" | "finished" | "error">("idle");
+// Declare agent UI state early to avoid temporal dead zone in run/cancel handlers
+type AgentEvent = { type: string; sparkId?: string; name?: string; text?: string; error?: string; };
+const agentEvents = ref<AgentEvent[]>([]);
+const agentThinking = ref<Record<string, boolean>>({});
+const isMonologueOpen = ref(true);
 const MAX_SPARKS = computed(() => maxSparks.value)
 const assignedSparkIds = computed(
   () => new Set((selectedProject.value?.sparks || []).map((s) => s.sparkId))
@@ -1247,11 +1252,6 @@ watchEffect(async () => {
   } catch {}
 });
 
-// UI state for monologue & streaming
-type AgentEvent = { type: string; sparkId?: string; name?: string; text?: string; error?: string; };
-const agentEvents = ref<AgentEvent[]>([]);
-const agentThinking = ref<Record<string, boolean>>({});
-const isMonologueOpen = ref(true);
 const logsContainer = ref<HTMLElement | null>(null);
 function scrollToBottom() { if (logsContainer.value) { logsContainer.value.scrollTop = logsContainer.value.scrollHeight; } }
 

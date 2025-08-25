@@ -244,6 +244,7 @@ const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 import { useUserProfile } from '~/composables/useUserProfile'
 const { userProfile } = useUserProfile()
+import { useSubscription } from '~/composables/useSubscription'
 
 const isLoading = ref(true)
 const isSaving = ref(false)
@@ -253,10 +254,11 @@ const error = ref<string | null>(null)
 const message = ref<string | null>(null)
 
 const accountForm = reactive<{ name: string; email: string }>({ name: '', email: '' })
+const { plan, product, prices, subscriptionId, loadSubscription: loadSub, refresh } = useSubscription()
 
 onMounted(async () => {
   await loadAccount()
-  await loadSubscription()
+  await loadSub(true)
   // If returning from Stripe checkout with a session id, verify and refresh plan
   const route = useRoute()
   const sessionId = (route.query.session_id as string | undefined) || undefined
@@ -267,6 +269,7 @@ onMounted(async () => {
         plan.value = 'premium'
         if (r.subscriptionId) subscriptionId.value = r.subscriptionId
       }
+      await refresh() // Refresh subscription after successful checkout
     } catch {}
   }
 })
@@ -290,22 +293,7 @@ async function loadAccount() {
   }
 }
 
-const plan = ref<'free' | 'premium'>('free')
-const subscriptionId = ref<string | null>(null)
-const product = ref<{ id: string; name: string; description: string } | null>(null)
-const prices = ref<Array<{ id: string; unitAmount: number | null; currency: string; interval: string | null }>>([])
-
-async function loadSubscription() {
-  try {
-    const sub = await $fetch<any>('/api/billing/subscription')
-    plan.value = sub.plan
-    product.value = sub.product
-    prices.value = sub.prices.map((p: any) => ({ id: p.id, unitAmount: p.unitAmount, currency: p.currency, interval: p.interval }))
-    subscriptionId.value = sub.subscriptionId
-  } catch (e: any) {
-    // ignore
-  }
-}
+// Subscription state is provided by useSubscription()
 
 async function upgrade() {
   if (isBilling.value) return

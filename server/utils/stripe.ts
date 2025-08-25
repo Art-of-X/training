@@ -39,7 +39,12 @@ export async function resolveUserPlan(event: H3Event): Promise<{ plan: PlanTier;
 
   try {
     const stripe = getStripeClient(event)
-    const premiumProductId = getPremiumProductId(event)
+    let premiumProductId: string | undefined
+    try {
+      premiumProductId = getPremiumProductId(event)
+    } catch {
+      premiumProductId = undefined
+    }
     const email = user.email || undefined
     if (!email) return { plan, subscriptionId }
 
@@ -68,18 +73,27 @@ export async function resolveUserPlan(event: H3Event): Promise<{ plan: PlanTier;
         const subs = await stripe.subscriptions.list({
           customer: c.id,
           status: 'all',
-          expand: ['data.items.data.price.product'],
+          // Expand only price (not product) to avoid deep expansion limits
+          expand: ['data.items.data.price'],
           limit: 50,
         })
         for (const s of subs.data) {
           if (!premiumStatuses.has(s.status)) continue
+          let matchedProduct = false
           for (const item of s.items.data) {
-            const product = item.price.product as Stripe.Product
-            if (product && product.id === premiumProductId) {
-              plan = 'premium'
-              subscriptionId = s.id
-              return { plan, subscriptionId }
+            // product may be a string id or an expanded object depending on expand config
+            const productRef = item.price.product
+            const productId = (typeof productRef === 'string') ? productRef : (productRef as Stripe.Product).id
+            if ((premiumProductId && productId && productId === premiumProductId) || (!premiumProductId && productId)) {
+              matchedProduct = true
+              break
             }
+          }
+          // If we matched by product id or product id is not configured, accept as premium
+          if (matchedProduct || !premiumProductId) {
+            plan = 'premium'
+            subscriptionId = s.id
+            return { plan, subscriptionId }
           }
         }
       } catch {}

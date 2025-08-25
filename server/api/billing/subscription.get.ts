@@ -4,23 +4,21 @@ import { getStripeClient, resolveUserPlan, getPremiumProductId } from '~/server/
 
 export default defineEventHandler(async (event) => {
   const { plan, subscriptionId } = await resolveUserPlan(event)
-  const stripe = getStripeClient(event)
-  const premiumProductId = getPremiumProductId(event)
+  let product: { id: string; name: string; description: string } | null = null
+  let prices: Array<{ id: string; nickname: string | null; unitAmount: number | null; currency: string; interval: Stripe.Price.Recurring.Interval | null }> = []
 
-  // Fetch product and price info for premium tier
-  const product = await stripe.products.retrieve(premiumProductId)
-  const prices = await stripe.prices.list({ product: premiumProductId, active: true, limit: 10 })
-
-  return {
-    plan,
-    subscriptionId,
-    product: {
-      id: product.id,
-      name: product.name,
-      description: product.description,
-    },
-    prices: prices.data.map(p => ({ id: p.id, nickname: p.nickname, unitAmount: p.unit_amount, currency: p.currency, interval: (p.recurring?.interval || null) as Stripe.Price.Recurring.Interval | null })),
+  try {
+    const stripe = getStripeClient(event)
+    const premiumProductId = getPremiumProductId(event)
+    const p = await stripe.products.retrieve(premiumProductId)
+    const pr = await stripe.prices.list({ product: premiumProductId, active: true, limit: 10 })
+    product = { id: p.id, name: p.name, description: p.description || '' }
+    prices = pr.data.map((x) => ({ id: x.id, nickname: x.nickname || null, unitAmount: x.unit_amount, currency: x.currency, interval: (x.recurring?.interval || null) as Stripe.Price.Recurring.Interval | null }))
+  } catch {
+    // Keep product/prices null if retrieval fails, but still return plan
   }
+
+  return { plan, subscriptionId, product, prices }
 })
 
 
