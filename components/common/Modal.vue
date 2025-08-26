@@ -7,7 +7,7 @@
       <!-- Panel -->
       <div :class="panelClass">
         <!-- Header -->
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between pb-4 border-b-4 mb-8" :style="{ borderColor: secondaryColor }">
           <h3 class="text-3xl font-semibold text-secondary-900 dark:text-white">
             <slot name="title">{{ title }}</slot>
           </h3>
@@ -74,7 +74,7 @@ const panelClass = computed(() => {
     '7xl': 'max-w-7xl',
     full: 'max-w-[95vw]'
   }[props.maxWidth]
-  return `relative w-full ${sizeClass} bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg`
+  return `relative w-full ${sizeClass} bg-white dark:bg-secondary-800 rounded-lg p-8`
 })
 
 const bodyClassComputed = computed(() => props.bodyClass || 'max-h-96 overflow-y-auto')

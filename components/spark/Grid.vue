@@ -15,6 +15,11 @@
           v-for="spark in sparks"
           :key="spark.id"
           class="group relative aspect-square w-full rounded-lg bg-secondary-100 dark:bg-secondary-800 overflow-hidden portfolio-tile cursor-pointer"
+          :style="{
+            backgroundImage: spark.profileImageUrl ? `url(${spark.profileImageUrl})` : undefined,
+            backgroundSize: spark.profileImageUrl ? 'cover' : undefined,
+            backgroundPosition: spark.profileImageUrl ? 'center' : undefined
+          }"
           @click="openSparkChat(spark)"
         >
 
@@ -42,6 +47,7 @@
           <template v-if="spark.dendrograms && spark.dendrograms.dendrogramSvg">
             <div
               class="tile-media absolute inset-0 w-full h-full"
+              :style="{ opacity: spark.profileImageUrl ? 0 : 1 }"
             >
               <div class="svg-container" v-html="spark.dendrograms.dendrogramSvg"></div>
             </div>
@@ -226,6 +232,7 @@ interface Spark {
   systemPrompt?: string
   isPremium?: boolean
   projectsCount?: number
+  profileImageUrl?: string | null
 }
 
 interface Props {
@@ -554,8 +561,8 @@ async function handleAddToProjectSubmit() {
 .portfolio-tile { position: relative; aspect-ratio: 1 / 1; }
 .portfolio-tile .tile-media { position: absolute; z-index: 0; transition: opacity 150ms ease-out; width: 100%; height: 100%; }
 .portfolio-tile:hover { background-color: hsl(var(--color-primary-500)); }
-/* Keep dendrogram visible on hover */
-.portfolio-tile:hover .tile-media { opacity: 1; pointer-events: auto; }
+/* Keep dendrogram visible on hover over the profile image */
+.portfolio-tile:hover .tile-media { opacity: 1 !important; pointer-events: auto; }
 .tile-title { opacity: 0; pointer-events: none; }
 .portfolio-tile:hover .tile-title { opacity: 1; color: var(--header-nav-active-color); }
 .x-mask-secondary {

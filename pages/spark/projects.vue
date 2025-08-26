@@ -551,7 +551,7 @@
             v-model="isOutputModalOpen"
             :title="selectedOutput ? selectedOutput.title : 'Idea'"
             max-width="6xl"
-            :body-class="'max-h-[80vh] overflow-hidden'"
+            :body-class="'max-h-[80vh] overflow-hidden -mt-8'"
             :close-on-backdrop="false"
           >
             <template #headerActions>
@@ -562,18 +562,22 @@
             </template>
             <div v-if="selectedOutput" class="grid grid-cols-1 md:grid-cols-2 gap-4 h-[75vh]">
               <!-- Left fixed column -->
-              <div class="flex flex-col h-full rounded-lg p-4" :style="{ backgroundColor: secondaryColor }">
-                <div class="text-sm" :style="{ color: primaryColor }">
+              <div class="flex flex-col h-full rounded-lg py-8 pe-8 border-r-4 text-secondary-900 dark:text-white" :style="{ borderColor: secondaryColor }">
+                <div class="text-sm">
                    <div class="font-medium mb-1">By: {{ selectedOutput.persona.name }}</div>
                   <template v-if="!isUpdatingIdea">
-                    <h3 class="text-base font-semibold mb-3" :style="{ color: primaryColor }">{{ selectedOutput.title }}</h3>
+                    <h3 class="text-base font-semibold mb-3">{{ selectedOutput.title }}</h3>
                   </template>
                   <template v-else>
                     <div class="animate-pulse h-5 bg-secondary-300/60 rounded w-3/5 mb-3"></div>
                   </template>
                 </div>
+                <div v-if="selectedOutput?.coverSvg" class="w-full h-48 relative rounded mb-3 overflow-hidden">
+                  <div class="absolute inset-0" :style="modalCoverStyle"></div>
+                  <div class="absolute inset-0 svg-container" v-html="selectedOutput.coverSvg"></div>
+                </div>
                 <div class="flex-1 overflow-y-auto pr-2">
-                  <div class="markdown-content" :style="{ color: primaryColor }" v-html="renderedOutputText"></div>
+                  <div class="markdown-content" v-html="renderedOutputText"></div>
                 </div>
               </div>
               <!-- Right chat column: messages scroll, input fixed -->
@@ -1455,6 +1459,18 @@ const renderedOutputText = computed(() => {
   }
   return renderMarkdown(selectedOutput.value.text);
 });
+
+function hashStringToAngle(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+  return hash % 360;
+}
+
+const modalCoverStyle = computed(() => {
+  const key = selectedOutput.value?.id || selectedOutput.value?.title || '0'
+  const angle = hashStringToAngle(key)
+  return { background: `linear-gradient(${angle}deg, ${primaryColor.value}, ${secondaryColor.value})` } as Record<string, string>
+})
 async function openOutputModal(output: UiOutput) { 
   selectedOutput.value = output; 
   refineComment.value = ''; 
@@ -1490,46 +1506,47 @@ async function refineSelectedOutput() {
   refineChat.value.push({ role: 'user', text: comment })
   const thinkingIndex = refineChat.value.push({ role: 'assistant', text: 'Thinking…' }) - 1
   isRefiningOutput.value = true
-  let opMode: 'update' | 'explore' = 'update'
   try {
-    const res = await $fetch<{ data: { id: string; mode?: 'update' | 'explore'; title?: string; text?: string; explanation?: string; followups?: string[] } }>(`/api/spark/outputs/${selectedOutput.value.id}`, {
-      method: 'PUT',
-      body: { comment }
-    })
-    const mode = res.data.mode || 'update'
-    opMode = mode
-    if (mode === 'update') {
-      // Show skeleton only while applying changes
-      isUpdatingIdea.value = true
-      const expl = res.data.explanation || 'Updated the idea based on your comment.'
-      if (thinkingIndex >= 0) refineChat.value[thinkingIndex] = { role: 'assistant', text: expl }
+    // Build message history for better context (limit to last 12 turns, drop placeholders)
+    const history = refineChat.value
+      .filter(m => m.text && m.text !== 'Thinking…')
+      .slice(-12)
+      .map(m => ({ role: m.role, text: m.text }))
 
+    const res = await $fetch<{ data: { mode: 'update' | 'explore'; message?: string; title?: string; text?: string } }>(`/api/spark/outputs/${selectedOutput.value.id}/chat`, {
+      method: 'POST',
+      body: { messages: history }
+    })
+    const mode = res.data.mode
+    const reply = (res.data.message || '').trim()
+    if (mode === 'update') {
+      isUpdatingIdea.value = true
+      if (thinkingIndex >= 0) {
+        if (reply) refineChat.value[thinkingIndex] = { role: 'assistant', text: reply }
+        else refineChat.value.splice(thinkingIndex, 1)
+      }
       await nextTick()
       setTimeout(() => {
         const idx = outputs.value.findIndex(o => o.id === selectedOutput.value?.id)
         if (idx !== -1) {
           if (res.data.text) outputs.value[idx].text = res.data.text
           if (res.data.title) outputs.value[idx].title = res.data.title
-          if (res.data.text) selectedOutput.value.text = res.data.text
-          if (res.data.title) selectedOutput.value.title = res.data.title
+          if (res.data.text && selectedOutput.value) selectedOutput.value.text = res.data.text
+          if (res.data.title && selectedOutput.value) selectedOutput.value.title = res.data.title
         }
         isUpdatingIdea.value = false
       }, 350)
     } else {
-      // explore mode: do not change idea, ask follow-ups
-      const lines = [res.data.explanation || 'I have a couple of clarifying questions:']
-      if (res.data.followups && res.data.followups.length > 0) {
-        for (const q of res.data.followups) lines.push(`- ${q}`)
+      // explore
+      if (thinkingIndex >= 0) {
+        if (reply) refineChat.value[thinkingIndex] = { role: 'assistant', text: reply }
+        else refineChat.value.splice(thinkingIndex, 1)
       }
-      if (thinkingIndex >= 0) refineChat.value[thinkingIndex] = { role: 'assistant', text: lines.join('\n') }
     }
   } catch (e: any) {
     if (thinkingIndex >= 0) refineChat.value[thinkingIndex] = { role: 'assistant', text: e?.data?.message || e?.message || 'Failed to update idea' }
   } finally {
     isRefiningOutput.value = false
-    if (opMode !== 'update') {
-      isUpdatingIdea.value = false
-    }
     refineComment.value = ''
   }
 }

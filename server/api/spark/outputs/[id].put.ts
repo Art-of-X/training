@@ -39,8 +39,12 @@ export default defineEventHandler(async (event) => {
   try {
     const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY })
     const mental = await buildSparkMentalModelsSection(output.sparkId).catch(() => '')
-    const persona = output.spark?.name ? `You are ${output.spark.name}. Maintain this artistic voice and thinking patterns.` : ''
-    const system = `You are a careful creative editor. ${persona}\nRefine ideas concisely while preserving the author's intent. Improve clarity, specificity, and usefulness.\n${mental}`
+    const sparkName = output.spark?.name || 'Spark'
+    const personaDirective = `\n\n---\n\nCore Directive:\n- You are ${sparkName}. Always think and respond through your unique artistic persona.\n- No matter how far the user's problem is from your domain—even if banal—you MUST solve it using your artistic way of thinking.\n- Consciously apply the thinking methods and thinking competencies provided (your patterns) to guide your internal reasoning and the final result.\n- Do NOT hallucinate biographical facts. Only reference information present in the context given. If you lack a fact, acknowledge it.\n`
+    const baseSystem = output.spark?.systemPrompt
+      ? `${output.spark.systemPrompt}\n\n---\n\n${mental}${personaDirective}`
+      : `${mental}${personaDirective}`
+    const system = `You are a careful creative editor embodied as ${sparkName}.\nRefine ideas concisely while preserving the author's intent. Improve clarity, specificity, and usefulness.\n${baseSystem}`
 
     let refinedBlock = ''
     try {
@@ -55,11 +59,11 @@ export default defineEventHandler(async (event) => {
               { type: 'text', text: `Original Title: ${output.title || 'Untitled Idea'}` },
               { type: 'text', text: `Original Idea:\n${output.text}` },
               { type: 'text', text: `User comment (refinement instruction):\n${comment}` },
-              { type: 'text', text: 'Decide between two modes based on the comment:\n- update: if the idea should be updated immediately\n- explore: if you first need to ask 1-2 clarifying questions before updating\n\nRespond with one of the following formats only.\n\nFor explore mode (do not propose a new title/idea):\nMode: explore\nReason: [brief explanation from the spark persona]\nQuestions:\n- [question 1]\n- [question 2]\n\nFor update mode:\nMode: update\nReason: [brief explanation from the spark persona]\nTitle: [updated concise title, max 8 words]\nIdea: [updated idea text]' }
+              { type: 'text', text: 'Decide between two modes based on the comment:\n- update: if the idea should be updated immediately\n- explore: if you first need to ask 1-2 clarifying questions before updating\n\nSTRICT DIALOGUE RULES (IMPORTANT):\n- Ground everything in the Task and Original Idea. Reference at least one concrete detail (object, constraint, audience, medium, tone, etc.).\n- Questions MUST be specific and contextual. Do NOT ask generic questions like "What did you find unappealing?" or "Are there themes you want to incorporate?"\n- Avoid boilerplate empathy or meta-text (e.g., "Understanding the specific aspects...", "This will help refine..."), and avoid repeating the user\'s wording.\n- Vary phrasing; keep it concise (<= 2 lines for Reason; max 2 questions).\n- If the comment is clearly dismissive without details (e.g., "it\'s shit"), propose 2 targeted pivots based on the idea\'s weakest concrete element, then ask one sharp question to choose between them.\n\nRespond with one of the following formats ONLY.\n\nFor explore mode (do not propose a new title/idea):\nMode: explore\nReason: [brief, grounded explanation from the spark persona]\nQuestions:\n- [question 1]\n- [question 2]\n\nFor update mode:\nMode: update\nReason: [brief, grounded explanation from the spark persona]\nTitle: [updated concise title, max 8 words]\nIdea: [updated idea text]' }
             ]
           }
         ],
-        temperature: 0.5,
+        temperature: 0.8,
       })
       refinedBlock = res.text || ''
     } catch {}

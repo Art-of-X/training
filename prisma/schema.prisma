@@ -221,6 +221,7 @@ model Spark {
   isPremium        Boolean            @default(false) @map("is_premium")
   publicShareId    String?            @unique @map("public_share_id") @db.Uuid
   profitSplitOptIn Boolean            @default(false) @map("profit_split_opt_in")
+  profileImageUrl  String?            @map("profile_image_url")
   outputs          Output[]
   patterns         Pattern[]          @relation("SparkPatterns")
   dendrograms      SparkDendrogram?
