@@ -72,9 +72,25 @@ export async function generateAICoreResponse(
         // Optionally, interpolate userName if needed
         systemPrompt = systemPrompt.replace(/\{\{userName\}\}/g, userName);
     } else {
-        const prompts = await fetchPromptsFromPublicSheet();
-        systemPrompt = prompts['systemPrompt'];
-        developerPrompt = prompts['developerPrompt'];
+        try {
+            const prompts = await fetchPromptsFromPublicSheet();
+            systemPrompt = prompts['systemPrompt'];
+            developerPrompt = prompts['developerPrompt'];
+        } catch (err) {
+            // Fallback to local prompt files if env var is missing or sheet fetch fails
+            const __filename = fileURLToPath(import.meta.url);
+            const __dirname = path.dirname(__filename);
+            const assetsDir = path.join(__dirname, '..', '..', 'assets');
+            try {
+                systemPrompt = fs.readFileSync(path.join(assetsDir, 'systemPrompt.txt'), 'utf-8');
+                developerPrompt = fs.readFileSync(path.join(assetsDir, 'developerPrompt.txt'), 'utf-8');
+                systemPrompt = systemPrompt.replace(/\{\{userName\}\}/g, userName);
+            } catch {
+                // As a last resort, use minimal defaults
+                systemPrompt = `You are a helpful creative assistant for ${userName}.`;
+                developerPrompt = '';
+            }
+        }
     }
     const openai = createOpenAI({
         apiKey: process.env.OPENAI_API_KEY,
