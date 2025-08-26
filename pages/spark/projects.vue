@@ -31,7 +31,7 @@
               <div
                 v-for="spark in assignedSparksLimited"
                 :key="spark.id"
-                class="group relative w-full h-16 rounded-lg overflow-hidden flex items-center"
+                class="group relative w-full h-20 rounded-lg overflow-hidden flex items-center"
               >
                 <!-- Thinking status at top -->
                 <div
@@ -69,22 +69,28 @@
 
                 <!-- Combined icon and name section -->
                 <div class="flex-1 h-full flex">
-                  <!-- Square icon/gradient -->
-                  <div class="flex-shrink-0 w-16 h-full" :style="{ background: spark.dendrograms && spark.dendrograms.dendrogramSvg ? primaryColor : `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` }">
-                    <!-- SVG dendrogram overlay if available -->
-                    <template v-if="spark.dendrograms && spark.dendrograms.dendrogramSvg">
+                  <!-- Square icon/gradient with improved dendrogram display -->
+                  <div class="flex-shrink-0 w-20 h-full rounded-l-lg overflow-hidden" :style="{ 
+                    background: spark.profileImageUrl 
+                      ? `url(${spark.profileImageUrl}) center/cover no-repeat` 
+                      : spark.dendrograms && spark.dendrograms.dendrogramSvg 
+                        ? primaryColor 
+                        : `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` 
+                  }">
+                    <!-- SVG dendrogram overlay if no profile image available -->
+                    <template v-if="!spark.profileImageUrl && spark.dendrograms && spark.dendrograms.dendrogramSvg">
                       <div class="svg-container p-0 m-0 w-full h-full" v-html="spark.dendrograms.dendrogramSvg"></div>
                     </template>
                   </div>
 
                   <!-- Name and discipline info with primary background -->
-                  <div class="flex-1 flex flex-col justify-center px-3 bg-primary-500">
-                                    <div class="font-medium text-sm truncate" :style="{ color: secondaryColor }">
-                  {{ spark.name }}
-                </div>
-                <div class="text-sm truncate" :style="{ color: secondaryColor }">
-                  {{ spark.discipline }}
-                </div>
+                  <div class="flex-1 flex flex-col justify-center px-4 bg-primary-500 rounded-r-lg">
+                    <div class="font-medium text-sm truncate" :style="{ color: secondaryColor }">
+                      {{ spark.name }}
+                    </div>
+                    <div class="text-sm truncate" :style="{ color: secondaryColor }">
+                      {{ spark.discipline }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -94,17 +100,17 @@
             <div class="mt-4">
               <div
                 @click="handleAddSparksClick"
-                class="group relative w-full h-16 rounded-lg border-l-2 border-t-2 border-b-2 border-dashed border-primary-500 bg-transparent hover:bg-secondary-50 dark:hover:bg-secondary-700/30 cursor-pointer transition-colors duration-200 flex items-center"
+                class="group relative w-full h-20 rounded-lg border-l-2 border-t-2 border-b-2 border-dashed border-primary-500 bg-transparent hover:bg-secondary-50 dark:hover:bg-secondary-700/30 cursor-pointer transition-colors duration-200 flex items-center"
               >
                 <!-- Combined icon and name section -->
                 <div class="flex-1 h-full flex">
                   <!-- Square icon/gradient -->
-                  <div class="flex-shrink-0 w-16 h-full flex items-center justify-center">
+                  <div class="flex-shrink-0 w-20 h-full flex items-center justify-center">
                     <div class="text-3xl font-bold" :style="{ color: primaryColor }">+</div>
                   </div>
 
                   <!-- Name and discipline info with primary background -->
-                  <div class="flex-1 flex flex-col justify-center px-3 bg-primary-500">
+                  <div class="flex-1 flex flex-col justify-center px-4 bg-primary-500 rounded-r-lg">
                     <div class="font-medium text-sm truncate" :style="{ color: secondaryColor }">
                       Add Sparks
                     </div>
@@ -409,28 +415,42 @@
       <transition name="fade-transform">
         <div v-if="isSelectSparksOpen" class="fixed inset-0 z-50 flex items-center justify-center">
           <div class="absolute inset-0 bg-black/50" @click="isSelectSparksOpen = false" />
-          <div class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg">
+          <div class="relative w-full max-w-4xl bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg">
             <h3 class="text-3xl font-semibold mb-4 text-secondary-900 dark:text-white">Add Sparks to Project</h3>
             <div class="text-sm text-secondary-600 dark:text-secondary-300 mb-2">
               You can add up to {{ MAX_SPARKS }} sparks. Available slots:
               {{ availableSparkSlots }}
             </div>
-            <div class="max-h-80 overflow-auto space-y-2 pr-1">
+            <div class="max-h-80 overflow-auto space-y-3 pr-1">
               <label
                 v-for="spark in unassignedSparks"
                 :key="spark.id"
-                class="flex items-start gap-3 p-2 rounded hover:bg-secondary-100 dark:hover:bg-secondary-700 cursor-pointer"
+                class="flex items-start gap-4 p-3 rounded-lg hover:bg-secondary-100 dark:hover:bg-secondary-700 cursor-pointer border border-transparent hover:border-secondary-200 dark:hover:border-secondary-600 transition-all duration-200"
               >
                 <input
                   type="checkbox"
-                  class="form-checkbox mt-1"
+                  class="form-checkbox mt-2"
                   :value="spark.id"
                   v-model="selectedToAssign"
                   :disabled="isCheckboxDisabled(spark.id)"
                 />
-                <div>
-                  <div class="font-medium">{{ spark.name }}</div>
-                  <div class="text-sm text-secondary-600 dark:text-secondary-300">
+                
+                <!-- Spark dendrogram/image -->
+                <div class="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden" :style="{ 
+                  background: spark.profileImageUrl 
+                    ? `url(${spark.profileImageUrl}) center/cover no-repeat` 
+                    : spark.dendrograms && spark.dendrograms.dendrogramSvg 
+                      ? primaryColor 
+                      : `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` 
+                }">
+                  <template v-if="!spark.profileImageUrl && spark.dendrograms && spark.dendrograms.dendrogramSvg">
+                    <div class="svg-container p-0 m-0 w-full h-full" v-html="spark.dendrograms.dendrogramSvg"></div>
+                  </template>
+                </div>
+                
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium text-base">{{ spark.name }}</div>
+                  <div class="text-sm text-secondary-600 dark:text-secondary-300 mb-1">
                     {{ spark.discipline }}
                   </div>
                   <div class="text-sm text-secondary-500 line-clamp-2">
@@ -716,6 +736,7 @@ type Spark = {
   discipline: string;
   dendrograms: SparkDendrogram | null;
   isPremium?: boolean;
+  profileImageUrl?: string;
 };
 
 const allSparks = ref<Spark[]>([]);
@@ -1688,6 +1709,13 @@ async function handleUpgrade() {
 /* Ensure SVG uses secondary color when background is primary */
 .svg-container :deep(svg) {
   --spark-secondary: v-bind(secondaryColor);
+}
+
+/* Background image styling for spark profile images */
+.spark-image-container {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
 }
 
 .markdown-content :deep(h1) { @apply text-sm font-semibold mt-3 mb-2 text-secondary-900 dark:text-white; }

@@ -18,8 +18,8 @@
             <span
               class="text-xs font-semibold px-2 py-0.5 rounded-full ml-2"
               :style="accentFgBgStyle"
-              >BETA</span
-            >
+              >BETA (things will break)</span
+            > 
           </NuxtLink>
 
           <!-- Right Aligned Items -->
@@ -291,7 +291,7 @@
       >
         <div class="absolute inset-0 bg-black/50" @click="closeCreateModal" />
         <div
-          class="relative w-full max-w-lg bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg"
+          class="relative w-full max-w-4xl bg-white dark:bg-secondary-800 rounded-lg p-6 shadow-lg"
         >
           <h3 class="text-3xl font-semibold mb-4 text-secondary-900 dark:text-white">
             Create New Project
@@ -319,26 +319,44 @@
             </div>
             <div>
               <label class="form-label">Add Sparks (up to {{ MAX_SPARKS }})</label>
-              <div class="max-h-40 overflow-auto space-y-2 pr-1 border border-secondary-300 dark:border-secondary-600 rounded-md p-2">
+              <div class="max-h-60 overflow-auto space-y-3 pr-1 border border-secondary-300 dark:border-secondary-600 rounded-md p-3">
                 <label
                   v-for="spark in allSparks"
                   :key="spark.id"
-                  class="flex items-start gap-3 p-2 rounded hover:bg-secondary-100 dark:hover:bg-secondary-700 cursor-pointer"
+                  class="flex items-start gap-4 p-3 rounded-lg hover:bg-secondary-100 dark:hover:bg-secondary-700 cursor-pointer border border-transparent hover:border-secondary-200 dark:hover:border-secondary-600 transition-all duration-200"
                 >
                   <input
                     type="checkbox"
-                    class="form-checkbox mt-1"
+                    class="form-checkbox mt-2"
                     :value="spark.id"
                     v-model="newProjectForm.selectedSparkIds"
                     :disabled="newProjectForm.selectedSparkIds.length >= MAX_SPARKS && !newProjectForm.selectedSparkIds.includes(spark.id)"
                   />
-                  <div>
-                    <div class="font-medium">{{ spark.name }}</div>
-                    <div class=" text-sm  text-secondary-600 dark:text-secondary-300">{{ spark.discipline }}</div>
-                    <div class="text-xs text-secondary-500 line-clamp-2">{{ spark.description }}</div>
+                  
+                  <!-- Spark dendrogram/image -->
+                  <div class="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden" :style="{ 
+                    background: spark.profileImageUrl 
+                      ? `url(${spark.profileImageUrl}) center/cover no-repeat` 
+                      : spark.dendrograms && spark.dendrograms.dendrogramSvg 
+                        ? primaryColor 
+                        : `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` 
+                  }">
+                    <template v-if="!spark.profileImageUrl && spark.dendrograms && spark.dendrograms.dendrogramSvg">
+                      <div class="svg-container p-0 m-0 w-full h-full" v-html="spark.dendrograms.dendrogramSvg"></div>
+                    </template>
+                  </div>
+                  
+                  <div class="flex-1 min-w-0">
+                    <div class="font-medium text-base">{{ spark.name }}</div>
+                    <div class="text-sm text-secondary-600 dark:text-secondary-300 mb-1">
+                      {{ spark.discipline }}
+                    </div>
+                    <div class="text-xs text-secondary-500 line-clamp-2">
+                      {{ spark.description }}
+                    </div>
                   </div>
                 </label>
-                <div v-if="allSparks.length === 0" class=" text-sm  text-secondary-500">No sparks available.</div>
+                <div v-if="allSparks.length === 0" class="text-sm text-secondary-500">No sparks available.</div>
               </div>
             </div>
             <div class="flex justify-end gap-2 pt-2">
@@ -742,5 +760,50 @@ body {
 
 .loading-spinner {
   @apply inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin;
+}
+
+/* SVG container styles for spark dendrograms */
+.svg-container :deep(svg) { 
+  width: 100% !important; 
+  height: 100% !important; 
+}
+
+:root { 
+  --spark-secondary: #888; 
+}
+
+.svg-container { 
+  --spark-secondary: v-bind(secondaryColor); 
+}
+
+.svg-container :deep(svg [fill]) { 
+  fill: var(--spark-secondary) !important; 
+}
+
+.svg-container :deep(svg [stroke]) { 
+  stroke: var(--spark-secondary) !important; 
+}
+
+.svg-container :deep(svg .link) { 
+  stroke: var(--spark-secondary) !important; 
+}
+
+.svg-container :deep(svg .spark-node),
+.svg-container :deep(svg .method-node),
+.svg-container :deep(svg .competency-node) { 
+  fill: var(--spark-secondary) !important; 
+  stroke: var(--spark-secondary) !important; 
+}
+
+.svg-container :deep(svg .node) { 
+  fill: var(--spark-secondary) !important; 
+  stroke: var(--spark-secondary) !important; 
+}
+
+/* Background image styling for spark profile images */
+.spark-image-container {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
 }
 </style> 
