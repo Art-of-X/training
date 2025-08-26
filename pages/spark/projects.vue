@@ -1,11 +1,11 @@
 <template>
-  <div class="h-[calc(100vh-var(--app-header-height))] pt-8 space-y-8 overflow-hidden">
+  <div class="h-[calc(100vh-var(--app-header-height))] overflow-hidden flex flex-col">
     <div v-if="isLoading">
       <PageLoader class="mx-8" />
     </div>
-    <div v-else>
+    <div v-else class="flex-1 flex flex-col min-h-0">
       <!-- Project Selection Header -->
-      <section class="sticky top-0 z-30 px-8 pb-4 border-b-4 border-primary-500 bg-white dark:bg-secondary-900">
+      <section class="sticky top-0 z-30 px-8 pt-8 pb-4 border-b-4 border-primary-500 bg-white dark:bg-secondary-900">
         <div class="flex items-center justify-between">
           <h1 class="text-3xl font-bold">
             {{ selectedProject?.name || "Select a project" }}
@@ -16,11 +16,11 @@
         </div>
       </section>
 
-      <div v-if="selectedProject">
+      <div v-if="selectedProject" class="flex-1 min-h-0">
         <!-- Horizontal Layout Container -->
-        <div class="flex gap-8 overflow-x-auto pb-4">
+        <div class="flex gap-8 overflow-x-auto h-full">
           <!-- Sparks Section -->
-          <div class="flex-shrink-0 w-96 border-r-4 border-primary-500 ps-8">
+          <div class="flex-shrink-0 w-96 border-r-4 border-primary-500 ps-8 ">
             <div class="my-4">
               <h2 class="text-xl font-bold mb-2">Your dream team</h2>
               <p class="text-sm text-secondary-600 dark:text-secondary-300">
@@ -295,7 +295,7 @@
                 Insights and thought processes will appear here.
               </p>
             </div>
-            <div class="grid grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-1">
+            <div class="grid grid-cols-2 gap-4 max-h-full overflow-y-auto pr-1">
               <OutputCard
                 v-for="output in outputs"
                 :key="output.id"
@@ -307,7 +307,7 @@
           </div>
 
           <!-- Output Section -->
-          <div class="flex-shrink-0 border-r-4 border-primary-500">
+          <div class="flex-shrink-0 border-r-4 border-primary-500 ">
             <div class="my-4">
                               <div class="flex items-center gap-2">
                   <h2 class="text-xl font-bold">Artefacts</h2>
