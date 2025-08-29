@@ -288,11 +288,15 @@ import {
 import { useTrainingProgress } from "~/composables/useTrainingProgress";
 import { useDynamicColors } from "~/composables/useDynamicColors";
 import { useUpgradeModal } from "~/composables/useUpgradeModal";
+import { usePipeline } from "~/composables/usePipeline";
+import { useAuth } from "~/composables/useAuth";
+import { useEventBus } from '~/composables/useEventBus';
 
 // Props
 interface Props {
   embedded?: boolean;
   sparkId?: string; // When provided, runs in spark chat mode (no tools, spark system prompt)
+  trainingSparkId?: string; // When provided, runs in default mode but with spark context for training
   maxUserMessages?: number; // Optional cap for user messages (e.g., premium sparks)
   externalMessages?: Array<{ role: 'user' | 'assistant'; text: string }>; // Optional external messages for display-only mode
 }
@@ -300,12 +304,14 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   embedded: false,
   sparkId: undefined,
+  trainingSparkId: undefined,
   maxUserMessages: undefined,
   externalMessages: undefined,
 });
 
 const emit = defineEmits<{
   (e: 'submit', text: string): void
+  (e: 'trainingMessage'): void
 }>()
 
 const {
@@ -323,13 +329,19 @@ const {
   getInitialMessage,
   currentSessionId,
   transcriptDraft,
-} = useChat({ mode: props.sparkId ? 'spark' : 'default', sparkId: props.sparkId });
+} = useChat({ 
+  mode: props.sparkId ? 'spark' : 'default', 
+  sparkId: props.sparkId,
+  trainingSparkId: props.trainingSparkId
+});
 
 // Dynamic colors
 const { primaryColor, secondaryColor } = useDynamicColors();
 const { openUpgradeModal } = useUpgradeModal();
+const { triggerChatProcessing } = usePipeline();
+const bus = useEventBus();
 
-// Training progress (scoped to spark if provided)
+// Training progress (scoped to spark if provided)  
 const { progressPercent } = useTrainingProgress(computed(() => props.sparkId))
 const displayPercent = computed(() => String(progressPercent.value).padStart(2, '0'))
 
@@ -417,7 +429,7 @@ const handleFileUpload = async (event: Event) => {
   // Safety timeout to reset upload state if it gets stuck
   const uploadTimeout = setTimeout(() => {
     if (isUploadingFile.value) {
-      console.warn("Upload timeout - resetting upload state");
+      // Upload timeout - resetting upload state
       isUploadingFile.value = false;
       uploadError.value = "Upload timed out. Please try again.";
     }
@@ -520,7 +532,14 @@ const handleSubmit = async (e: Event) => {
     return
   }
 
-  originalHandleSubmit(userMessage);
+  // Submit the message
+  await originalHandleSubmit(userMessage);
+
+  // Emit training event for external handling (my-spark.vue will handle pipeline processing)
+  if (!props.sparkId && !props.externalMessages) {
+    // Just emit that a training message was sent
+    emit('trainingMessage')
+  }
 };
 
 // Handle Shift+Enter for new lines
