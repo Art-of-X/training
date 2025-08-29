@@ -619,12 +619,11 @@ export const getUserPreferencesTool = (userId: string) => tool({
 
 // Unified tool: Set/update any user preference
 export const setUserPreferencesTool = (userId: string) => tool({
-  description: 'Update any user preference (language, TTS, memory, etc.).',
+  description: 'Update any user preference (language, TTS, etc.).',
   parameters: z.object({
     preferredLanguage: z.string().optional(),
     ttsEnabled: z.boolean().optional(),
-    memory: z.string().optional(),
-    // Add more fields as needed
+    // Removed memory - using spark embeddings instead
   }),
   execute: async (updates) => {
     await prisma.userPreferences.upsert({
@@ -633,5 +632,150 @@ export const setUserPreferencesTool = (userId: string) => tool({
       create: { userId, ...updates },
     });
     return { success: true };
+  }
+});
+
+// Access spark's holistic memories
+export const getSparkTrainingContextTool = (userId: string) => tool({
+  description: 'Access the spark\'s personal memories and experiences. These memories form the spark\'s personality holistically - they are not categorized but represent the full spectrum of the spark\'s creative journey and artistic identity.',
+  parameters: z.object({
+    sparkId: z.string().describe('The ID of the spark to get memories for'),
+    query: z.string().describe('What aspect of the spark\'s experience to explore (any creative topic, feeling, or experience)'),
+    limit: z.number().optional().describe('Maximum number of memory fragments to return (default: 5)'),
+  }),
+  execute: async ({ sparkId, query, limit = 5 }) => {
+    try {
+      // Verify user owns the spark
+      const spark = await prisma.spark.findFirst({
+        where: { id: sparkId, userId },
+        select: { id: true, name: true }
+      });
+      
+      if (!spark) {
+        return { success: false, error: 'Spark not found or access denied' };
+      }
+      
+      // Import RAG function dynamically
+      const { getSparkPersonalEmbeddings } = await import('~/server/utils/rag');
+      
+      // Get relevant training context
+      const personalChunks = await getSparkPersonalEmbeddings(sparkId, query, limit);
+      
+      if (personalChunks.length === 0) {
+        return {
+          success: true,
+          context: [],
+          message: 'This spark has no memories yet. Its personality will emerge through training conversations and shared experiences.'
+        };
+      }
+      
+      return {
+        success: true,
+        sparkName: spark.name,
+        context: personalChunks.map(chunk => ({
+          content: chunk.content,
+          metadata: chunk.metadata,
+          similarity: chunk.similarity
+        })),
+        totalFound: personalChunks.length,
+        message: `Retrieved ${personalChunks.length} memory fragments that form ${spark.name}'s consciousness`
+      };
+      
+    } catch (error: any) {
+      console.error('Error in getSparkTrainingContextTool:', error);
+      return { success: false, error: `Failed to retrieve training context: ${error.message}` };
+    }
+  }
+});
+
+// Add holistic memories to spark's experience
+export const addSparkTrainingContentTool = (userId: string) => tool({
+  description: 'Add new memories to the spark\'s consciousness. These become part of the spark\'s holistic personality and creative identity. Don\'t categorize - just capture the raw experience or insight as the spark would have lived it.',
+  parameters: z.object({
+    sparkId: z.string().describe('The ID of the spark to add memories to'),
+    content: z.string().describe('The memory or experience to add - capture it as the spark would have experienced it'),
+    sourceType: z.enum(['training_chat', 'manual_entry', 'portfolio_insight']).describe('The source of this memory'),
+    description: z.string().optional().describe('Optional context about this memory'),
+  }),
+  execute: async ({ sparkId, content, sourceType, description }) => {
+    try {
+      // Verify user owns the spark
+      const spark = await prisma.spark.findFirst({
+        where: { id: sparkId, userId },
+        select: { id: true, name: true }
+      });
+      
+      if (!spark) {
+        return { success: false, error: 'Spark not found or access denied' };
+      }
+      
+      // Import required modules
+      const { OpenAI } = await import('openai');
+      const crypto = await import('crypto');
+      
+      // Generate embedding for the content
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const embeddingResponse = await openai.embeddings.create({
+        model: 'text-embedding-3-small',
+        input: content,
+      });
+      
+      const embedding = embeddingResponse.data[0]?.embedding;
+      if (!embedding) {
+        return { success: false, error: 'Failed to generate embedding for content' };
+      }
+      
+      // Create content hash for deduplication
+      const contentHash = crypto.createHash('sha256').update(content).digest('hex');
+      
+      // Check if this content already exists using raw SQL
+      const existing = await prisma.$queryRaw`
+        SELECT id FROM spark_embeddings WHERE content_hash = ${contentHash} LIMIT 1;
+      ` as any[];
+      
+      if (existing.length > 0) {
+        return {
+          success: true,
+          message: 'This content is already in the spark\'s knowledge base',
+          duplicate: true
+        };
+      }
+      
+      // Add to spark embeddings using raw SQL
+      const sourceId = `manual_${Date.now()}`;
+      const metadata = {
+        addedBy: 'training_agent',
+        description: description || 'Training content added during conversation',
+        timestamp: new Date().toISOString()
+      };
+      
+      await prisma.$executeRaw`
+        INSERT INTO spark_embeddings (spark_id, content, content_hash, source_type, source_id, embedding, metadata, created_at, updated_at)
+        VALUES (
+          ${sparkId}::uuid,
+          ${content},
+          ${contentHash},
+          ${sourceType},
+          ${sourceId},
+          ${`[${embedding.join(',')}]`}::vector,
+          ${JSON.stringify(metadata)}::jsonb,
+          NOW(),
+          NOW()
+        );
+      `;
+      
+      const newEmbedding = { id: `manual_${Date.now()}` };
+      
+      return {
+        success: true,
+        message: `Memory integrated into ${spark.name}'s consciousness`,
+        embeddingId: newEmbedding.id,
+        contentPreview: content.substring(0, 100) + (content.length > 100 ? '...' : '')
+      };
+      
+    } catch (error: any) {
+      console.error('Error in addSparkTrainingContentTool:', error);
+      return { success: false, error: `Failed to add training content: ${error.message}` };
+    }
   }
 }); 
